@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Top Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1>Profile</h1>
+            <p class="welcome-text">Manage your account</p>
+        </div>
+        <div class="header-right">
+            <img src="{{ url_for('static', filename='uploads/' + session.profile_pic) }}" 
+                 alt="Profile" class="profile-pic"
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+    </header>
+
+    <!-- Profile Content -->
+    <main class="main-content">
+        <form method="POST" enctype="multipart/form-data" class="profile-form">
+            <div class="form-section">
+                <h3><i class="fas fa-user-circle"></i> Profile Information</h3>
+                
+                <div class="form-group">
+                    <label for="profile_pic">Profile Picture</label>
+                    <div class="profile-upload">
+                        <img id="profilePreview" 
+                             src="{{ url_for('static', filename='uploads/' + session.profile_pic) }}" 
+                             alt="Profile Preview"
+                             onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+                        <input type="file" id="profile_pic" name="profile_pic" accept="image/*" onchange="previewImage(event)">
+                        <label for="profile_pic" class="upload-btn">
+                            <i class="fas fa-camera"></i> Change Photo
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="full_name">Full Name *</label>
+                    <input type="text" id="full_name" name="full_name" 
+                           value="{{ session.full_name }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Mobile Number</label>
+                    <input type="text" id="phone" value="{{ session.phone }}" readonly>
+                    <small class="help-text">Mobile number cannot be changed</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" 
+                           value="{{ session.email }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="location">Location *</label>
+                    <input type="text" id="location" name="location" 
+                           value="{{ session.location }}" required>
+                    <button type="button" class="btn btn-secondary btn-sm location-btn" onclick="getLocation()">
+                        <i class="fas fa-location-crosshairs"></i> Update Location
+                    </button>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3><i class="fas fa-lock"></i> Change Password</h3>
+                <p class="section-help">Leave blank to keep current password</p>
+                
+                <div class="form-group">
+                    <label for="new_password">New Password</label>
+                    <input type="password" id="new_password" name="new_password" 
+                           minlength="6">
+                    <div class="password-toggle">
+                        <i class="fas fa-eye" onclick="togglePassword('new_password')"></i>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_password">Confirm New Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" 
+                           minlength="6">
+                    <div class="password-toggle">
+                        <i class="fas fa-eye" onclick="togglePassword('confirm_password')"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
+            
+            <div class="profile-footer">
+                <p>
+                    <i class="fas fa-calendar"></i>
+                    Member since {{ session.get('created_at', 'N/A') }}
+                </p>
+                <a href="{{ url_for('logout') }}" class="logout-link">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </form>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item">
+            <i class="fas fa-concierge-bell"></i>
+            <span>Services</span>
+        </a>
+        <a href="{{ url_for('menu') }}" class="nav-item">
+            <i class="fas fa-utensils"></i>
+            <span>Menu</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item">
+            <i class="fas fa-history"></i>
+            <span>Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item active">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+</div>
+
+<script>
+function previewImage(event) {
+    const reader = new FileReader();
+    reader.onload = function() {
+        const preview = document.getElementById('profilePreview');
+        preview.src = reader.result;
+    }
+    reader.readAsDataURL(event.target.files[0]);
+}
+
+function togglePassword(fieldId) {
+    const password = document.getElementById(fieldId);
+    const icon = password.nextElementSibling.querySelector('i');
+    
+    if (password.type === 'password') {
+        password.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        password.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+function getLocation() {
+    if (!navigator.geolocation) {
+        alert('Geolocation not supported by your browser');
+        return;
+    }
+    
+    const locationInput = document.getElementById('location');
+    locationInput.placeholder = 'Getting location...';
+    
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            
+            fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
+                .then(response => response.json())
+                .then(data => {
+                    const address = data.display_name || `${lat}, ${lon}`;
+                    locationInput.value = address;
+                    locationInput.placeholder = '';
+                })
+                .catch(() => {
+                    locationInput.value = `${lat}, ${lon}`;
+                    locationInput.placeholder = '';
+                });
+        },
+        function(error) {
+            let message = 'Unable to get location. ';
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    message += 'Permission denied';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    message += 'Position unavailable';
+                    break;
+                case error.TIMEOUT:
+                    message += 'Request timeout';
+                    break;
+                default:
+                    message += 'Unknown error';
+            }
+            alert(message);
+            locationInput.placeholder = '';
+        }
+    );
+}
+</script>
+{% endblock %}
