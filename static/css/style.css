@@ -991,3 +991,51 @@ body {
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+.profile-upload-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    position: relative;
+    border: 3px solid #ddd;
+    background: #fafafa;
+}
+
+.avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 35%;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: 0.3s;
+    font-size: 18px;
+}
+
+.avatar:hover .avatar-overlay {
+    opacity: 1;
+}
+
+.profile-label {
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: block;
+}
