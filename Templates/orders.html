@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Order History{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Top Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1>Order History</h1>
+            <p class="welcome-text">Your past orders</p>
+        </div>
+        <div class="header-right">
+            <img src="{{ url_for('static', filename='uploads/' + session.profile_pic) }}" 
+                 alt="Profile" class="profile-pic"
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+    </header>
+
+    <!-- Orders Content -->
+    <main class="main-content">
+        {% if orders %}
+            <div class="orders-list">
+                {% for order in orders %}
+                    <div class="order-card">
+                        <div class="order-header">
+                            <div>
+                                <h3>Order #{{ order.order_id }}</h3>
+                                <p class="order-date">
+                                    <i class="far fa-calendar"></i>
+                                    {{ order.order_date.strftime('%d %b %Y, %I:%M %p') }}
+                                </p>
+                            </div>
+                            <span class="order-status status-{{ order.status|lower }}">
+                                {{ order.status|title }}
+                            </span>
+                        </div>
+                        
+                        <div class="order-items">
+                            <p class="items-count">
+                                <i class="fas fa-box"></i>
+                                {{ order.items|length }} item{{ 's' if order.items|length != 1 }}
+                            </p>
+                            {% for item in order.items %}
+                                <div class="order-item">
+                                    <span>{{ item.item_name }}</span>
+                                    <span>{{ item.quantity }} × ₹{{ "%.2f"|format(item.price) }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="order-footer">
+                            <div class="order-payment">
+                                <span><i class="fas fa-credit-card"></i> {{ order.payment_mode }}</span>
+                                <span><i class="fas fa-map-marker-alt"></i> {{ order.delivery_location[:30] }}{% if order.delivery_location|length > 30 %}...{% endif %}</span>
+                            </div>
+                            <div class="order-total">
+                                Total: <strong>₹{{ "%.2f"|format(order.total_amount) }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-history fa-3x"></i>
+                <h3>No orders yet</h3>
+                <p>Your order history will appear here</p>
+                <a href="{{ url_for('services') }}" class="btn btn-primary">
+                    <i class="fas fa-concierge-bell"></i> Browse Services
+                </a>
+            </div>
+        {% endif %}
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item">
+            <i class="fas fa-concierge-bell"></i>
+            <span>Services</span>
+        </a>
+        <a href="{{ url_for('menu') }}" class="nav-item">
+            <i class="fas fa-utensils"></i>
+            <span>Menu</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item active">
+            <i class="fas fa-history"></i>
+            <span>Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+</div>
+{% endblock %}
