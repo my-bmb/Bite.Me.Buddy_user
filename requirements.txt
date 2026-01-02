@@ -1,5 +1,5 @@
 Flask==2.3.3
-psycopg[binary]==3.1.13
+psycopg[binary]==3.3.2  
 Werkzeug==2.3.7
 Jinja2==3.1.2
 gunicorn==21.2.0
