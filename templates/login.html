@@ -5,95 +5,54 @@
 {% block content %}
 <div class="auth-container">
     <div class="auth-card">
-        <!-- Added professional header -->
-        <div class="auth-header">
-            <div class="auth-icon">
-                <i class="fas fa-user-circle"></i>
-            </div>
-            <h1 class="auth-title">Login to Your Account</h1>
-            <p class="auth-subtitle">Enter your credentials to access your account</p>
-        </div>
+        <h1 class="auth-title">Login</h1>
         
         <form method="POST" class="auth-form">
-            <!-- Enhanced Phone Input -->
+            <!-- Phone Number Field -->
             <div class="form-group">
-                <label for="phone" class="form-label">
-                    <i class="fas fa-mobile-alt form-icon"></i>
-                    Mobile Number
-                </label>
-                <div class="input-with-prefix">
-                    <span class="input-prefix">+91</span>
+                <label for="phone" class="form-label">Mobile Number</label>
+                <div class="input-with-country">
+                    <span class="country-code">+91</span>
                     <input type="tel" 
                            id="phone" 
                            name="phone" 
                            class="form-control" 
-                           placeholder="10-digit mobile number" 
+                           placeholder="Enter 10-digit number" 
                            required 
                            pattern="[0-9]{10}"
                            maxlength="10"
-                           autocomplete="tel"
-                           oninput="formatPhoneNumber(this)">
+                           oninput="formatPhone(this)">
                 </div>
-                <small class="form-helper">Enter your registered mobile number</small>
             </div>
             
-            <!-- Enhanced Password Input -->
+            <!-- Password Field -->
             <div class="form-group">
-                <label for="password" class="form-label">
-                    <i class="fas fa-lock form-icon"></i>
-                    Password
-                </label>
-                <div class="password-wrapper">
+                <label for="password" class="form-label">Password</label>
+                <div class="password-input-wrapper">
                     <input type="password" 
                            id="password" 
                            name="password" 
                            class="form-control" 
                            placeholder="Enter your password" 
                            required
-                           minlength="8"
-                           autocomplete="current-password">
-                    <button type="button" class="password-toggle-btn" onclick="togglePassword()" tabindex="-1">
+                           minlength="8">
+                    <button type="button" class="password-toggle-btn" onclick="togglePassword()">
                         <i class="fas fa-eye" id="password-icon"></i>
                     </button>
                 </div>
-                <small class="form-helper">Minimum 8 characters required</small>
             </div>
             
-            <!-- Forgot Password Link -->
-            <div class="form-options">
-                <a href="#" class="forgot-password" onclick="showForgotPassword()">Forgot Password?</a>
-            </div>
-            
-            <!-- Enhanced Submit Button -->
-            <button type="submit" class="btn btn-primary btn-login" id="login-btn">
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary" id="login-btn">
                 <span class="btn-text">Login</span>
-                <i class="fas fa-spinner fa-spin btn-loading"></i>
+                <span class="btn-spinner">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </span>
             </button>
             
-            <!-- Added divider -->
-            <div class="divider">
-                <span class="divider-text">or</span>
-            </div>
-            
-            <!-- Alternative login option -->
-            <div class="alt-login">
-                <p class="alt-login-text">Don't have an account?</p>
-                <a href="{{ url_for('register') }}" class="btn btn-secondary">
-                    <i class="fas fa-user-plus"></i>
-                    Create New Account
-                </a>
-            </div>
-            
-            <!-- Enhanced Footer -->
+            <!-- Registration Link -->
             <div class="auth-footer">
-                <p>By logging in, you agree to our 
-                    <a href="#" class="footer-link">Terms of Service</a> and 
-                    <a href="#" class="footer-link">Privacy Policy</a>
-                </p>
-                <p class="auth-help">
-                    <i class="fas fa-question-circle"></i>
-                    Need help? <a href="#" class="footer-link">Contact Support</a>
-                </p>
+                Don't have an account? <a href="{{ url_for('register') }}">Register</a>
             </div>
         </form>
     </div>
@@ -108,60 +67,40 @@ function togglePassword() {
         password.type = 'text';
         icon.classList.remove('fa-eye');
         icon.classList.add('fa-eye-slash');
-        icon.setAttribute('title', 'Hide password');
     } else {
         password.type = 'password';
         icon.classList.remove('fa-eye-slash');
         icon.classList.add('fa-eye');
-        icon.setAttribute('title', 'Show password');
     }
 }
 
-function formatPhoneNumber(input) {
-    // Remove non-numeric characters
-    let value = input.value.replace(/\D/g, '');
+function formatPhone(input) {
+    // Allow only numbers and limit to 10 digits
+    input.value = input.value.replace(/\D/g, '').substring(0, 10);
     
-    // Limit to 10 digits
-    if (value.length > 10) {
-        value = value.substring(0, 10);
-    }
-    
-    // Update input value
-    input.value = value;
-    
-    // Visual feedback
-    const formGroup = input.closest('.form-group');
-    if (value.length === 10) {
-        formGroup.classList.add('valid');
-        formGroup.classList.remove('invalid');
-    } else if (value.length > 0) {
-        formGroup.classList.add('invalid');
-        formGroup.classList.remove('valid');
-    } else {
-        formGroup.classList.remove('valid', 'invalid');
-    }
+    // Add visual feedback
+    const isValid = /^\d{10}$/.test(input.value);
+    input.style.borderColor = isValid ? '#4CAF50' : '#f44336';
 }
 
-function showForgotPassword() {
-    alert('Password reset functionality will be added soon. Please contact support for immediate assistance.');
-}
-
-// Form submission handling
+// Form validation and submission
 document.querySelector('.auth-form').addEventListener('submit', function(e) {
     const phone = document.getElementById('phone').value;
     const password = document.getElementById('password').value;
     const loginBtn = document.getElementById('login-btn');
     const btnText = loginBtn.querySelector('.btn-text');
-    const loadingIcon = loginBtn.querySelector('.btn-loading');
+    const spinner = loginBtn.querySelector('.btn-spinner');
     
-    // Basic validation
+    // Validate phone number
     if (!/^\d{10}$/.test(phone)) {
         e.preventDefault();
         alert('Please enter a valid 10-digit mobile number');
         document.getElementById('phone').focus();
+        document.getElementById('phone').style.borderColor = '#f44336';
         return;
     }
     
+    // Validate password length
     if (password.length < 8) {
         e.preventDefault();
         alert('Password must be at least 8 characters long');
@@ -171,48 +110,13 @@ document.querySelector('.auth-form').addEventListener('submit', function(e) {
     
     // Show loading state
     btnText.textContent = 'Logging in...';
-    loadingIcon.style.display = 'inline-block';
+    spinner.style.display = 'inline-block';
     loginBtn.disabled = true;
-    
-    // Simulate network delay for better UX
-    setTimeout(() => {
-        // Reset button state (in real scenario, this would be in response handler)
-        btnText.textContent = 'Login';
-        loadingIcon.style.display = 'none';
-        loginBtn.disabled = false;
-    }, 2000);
-});
-
-// Add real-time validation
-document.getElementById('phone').addEventListener('input', function() {
-    formatPhoneNumber(this);
-});
-
-// Keyboard shortcuts
-document.addEventListener('keydown', function(e) {
-    // Ctrl+Enter to submit form
-    if (e.ctrlKey && e.key === 'Enter') {
-        document.querySelector('.auth-form').submit();
-    }
-    
-    // Escape to clear form
-    if (e.key === 'Escape') {
-        document.getElementById('phone').value = '';
-        document.getElementById('password').value = '';
-    }
-});
-
-// Focus management for better UX
-window.addEventListener('load', function() {
-    const phoneInput = document.getElementById('phone');
-    if (phoneInput.value === '') {
-        phoneInput.focus();
-    }
 });
 </script>
 
 <style>
-/* Professional Styles for Existing Structure */
+/* Professional Minimal Styling */
 .auth-container {
     min-height: 100vh;
     display: flex;
@@ -220,106 +124,60 @@ window.addEventListener('load', function() {
     justify-content: center;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     padding: 20px;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .auth-card {
     background: white;
-    border-radius: 16px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     padding: 40px;
     width: 100%;
-    max-width: 420px;
-    position: relative;
-    overflow: hidden;
-}
-
-.auth-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(to right, #667eea, #764ba2);
-}
-
-.auth-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.auth-icon {
-    width: 64px;
-    height: 64px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 20px;
-}
-
-.auth-icon i {
-    font-size: 28px;
-    color: white;
+    max-width: 400px;
 }
 
 .auth-title {
-    font-size: 24px;
+    font-size: 28px;
     font-weight: 600;
-    color: #2d3748;
-    margin: 0 0 8px 0;
+    color: #333;
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
 }
 
-.auth-subtitle {
-    color: #718096;
-    font-size: 14px;
-    margin: 0;
-}
-
-/* Enhanced Form Styles */
+/* Form Styles */
 .form-group {
-    margin-bottom: 24px;
+    margin-bottom: 25px;
 }
 
 .form-label {
-    display: flex;
-    align-items: center;
+    display: block;
     font-weight: 500;
-    color: #4a5568;
+    color: #555;
     margin-bottom: 8px;
     font-size: 14px;
 }
 
-.form-icon {
-    margin-right: 8px;
-    color: #667eea;
-    font-size: 14px;
-}
-
-.input-with-prefix {
+.input-with-country {
     display: flex;
     align-items: center;
-    border: 2px solid #e2e8f0;
+    border: 2px solid #e0e0e0;
     border-radius: 8px;
-    transition: all 0.3s ease;
-    background: #f8fafc;
+    overflow: hidden;
+    transition: border-color 0.3s;
 }
 
-.input-with-prefix:focus-within {
+.input-with-country:focus-within {
     border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    background: white;
 }
 
-.input-prefix {
+.country-code {
     padding: 12px 16px;
-    background: #edf2f7;
-    color: #4a5568;
+    background: #f5f5f5;
+    color: #666;
     font-weight: 500;
-    border-right: 2px solid #e2e8f0;
-    border-radius: 8px 0 0 8px;
+    border-right: 2px solid #e0e0e0;
 }
 
 .form-control {
@@ -327,223 +185,104 @@ window.addEventListener('load', function() {
     border: none;
     padding: 12px 16px;
     font-size: 15px;
-    background: transparent;
     outline: none;
-    color: #2d3748;
+    color: #333;
 }
 
 .form-control::placeholder {
-    color: #a0aec0;
+    color: #999;
 }
 
-.password-wrapper {
+.password-input-wrapper {
     position: relative;
     display: flex;
     align-items: center;
-    border: 2px solid #e2e8f0;
+    border: 2px solid #e0e0e0;
     border-radius: 8px;
-    background: #f8fafc;
-    transition: all 0.3s ease;
+    transition: border-color 0.3s;
 }
 
-.password-wrapper:focus-within {
+.password-input-wrapper:focus-within {
     border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    background: white;
-}
-
-.password-wrapper .form-control {
-    border: none;
-    flex: 1;
 }
 
 .password-toggle-btn {
     background: none;
     border: none;
     padding: 12px 16px;
-    color: #718096;
+    color: #777;
     cursor: pointer;
     transition: color 0.2s;
     outline: none;
 }
 
 .password-toggle-btn:hover {
-    color: #667eea;
+    color: #333;
 }
 
 .password-toggle-btn:focus {
     outline: 2px solid #667eea;
-    outline-offset: -2px;
+    border-radius: 4px;
 }
 
-.form-helper {
-    display: block;
-    margin-top: 6px;
-    color: #718096;
-    font-size: 12px;
-}
-
-/* Validation States */
-.form-group.valid .input-with-prefix,
-.form-group.valid .password-wrapper {
-    border-color: #48bb78;
-}
-
-.form-group.invalid .input-with-prefix,
-.form-group.invalid .password-wrapper {
-    border-color: #f56565;
-}
-
-/* Form Options */
-.form-options {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 24px;
-}
-
-.forgot-password {
-    color: #667eea;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    transition: color 0.2s;
-}
-
-.forgot-password:hover {
-    color: #764ba2;
-    text-decoration: underline;
-}
-
-/* Enhanced Button */
-.btn-login {
+/* Button Styles */
+.btn {
     width: 100%;
     padding: 14px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border: none;
     border-radius: 8px;
-    color: white;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s;
     position: relative;
-    overflow: hidden;
-    margin-bottom: 20px;
 }
 
-.btn-login:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
 }
 
-.btn-login:active {
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:active {
     transform: translateY(0);
 }
 
-.btn-login:disabled {
+.btn-primary:disabled {
     opacity: 0.7;
     cursor: not-allowed;
     transform: none;
 }
 
-.btn-loading {
+.btn-spinner {
     display: none;
-    margin-left: 8px;
+    margin-left: 10px;
 }
 
-/* Divider */
-.divider {
-    position: relative;
-    text-align: center;
-    margin: 20px 0;
-}
-
-.divider::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: #e2e8f0;
-}
-
-.divider-text {
-    display: inline-block;
-    background: white;
-    padding: 0 16px;
-    color: #718096;
-    font-size: 14px;
-    position: relative;
-}
-
-/* Alternative Login */
-.alt-login {
-    text-align: center;
-    margin: 20px 0;
-}
-
-.alt-login-text {
-    color: #718096;
-    margin-bottom: 12px;
-    font-size: 14px;
-}
-
-.btn-secondary {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px 24px;
-    background: #edf2f7;
-    border: none;
-    border-radius: 8px;
-    color: #4a5568;
-    font-weight: 500;
-    text-decoration: none;
-    transition: all 0.3s ease;
-}
-
-.btn-secondary:hover {
-    background: #e2e8f0;
-    color: #2d3748;
-}
-
-.btn-secondary i {
-    margin-right: 8px;
-}
-
-/* Enhanced Footer */
+/* Footer Styles */
 .auth-footer {
-    margin-top: 30px;
     text-align: center;
-    color: #718096;
-    font-size: 12px;
-    line-height: 1.5;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    color: #666;
+    font-size: 14px;
 }
 
-.auth-footer p {
-    margin: 8px 0;
-}
-
-.footer-link {
+.auth-footer a {
     color: #667eea;
     text-decoration: none;
+    font-weight: 500;
     transition: color 0.2s;
 }
 
-.footer-link:hover {
+.auth-footer a:hover {
     color: #764ba2;
     text-decoration: underline;
-}
-
-.auth-help {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid #e2e8f0;
 }
 
 /* Responsive Design */
@@ -554,20 +293,16 @@ window.addEventListener('load', function() {
     }
     
     .auth-title {
-        font-size: 20px;
-    }
-    
-    .auth-subtitle {
-        font-size: 13px;
+        font-size: 24px;
     }
 }
 
-/* Focus styles for accessibility */
+/* Focus states for accessibility */
 .form-control:focus,
 .password-toggle-btn:focus,
-.btn-login:focus {
-    outline: 2px solid #667eea;
-    outline-offset: 2px;
+.btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 </style>
 {% endblock %}
