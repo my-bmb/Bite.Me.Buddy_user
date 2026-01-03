@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Access Account</title>
+    <title>Login</title>
     <!-- FontAwesome CDN for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -126,7 +126,7 @@
             letter-spacing: 0.3px;
         }
 
-        .form-group input {
+        .form-control {
             width: 100%;
             padding: 12px 16px;
             border: 1.5px solid #e2e8f0;
@@ -137,59 +137,49 @@
             color: #334155;
         }
 
-        .form-group input:focus {
+        .form-control:focus {
             outline: none;
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
-        .form-group input::placeholder {
+        .form-control::placeholder {
             color: #94a3b8;
         }
 
-        /* Password Visibility Toggle */
-        .password-wrapper {
-            position: relative;
+        /* Form Validation Styles */
+        .form-control:invalid:not(:focus):not(:placeholder-shown) {
+            border-color: #ef4444;
         }
 
-        .password-wrapper input {
-            padding-right: 50px;
+        .form-control:valid:not(:focus):not(:placeholder-shown) {
+            border-color: #10b981;
         }
 
-        .toggle-password {
-            position: absolute;
-            right: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: #94a3b8;
-            cursor: pointer;
-            padding: 4px;
-            transition: color 0.2s ease;
-            font-size: 16px;
-        }
-
-        .toggle-password:hover {
-            color: #3b82f6;
-        }
-
-        /* Login Button */
-        .btn-primary {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 15px;
+        /* Button Styles */
+        .btn {
+            display: inline-block;
             font-weight: 600;
+            text-align: center;
+            vertical-align: middle;
             cursor: pointer;
+            user-select: none;
+            border: none;
+            padding: 14px;
+            font-size: 15px;
+            line-height: 1.5;
+            border-radius: 10px;
             transition: all 0.3s ease;
-            letter-spacing: 0.3px;
-            margin-top: 8px;
+            text-decoration: none;
             position: relative;
             overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            width: 100%;
+            letter-spacing: 0.3px;
         }
 
         .btn-primary::before {
@@ -217,11 +207,8 @@
             transform: translateY(0);
         }
 
-        .btn-primary:disabled {
-            background: linear-gradient(135deg, #94a3b8, #a78bfa);
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
+        .w-100 {
+            width: 100%;
         }
 
         /* Auth Footer */
@@ -247,69 +234,8 @@
             text-decoration: underline;
         }
 
-        /* Form Validation Styles */
-        .form-group input:invalid:not(:focus):not(:placeholder-shown) {
-            border-color: #ef4444;
-        }
-
-        .form-group input:valid:not(:focus):not(:placeholder-shown) {
-            border-color: #10b981;
-        }
-
-        /* Error Message */
-        .error-message {
-            background: rgba(254, 242, 242, 0.9);
-            color: #dc2626;
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 24px;
-            font-size: 14px;
-            border-left: 4px solid #dc2626;
-            display: none;
-            animation: slideIn 0.3s ease;
-            backdrop-filter: blur(5px);
-        }
-
-        .success-message {
-            background: rgba(240, 253, 244, 0.9);
-            color: #059669;
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 24px;
-            font-size: 14px;
-            border-left: 4px solid #059669;
-            display: none;
-            animation: slideIn 0.3s ease;
-            backdrop-filter: blur(5px);
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-10px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        .error-message.show {
-            display: block;
-        }
-
-        .success-message.show {
-            display: block;
-        }
-
-        /* Loading Spinner */
-        .spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 8px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .text-center {
+            text-align: center;
         }
 
         /* Responsive Design */
@@ -340,195 +266,57 @@
     </style>
 </head>
 <body>
-    <div class="auth-container">  
-        <div class="auth-card">  
-            <h1 class="auth-title">Login to Account</h1>  
-            
-            <!-- Error Message -->
-            <div id="errorMessage" class="error-message">
-                <i class="fas fa-exclamation-circle"></i> 
-                <span id="errorText">Invalid credentials</span>
-            </div>
+    <div class="auth-container">
+        <div class="auth-card">
+            <h1 class="auth-title">Login</h1>
 
-            <!-- Success Message -->
-            <div id="successMessage" class="success-message">
-                <i class="fas fa-check-circle"></i> 
-                <span id="successText">Login successful! Redirecting...</span>
-            </div>
-            
-            <form method="POST" class="auth-form" id="loginForm">  
-                  
-                <div class="form-group">  
-                    <label for="phone">Mobile Number</label>  
-                    <input 
-                        type="tel" 
-                        id="phone" 
-                        name="phone" 
-                        required 
-                        pattern="[0-9]{10,15}" 
-                        placeholder="Enter 10-digit mobile number"
-                        autocomplete="tel">  
-                </div>  
-                  
-                <div class="form-group">  
-                    <label for="password">Password</label>  
-                    <div class="password-wrapper">
-                        <input 
-                            type="password" 
-                            id="password" 
-                            name="password" 
-                            required 
-                            minlength="6" 
-                            placeholder="Enter your password"
-                            autocomplete="current-password">
-                        <button type="button" class="toggle-password" id="togglePassword">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>  
-                  
-                <button type="submit" class="btn-primary" id="loginBtn">
-                    <span id="loginText">Login</span>
-                </button>  
-                  
-                <div class="auth-footer">  
-                    Don't have an account? <a href="{{ url_for('register') }}">Create Account</a>  
-                </div>  
-            </form>  
+            <form method="POST" class="auth-form">
+
+                <div class="form-group">
+                    <label for="phone">Mobile Number</label>
+                    <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        class="form-control"
+                        placeholder="Enter mobile number"
+                        required
+                        pattern="[0-9]{10,15}">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        class="form-control"
+                        placeholder="Enter password"
+                        required>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">
+                    Login
+                </button>
+
+                <div class="auth-footer text-center">
+                    Don't have an account?
+                    <a href="{{ url_for('register') }}">Register</a>
+                </div>
+
+            </form>
         </div>
     </div>
 
-    <script>  
+    <script>
+    // Simple phone number validation
     document.addEventListener('DOMContentLoaded', function() {
-        // Password visibility toggle
-        const togglePassword = document.getElementById('togglePassword');
-        const passwordInput = document.getElementById('password');
-        const eyeIcon = togglePassword.querySelector('i');
-        
-        if (togglePassword) {
-            togglePassword.addEventListener('click', function() {
-                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordInput.setAttribute('type', type);
-                eyeIcon.className = type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
-            });
-        }
-        
-        // Phone number validation
         const phoneInput = document.getElementById('phone');
         if (phoneInput) {
             phoneInput.addEventListener('input', function() {
                 this.value = this.value.replace(/\D/g, '');
             });
         }
-        
-        // Form submission
-        const loginForm = document.getElementById('loginForm');
-        const loginBtn = document.getElementById('loginBtn');
-        const loginText = document.getElementById('loginText');
-        const errorMessage = document.getElementById('errorMessage');
-        const successMessage = document.getElementById('successMessage');
-        
-        if (loginForm) {
-            loginForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                // Hide previous messages
-                errorMessage.classList.remove('show');
-                successMessage.classList.remove('show');
-                
-                // Simple validation
-                const phone = phoneInput.value.trim();
-                const password = passwordInput.value.trim();
-                
-                if (!phone || phone.length < 10) {
-                    showError('Please enter a valid 10-digit mobile number');
-                    phoneInput.focus();
-                    return;
-                }
-                
-                if (!password || password.length < 6) {
-                    showError('Password must be at least 6 characters long');
-                    passwordInput.focus();
-                    return;
-                }
-                
-                // Show loading state
-                loginBtn.disabled = true;
-                loginText.innerHTML = '<span class="spinner"></span>Logging in...';
-                
-                // Simulate API call (2 seconds)
-                setTimeout(() => {
-                    // For demo, we'll always simulate success
-                    // In real app, check credentials from server
-                    const isAuthenticated = authenticateUser(phone, password);
-                    
-                    if (isAuthenticated) {
-                        // Show success message
-                        showSuccess('Login successful! Redirecting to dashboard...');
-                        
-                        // Save login state in localStorage/sessionStorage
-                        localStorage.setItem('isLoggedIn', 'true');
-                        localStorage.setItem('userPhone', phone);
-                        
-                        // Redirect to dashboard after 1.5 seconds
-                        setTimeout(() => {
-                            window.location.href = 'dashboard.html';
-                        }, 1500);
-                        
-                    } else {
-                        showError('Invalid mobile number or password');
-                        resetButton();
-                    }
-                }, 2000);
-            });
-        }
-        
-        // Simple authentication function (demo only)
-        function authenticateUser(phone, password) {
-            // Demo users - In real app, this would be server-side validation
-            const demoUsers = [
-                { phone: '1234567890', password: 'password123' },
-                { phone: '9876543210', password: 'demo1234' }
-            ];
-            
-            return demoUsers.some(user => 
-                user.phone === phone && user.password === password
-            );
-        }
-        
-        function showError(message) {
-            const errorText = document.getElementById('errorText');
-            errorText.textContent = message;
-            errorMessage.classList.add('show');
-            successMessage.classList.remove('show');
-        }
-        
-        function showSuccess(message) {
-            const successText = document.getElementById('successText');
-            successText.textContent = message;
-            successMessage.classList.add('show');
-            errorMessage.classList.remove('show');
-        }
-        
-        function resetButton() {
-            loginBtn.disabled = false;
-            loginText.textContent = 'Login';
-        }
-        
-        // Check if user is already logged in
-        function checkLoginStatus() {
-            const isLoggedIn = localStorage.getItem('isLoggedIn');
-            if (isLoggedIn === 'true') {
-                // If already logged in, redirect to dashboard
-                showSuccess('Already logged in. Redirecting...');
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 1000);
-            }
-        }
-        
-        // Check login status on page load
-        checkLoginStatus();
     });
     </script>
 </body>
