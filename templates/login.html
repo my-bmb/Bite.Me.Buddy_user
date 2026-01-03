@@ -14,7 +14,7 @@
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
 
-        /* New: Enhanced background matching register page */
+        /* Enhanced background matching register page */
         body {
             background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 25%, #fae8ff 50%, #fefce8 75%, #f0fdf4 100%);
             min-height: 100vh;
@@ -26,7 +26,7 @@
             overflow-x: hidden;
         }
 
-        /* New: Animated background elements */
+        /* Animated background elements */
         body::before {
             content: '';
             position: fixed;
@@ -42,7 +42,7 @@
             animation: float 20s ease-in-out infinite;
         }
 
-        /* New: Floating animation for background */
+        /* Floating animation for background */
         @keyframes float {
             0%, 100% {
                 transform: translate(0, 0) rotate(0deg);
@@ -62,7 +62,7 @@
             animation: slideUp 0.5s ease-out;
         }
 
-        /* New: Container animation */
+        /* Container animation */
         @keyframes slideUp {
             from {
                 opacity: 0;
@@ -88,7 +88,7 @@
             overflow: hidden;
         }
 
-        /* New: Decorative corner accent */
+        /* Decorative corner accent */
         .auth-card::before {
             content: '';
             position: absolute;
@@ -353,7 +353,7 @@
             <!-- Success Message -->
             <div id="successMessage" class="success-message">
                 <i class="fas fa-check-circle"></i> 
-                <span id="successText">Login successful!</span>
+                <span id="successText">Login successful! Redirecting...</span>
             </div>
             
             <form method="POST" class="auth-form" id="loginForm">  
@@ -456,31 +456,44 @@
                 loginBtn.disabled = true;
                 loginText.innerHTML = '<span class="spinner"></span>Logging in...';
                 
-                // Simulate API call
+                // Simulate API call (2 seconds)
                 setTimeout(() => {
-                    // In real app, this would be your actual login API call
-                    // For demo, we'll simulate success
-                    const isDemoSuccess = true; // Change to false to see error
+                    // For demo, we'll always simulate success
+                    // In real app, check credentials from server
+                    const isAuthenticated = authenticateUser(phone, password);
                     
-                    if (isDemoSuccess) {
-                        // Success - show success message
-                        showSuccess('Login successful! Redirecting...');
+                    if (isAuthenticated) {
+                        // Show success message
+                        showSuccess('Login successful! Redirecting to dashboard...');
                         
-                        // In real app, redirect to dashboard
-                        // setTimeout(() => {
-                        //     window.location.href = '/dashboard';
-                        // }, 2000);
+                        // Save login state in localStorage/sessionStorage
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('userPhone', phone);
                         
-                        // For demo, reset button after 2 seconds
+                        // Redirect to dashboard after 1.5 seconds
                         setTimeout(() => {
-                            resetButton();
-                        }, 2000);
+                            window.location.href = 'dashboard.html';
+                        }, 1500);
+                        
                     } else {
                         showError('Invalid mobile number or password');
                         resetButton();
                     }
-                }, 1500);
+                }, 2000);
             });
+        }
+        
+        // Simple authentication function (demo only)
+        function authenticateUser(phone, password) {
+            // Demo users - In real app, this would be server-side validation
+            const demoUsers = [
+                { phone: '1234567890', password: 'password123' },
+                { phone: '9876543210', password: 'demo1234' }
+            ];
+            
+            return demoUsers.some(user => 
+                user.phone === phone && user.password === password
+            );
         }
         
         function showError(message) {
@@ -501,6 +514,21 @@
             loginBtn.disabled = false;
             loginText.textContent = 'Login';
         }
+        
+        // Check if user is already logged in
+        function checkLoginStatus() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            if (isLoggedIn === 'true') {
+                // If already logged in, redirect to dashboard
+                showSuccess('Already logged in. Redirecting...');
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1000);
+            }
+        }
+        
+        // Check login status on page load
+        checkLoginStatus();
     });
     </script>
 </body>
