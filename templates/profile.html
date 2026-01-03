@@ -37,21 +37,48 @@
             
             <div class="profile-info">
                 <h2 class="profile-name">{{ session.full_name }}</h2>
-                <p class="profile-location">
-                    <i class="fas fa-map-marker-alt"></i>
-                    {{ session.location or 'Update location' }}
-                </p>
-                <p class="profile-email">
-                    <i class="fas fa-envelope"></i>
-                    {{ session.email }}
-                </p>
-                <p class="profile-phone">
-                    <i class="fas fa-phone"></i>
-                    {{ session.phone }}
-                </p>
-                <div class="member-since">
-                    <i class="fas fa-calendar"></i>
-                    Member since {{ session.get('created_at', 'N/A') }}
+                
+                <!-- User Details Section -->
+                <div class="user-details-section">
+                    <div class="detail-item">
+                        <div class="detail-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="detail-content">
+                            <div class="detail-label">Location</div>
+                            <div class="detail-value">{{ session.location or 'Not set' }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <div class="detail-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="detail-content">
+                            <div class="detail-label">Email</div>
+                            <div class="detail-value">{{ session.email }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <div class="detail-icon">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div class="detail-content">
+                            <div class="detail-label">Phone</div>
+                            <div class="detail-value">{{ session.phone }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <div class="detail-icon">
+                            <i class="fas fa-calendar"></i>
+                        </div>
+                        <div class="detail-content">
+                            <div class="detail-label">Member Since</div>
+                            <div class="detail-value">{{ session.get('created_at', 'N/A') }}</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -68,7 +95,7 @@
                 
                 <div class="form-row">
                     <div class="form-group-inline">
-                        <label for="full_name">
+                        <label for="full_name" class="form-label">
                             <i class="fas fa-user"></i> Full Name
                         </label>
                         <input type="text" id="full_name" name="full_name" 
@@ -81,8 +108,8 @@
                 
                 <div class="form-row">
                     <div class="form-group-inline">
-                        <label for="email">
-                            <i class="fas fa-envelope"></i> Email
+                        <label for="email" class="form-label">
+                            <i class="fas fa-envelope"></i> Email Address
                         </label>
                         <input type="email" id="email" name="email" 
                                value="{{ session.email }}" 
@@ -94,7 +121,7 @@
                 
                 <div class="form-row">
                     <div class="form-group-inline">
-                        <label for="location">
+                        <label for="location" class="form-label">
                             <i class="fas fa-map-marker-alt"></i> Location
                         </label>
                         <div class="location-input-group">
@@ -122,7 +149,7 @@
                 
                 <div class="form-row">
                     <div class="form-group-inline">
-                        <label for="new_password">
+                        <label for="new_password" class="form-label">
                             <i class="fas fa-key"></i> New Password
                         </label>
                         <div class="password-input-group">
@@ -140,7 +167,7 @@
                 
                 <div class="form-row">
                     <div class="form-group-inline">
-                        <label for="confirm_password">
+                        <label for="confirm_password" class="form-label">
                             <i class="fas fa-key"></i> Confirm Password
                         </label>
                         <div class="password-input-group">
@@ -176,30 +203,42 @@
                 
                 <div class="account-action-links">
                     <a href="{{ url_for('order_history') }}" class="account-action-link">
-                        <i class="fas fa-history"></i>
+                        <div class="action-icon">
+                            <i class="fas fa-history"></i>
+                        </div>
                         <div class="action-content">
                             <span class="action-title">Order History</span>
                             <span class="action-desc">View your past orders</span>
                         </div>
-                        <i class="fas fa-chevron-right"></i>
+                        <div class="action-arrow">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
                     </a>
                     
                     <a href="{{ url_for('services') }}" class="account-action-link">
-                        <i class="fas fa-concierge-bell"></i>
+                        <div class="action-icon">
+                            <i class="fas fa-concierge-bell"></i>
+                        </div>
                         <div class="action-content">
                             <span class="action-title">Our Services</span>
                             <span class="action-desc">Explore what we offer</span>
                         </div>
-                        <i class="fas fa-chevron-right"></i>
+                        <div class="action-arrow">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
                     </a>
                     
                     <a href="{{ url_for('logout') }}" class="account-action-link logout">
-                        <i class="fas fa-sign-out-alt"></i>
+                        <div class="action-icon">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </div>
                         <div class="action-content">
                             <span class="action-title">Logout</span>
                             <span class="action-desc">Sign out from your account</span>
                         </div>
-                        <i class="fas fa-chevron-right"></i>
+                        <div class="action-arrow">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
                     </a>
                 </div>
             </div>
@@ -232,20 +271,48 @@
 </div>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=SF+Pro+Display:wght@300;400;500;600;700&display=swap');
+
+* {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    letter-spacing: -0.01em;
+}
+
 .instagram-profile {
     background: #fafafa;
+}
+
+/* Font Improvements */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+.dashboard-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+}
+
+.welcome-text {
+    font-size: 14px;
+    color: #8e8e8e;
+    font-weight: 400;
+    margin-top: 2px;
 }
 
 /* Profile Header */
 .profile-header-section {
     background: white;
-    padding: 24px 20px;
-    border-radius: 12px;
-    margin-bottom: 16px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    padding: 28px 24px;
+    border-radius: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.04);
     display: flex;
-    gap: 24px;
+    gap: 28px;
     align-items: flex-start;
+    border: 1px solid #f0f0f0;
 }
 
 .profile-avatar-container {
@@ -258,8 +325,8 @@
 
 .profile-avatar-wrapper {
     position: relative;
-    width: 100px;
-    height: 100px;
+    width: 108px;
+    height: 108px;
 }
 
 .profile-avatar {
@@ -267,41 +334,44 @@
     height: 100%;
     border-radius: 50%;
     object-fit: cover;
-    border: 3px solid #fff;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border: 4px solid #fff;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
 }
 
 .avatar-edit-overlay {
     position: absolute;
-    bottom: 0;
-    right: 0;
-    background: #0095f6;
-    width: 32px;
-    height: 32px;
+    bottom: 4px;
+    right: 4px;
+    background: linear-gradient(135deg, #0095f6, #4a73e8);
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     cursor: pointer;
-    border: 2px solid white;
+    border: 3px solid white;
     transition: all 0.2s ease;
+    font-size: 14px;
 }
 
 .avatar-edit-overlay:hover {
-    background: #0081d6;
     transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 149, 246, 0.3);
 }
 
 .profile-role {
     font-size: 13px;
-    color: #8e8e8e;
+    font-weight: 500;
+    color: #666;
     background: #f8f9fa;
-    padding: 4px 12px;
+    padding: 6px 14px;
     border-radius: 20px;
     display: flex;
     align-items: center;
     gap: 6px;
+    border: 1px solid #eaeaea;
 }
 
 .profile-role i {
@@ -314,102 +384,160 @@
 }
 
 .profile-name {
-    font-size: 24px;
-    font-weight: 300;
-    color: #262626;
-    margin: 0 0 8px 0;
+    font-size: 32px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 24px 0;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
 }
 
-.profile-location,
-.profile-email,
-.profile-phone,
-.member-since {
+/* User Details Section - New Design */
+.user-details-section {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    padding: 24px;
+    border-radius: 16px;
+    border: 1px solid #eef2f7;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.02);
+}
+
+.detail-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px;
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #f0f4f8;
+    transition: all 0.2s ease;
+}
+
+.detail-item:hover {
+    transform: translateY(-2px);
+    border-color: #e0e7ff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.detail-icon {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, #f0f8ff, #e6f0ff);
+    border-radius: 12px;
     display: flex;
     align-items: center;
-    gap: 8px;
-    color: #8e8e8e;
-    font-size: 14px;
-    margin: 6px 0;
+    justify-content: center;
+    color: #0095f6;
+    font-size: 18px;
+    flex-shrink: 0;
 }
 
-.profile-location i,
-.profile-email i,
-.profile-phone i,
-.member-since i {
-    width: 16px;
-    color: #0095f6;
+.detail-content {
+    flex: 1;
+}
+
+.detail-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.detail-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.4;
 }
 
 /* Form Cards */
 .form-section-card,
 .account-actions-card {
     background: white;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 16px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-    border: 1px solid #efefef;
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+    border: 1px solid #f0f0f0;
 }
 
 .form-section-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #262626;
-    margin: 0 0 16px 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 24px 0;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    letter-spacing: -0.02em;
 }
 
 .form-section-title i {
     color: #0095f6;
+    font-size: 18px;
 }
 
 .section-subtitle {
-    font-size: 13px;
+    font-size: 14px;
     color: #8e8e8e;
-    margin: -12px 0 20px 0;
+    margin: -16px 0 24px 0;
+    font-weight: 400;
 }
 
 /* Form Elements */
 .form-row {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 
-.form-group-inline label {
+.form-group-inline {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-label {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 14px;
-    font-weight: 500;
-    color: #262626;
-    margin-bottom: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #374151;
+    letter-spacing: -0.01em;
 }
 
-.form-group-inline label i {
+.form-label i {
     color: #0095f6;
     width: 16px;
+    font-size: 14px;
 }
 
 .modern-input {
     width: 100%;
-    padding: 12px 16px;
-    border: 1px solid #dbdbdb;
-    border-radius: 8px;
-    font-size: 14px;
-    color: #262626;
-    background: #fafafa;
+    padding: 16px 20px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 400;
+    color: #1f2937;
+    background: white;
     transition: all 0.2s ease;
+    letter-spacing: -0.01em;
 }
 
 .modern-input:focus {
     outline: none;
-    border-color: #a8a8a8;
+    border-color: #0095f6;
+    box-shadow: 0 0 0 3px rgba(0, 149, 246, 0.1);
     background: white;
 }
 
 .modern-input::placeholder {
-    color: #8e8e8e;
+    color: #9ca3af;
+    font-weight: 400;
 }
 
 /* Location Input Group */
@@ -419,20 +547,23 @@
 
 .location-btn-icon {
     position: absolute;
-    right: 12px;
+    right: 16px;
     top: 50%;
     transform: translateY(-50%);
-    background: none;
-    border: none;
+    background: #f8fafc;
+    border: 2px solid #e5e7eb;
     color: #0095f6;
     cursor: pointer;
-    padding: 8px;
-    border-radius: 50%;
+    padding: 10px;
+    border-radius: 10px;
     transition: all 0.2s ease;
+    font-size: 14px;
 }
 
 .location-btn-icon:hover {
-    background: #f0f8ff;
+    background: #0095f6;
+    color: white;
+    border-color: #0095f6;
 }
 
 /* Password Input Group */
@@ -442,75 +573,78 @@
 
 .password-toggle-btn {
     position: absolute;
-    right: 12px;
+    right: 16px;
     top: 50%;
     transform: translateY(-50%);
     background: none;
     border: none;
-    color: #8e8e8e;
+    color: #6b7280;
     cursor: pointer;
-    padding: 8px;
-    border-radius: 50%;
+    padding: 10px;
+    border-radius: 10px;
     transition: all 0.2s ease;
+    font-size: 15px;
 }
 
 .password-toggle-btn:hover {
-    background: #f0f0f0;
-    color: #262626;
+    background: #f3f4f6;
+    color: #374151;
 }
 
 /* Action Buttons */
 .action-buttons {
     display: flex;
-    gap: 12px;
-    margin: 24px 0;
-    padding: 0 20px;
+    gap: 16px;
+    margin: 32px 0;
+    padding: 0 28px;
 }
 
 .btn-secondary-ghost {
     flex: 1;
-    padding: 14px 20px;
-    border: 1px solid #dbdbdb;
-    border-radius: 8px;
+    padding: 18px 24px;
+    border: 2px solid #e5e7eb;
+    border-radius: 14px;
     background: white;
-    color: #262626;
-    font-size: 14px;
-    font-weight: 500;
+    color: #374151;
+    font-size: 16px;
+    font-weight: 600;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
     cursor: pointer;
     transition: all 0.2s ease;
     text-decoration: none;
+    letter-spacing: -0.01em;
 }
 
 .btn-secondary-ghost:hover {
-    background: #fafafa;
-    border-color: #b5b5b5;
+    background: #f9fafb;
+    border-color: #d1d5db;
+    transform: translateY(-1px);
 }
 
 .btn-primary-gradient {
     flex: 1;
-    padding: 14px 20px;
+    padding: 18px 24px;
     border: none;
-    border-radius: 8px;
-    background: linear-gradient(45deg, #0095f6, #4a73e8);
+    border-radius: 14px;
+    background: linear-gradient(135deg, #0095f6, #4a73e8);
     color: white;
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 16px;
+    font-weight: 600;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
+    letter-spacing: -0.01em;
 }
 
 .btn-primary-gradient:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 149, 246, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 149, 246, 0.3);
 }
 
 /* Account Actions */
@@ -518,20 +652,21 @@
     display: flex;
     flex-direction: column;
     gap: 1px;
-    background: #fafafa;
-    border-radius: 8px;
+    background: #f9fafb;
+    border-radius: 14px;
     overflow: hidden;
+    border: 1px solid #f3f4f6;
 }
 
 .account-action-link {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 16px;
+    gap: 20px;
+    padding: 20px;
     background: white;
     text-decoration: none;
-    color: #262626;
-    border-bottom: 1px solid #f0f0f0;
+    color: #1f2937;
+    border-bottom: 1px solid #f3f4f6;
     transition: all 0.2s ease;
 }
 
@@ -540,45 +675,55 @@
 }
 
 .account-action-link:hover {
-    background: #f8f9fa;
-    transform: translateX(2px);
+    background: #f8fafc;
+    transform: translateX(4px);
 }
 
-.account-action-link i:first-child {
-    font-size: 20px;
+.action-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #f0f8ff, #e6f0ff);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: #0095f6;
-    width: 24px;
-}
-
-.account-action-link i:last-child {
-    color: #dbdbdb;
-    margin-left: auto;
-    font-size: 14px;
+    font-size: 20px;
+    flex-shrink: 0;
 }
 
 .action-content {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
 }
 
 .action-title {
-    font-size: 15px;
-    font-weight: 500;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    letter-spacing: -0.01em;
 }
 
 .action-desc {
-    font-size: 13px;
-    color: #8e8e8e;
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 400;
 }
 
-.account-action-link.logout i:first-child {
-    color: #ed4956;
+.action-arrow i {
+    color: #d1d5db;
+    font-size: 14px;
+}
+
+.account-action-link.logout .action-icon {
+    background: linear-gradient(135deg, #fff0f0, #ffe6e6);
+    color: #ef4444;
 }
 
 .account-action-link.logout:hover {
-    background: #fff0f0;
+    background: #fff5f5;
 }
 
 /* Responsive */
@@ -587,18 +732,62 @@
         flex-direction: column;
         align-items: center;
         text-align: center;
+        padding: 24px 20px;
+        gap: 24px;
     }
     
-    .profile-info {
-        width: 100%;
+    .profile-name {
+        font-size: 28px;
+        margin-bottom: 20px;
+    }
+    
+    .user-details-section {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 20px;
+    }
+    
+    .detail-item {
+        padding: 16px;
     }
     
     .action-buttons {
         flex-direction: column;
+        padding: 0 20px;
     }
     
-    .account-action-link {
-        padding: 14px;
+    .form-section-card,
+    .account-actions-card {
+        padding: 24px;
+    }
+    
+    .form-section-title {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-avatar-wrapper {
+        width: 96px;
+        height: 96px;
+    }
+    
+    .avatar-edit-overlay {
+        width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
+    
+    .detail-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+    
+    .action-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
     }
 }
 </style>
@@ -635,6 +824,7 @@ function getLocation() {
     }
     
     const locationInput = document.getElementById('location');
+    const originalPlaceholder = locationInput.placeholder;
     locationInput.placeholder = 'Getting location...';
     
     navigator.geolocation.getCurrentPosition(
@@ -647,11 +837,11 @@ function getLocation() {
                 .then(data => {
                     const address = data.display_name || `${lat}, ${lon}`;
                     locationInput.value = address;
-                    locationInput.placeholder = '';
+                    locationInput.placeholder = originalPlaceholder;
                 })
                 .catch(() => {
                     locationInput.value = `${lat}, ${lon}`;
-                    locationInput.placeholder = '';
+                    locationInput.placeholder = originalPlaceholder;
                 });
         },
         function(error) {
@@ -670,7 +860,7 @@ function getLocation() {
                     message += 'Unknown error';
             }
             alert(message);
-            locationInput.placeholder = '';
+            locationInput.placeholder = originalPlaceholder;
         }
     );
 }
