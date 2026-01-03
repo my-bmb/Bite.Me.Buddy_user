@@ -3,7 +3,7 @@
 {% block title %}Profile{% endblock %}
 
 {% block content %}
-<div class="dashboard">
+<div class="dashboard instagram-profile">
     <!-- Top Header -->
     <header class="dashboard-header">
         <div class="header-left">
@@ -17,94 +17,191 @@
         </div>
     </header>
 
-    <!-- Profile Content -->
-    <main class="main-content">
-        <form method="POST" enctype="multipart/form-data" class="profile-form">
-            <div class="form-section">
-                <h3><i class="fas fa-user-circle"></i> Profile Information</h3>
+    <!-- Instagram Style Profile Content -->
+    <main class="main-content instagram-style">
+        <div class="profile-header-section">
+            <div class="profile-avatar-container">
+                <div class="profile-avatar-wrapper">
+                    <img src="{{ url_for('static', filename='uploads/' + session.profile_pic) }}" 
+                         alt="Profile" class="profile-avatar"
+                         onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+                    <label for="profile_pic" class="avatar-edit-overlay">
+                        <i class="fas fa-camera"></i>
+                    </label>
+                </div>
+                <p class="profile-role">
+                    <i class="fas fa-user-tag"></i>
+                    Regular Customer
+                </p>
+            </div>
+            
+            <div class="profile-info">
+                <h2 class="profile-name">{{ session.full_name }}</h2>
+                <p class="profile-location">
+                    <i class="fas fa-map-marker-alt"></i>
+                    {{ session.location or 'Update location' }}
+                </p>
+                <p class="profile-email">
+                    <i class="fas fa-envelope"></i>
+                    {{ session.email }}
+                </p>
+                <p class="profile-phone">
+                    <i class="fas fa-phone"></i>
+                    {{ session.phone }}
+                </p>
+                <div class="member-since">
+                    <i class="fas fa-calendar"></i>
+                    Member since {{ session.get('created_at', 'N/A') }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Profile Form -->
+        <form method="POST" enctype="multipart/form-data" class="profile-edit-form">
+            <input type="file" id="profile_pic" name="profile_pic" accept="image/*" hidden>
+            
+            <div class="form-section-card">
+                <h3 class="form-section-title">
+                    <i class="fas fa-user-edit"></i>
+                    Edit Profile
+                </h3>
                 
-                <div class="form-group">
-                    <label for="profile_pic">Profile Picture</label>
-                    <div class="profile-upload">
-                        <img id="profilePreview" 
-                             src="{{ url_for('static', filename='uploads/' + session.profile_pic) }}" 
-                             alt="Profile Preview"
-                             onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
-                        <input type="file" id="profile_pic" name="profile_pic" accept="image/*" onchange="previewImage(event)">
-                        <label for="profile_pic" class="upload-btn">
-                            <i class="fas fa-camera"></i> Change Photo
+                <div class="form-row">
+                    <div class="form-group-inline">
+                        <label for="full_name">
+                            <i class="fas fa-user"></i> Full Name
                         </label>
+                        <input type="text" id="full_name" name="full_name" 
+                               value="{{ session.full_name }}" 
+                               class="modern-input"
+                               placeholder="Your full name"
+                               required>
                     </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="full_name">Full Name *</label>
-                    <input type="text" id="full_name" name="full_name" 
-                           value="{{ session.full_name }}" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="phone">Mobile Number</label>
-                    <input type="text" id="phone" value="{{ session.phone }}" readonly>
-                    <small class="help-text">Mobile number cannot be changed</small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="email">Email Address *</label>
-                    <input type="email" id="email" name="email" 
-                           value="{{ session.email }}" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="location">Location *</label>
-                    <input type="text" id="location" name="location" 
-                           value="{{ session.location }}" required>
-                    <button type="button" class="btn btn-secondary btn-sm location-btn" onclick="getLocation()">
-                        <i class="fas fa-location-crosshairs"></i> Update Location
-                    </button>
-                </div>
-            </div>
-            
-            <div class="form-section">
-                <h3><i class="fas fa-lock"></i> Change Password</h3>
-                <p class="section-help">Leave blank to keep current password</p>
-                
-                <div class="form-group">
-                    <label for="new_password">New Password</label>
-                    <input type="password" id="new_password" name="new_password" 
-                           minlength="6">
-                    <div class="password-toggle">
-                        <i class="fas fa-eye" onclick="togglePassword('new_password')"></i>
+                <div class="form-row">
+                    <div class="form-group-inline">
+                        <label for="email">
+                            <i class="fas fa-envelope"></i> Email
+                        </label>
+                        <input type="email" id="email" name="email" 
+                               value="{{ session.email }}" 
+                               class="modern-input"
+                               placeholder="your@email.com"
+                               required>
                     </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="confirm_password">Confirm New Password</label>
-                    <input type="password" id="confirm_password" name="confirm_password" 
-                           minlength="6">
-                    <div class="password-toggle">
-                        <i class="fas fa-eye" onclick="togglePassword('confirm_password')"></i>
+                <div class="form-row">
+                    <div class="form-group-inline">
+                        <label for="location">
+                            <i class="fas fa-map-marker-alt"></i> Location
+                        </label>
+                        <div class="location-input-group">
+                            <input type="text" id="location" name="location" 
+                                   value="{{ session.location }}" 
+                                   class="modern-input"
+                                   placeholder="Your location"
+                                   required>
+                            <button type="button" class="location-btn-icon" onclick="getLocation()" 
+                                    title="Use current location">
+                                <i class="fas fa-location-crosshairs"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="form-actions">
-                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
-                    <i class="fas fa-times"></i> Cancel
+
+            <!-- Password Change Card -->
+            <div class="form-section-card">
+                <h3 class="form-section-title">
+                    <i class="fas fa-lock"></i>
+                    Change Password
+                </h3>
+                <p class="section-subtitle">Leave blank to keep current password</p>
+                
+                <div class="form-row">
+                    <div class="form-group-inline">
+                        <label for="new_password">
+                            <i class="fas fa-key"></i> New Password
+                        </label>
+                        <div class="password-input-group">
+                            <input type="password" id="new_password" name="new_password" 
+                                   class="modern-input"
+                                   placeholder="New password" 
+                                   minlength="6">
+                            <button type="button" class="password-toggle-btn" 
+                                    onclick="togglePassword('new_password')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group-inline">
+                        <label for="confirm_password">
+                            <i class="fas fa-key"></i> Confirm Password
+                        </label>
+                        <div class="password-input-group">
+                            <input type="password" id="confirm_password" name="confirm_password" 
+                                   class="modern-input"
+                                   placeholder="Confirm new password" 
+                                   minlength="6">
+                            <button type="button" class="password-toggle-btn" 
+                                    onclick="togglePassword('confirm_password')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="{{ url_for('dashboard') }}" class="btn-secondary-ghost">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
                 </a>
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn-primary-gradient">
                     <i class="fas fa-save"></i> Save Changes
                 </button>
             </div>
-            
-            <div class="profile-footer">
-                <p>
-                    <i class="fas fa-calendar"></i>
-                    Member since {{ session.get('created_at', 'N/A') }}
-                </p>
-                <a href="{{ url_for('logout') }}" class="logout-link">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </a>
+
+            <!-- Account Actions -->
+            <div class="account-actions-card">
+                <h3 class="form-section-title">
+                    <i class="fas fa-cog"></i>
+                    Account Actions
+                </h3>
+                
+                <div class="account-action-links">
+                    <a href="{{ url_for('order_history') }}" class="account-action-link">
+                        <i class="fas fa-history"></i>
+                        <div class="action-content">
+                            <span class="action-title">Order History</span>
+                            <span class="action-desc">View your past orders</span>
+                        </div>
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                    
+                    <a href="{{ url_for('services') }}" class="account-action-link">
+                        <i class="fas fa-concierge-bell"></i>
+                        <div class="action-content">
+                            <span class="action-title">Our Services</span>
+                            <span class="action-desc">Explore what we offer</span>
+                        </div>
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                    
+                    <a href="{{ url_for('logout') }}" class="account-action-link logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <div class="action-content">
+                            <span class="action-title">Logout</span>
+                            <span class="action-desc">Sign out from your account</span>
+                        </div>
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </div>
             </div>
         </form>
     </main>
@@ -134,11 +231,383 @@
     </nav>
 </div>
 
+<style>
+.instagram-profile {
+    background: #fafafa;
+}
+
+/* Profile Header */
+.profile-header-section {
+    background: white;
+    padding: 24px 20px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.profile-avatar-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    min-width: 120px;
+}
+
+.profile-avatar-wrapper {
+    position: relative;
+    width: 100px;
+    height: 100px;
+}
+
+.profile-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.avatar-edit-overlay {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: #0095f6;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    border: 2px solid white;
+    transition: all 0.2s ease;
+}
+
+.avatar-edit-overlay:hover {
+    background: #0081d6;
+    transform: scale(1.1);
+}
+
+.profile-role {
+    font-size: 13px;
+    color: #8e8e8e;
+    background: #f8f9fa;
+    padding: 4px 12px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.profile-role i {
+    color: #0095f6;
+    font-size: 11px;
+}
+
+.profile-info {
+    flex: 1;
+}
+
+.profile-name {
+    font-size: 24px;
+    font-weight: 300;
+    color: #262626;
+    margin: 0 0 8px 0;
+}
+
+.profile-location,
+.profile-email,
+.profile-phone,
+.member-since {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #8e8e8e;
+    font-size: 14px;
+    margin: 6px 0;
+}
+
+.profile-location i,
+.profile-email i,
+.profile-phone i,
+.member-since i {
+    width: 16px;
+    color: #0095f6;
+}
+
+/* Form Cards */
+.form-section-card,
+.account-actions-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    border: 1px solid #efefef;
+}
+
+.form-section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #262626;
+    margin: 0 0 16px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-section-title i {
+    color: #0095f6;
+}
+
+.section-subtitle {
+    font-size: 13px;
+    color: #8e8e8e;
+    margin: -12px 0 20px 0;
+}
+
+/* Form Elements */
+.form-row {
+    margin-bottom: 20px;
+}
+
+.form-group-inline label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #262626;
+    margin-bottom: 8px;
+}
+
+.form-group-inline label i {
+    color: #0095f6;
+    width: 16px;
+}
+
+.modern-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #dbdbdb;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #262626;
+    background: #fafafa;
+    transition: all 0.2s ease;
+}
+
+.modern-input:focus {
+    outline: none;
+    border-color: #a8a8a8;
+    background: white;
+}
+
+.modern-input::placeholder {
+    color: #8e8e8e;
+}
+
+/* Location Input Group */
+.location-input-group {
+    position: relative;
+}
+
+.location-btn-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #0095f6;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.location-btn-icon:hover {
+    background: #f0f8ff;
+}
+
+/* Password Input Group */
+.password-input-group {
+    position: relative;
+}
+
+.password-toggle-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #8e8e8e;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.password-toggle-btn:hover {
+    background: #f0f0f0;
+    color: #262626;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 12px;
+    margin: 24px 0;
+    padding: 0 20px;
+}
+
+.btn-secondary-ghost {
+    flex: 1;
+    padding: 14px 20px;
+    border: 1px solid #dbdbdb;
+    border-radius: 8px;
+    background: white;
+    color: #262626;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-secondary-ghost:hover {
+    background: #fafafa;
+    border-color: #b5b5b5;
+}
+
+.btn-primary-gradient {
+    flex: 1;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(45deg, #0095f6, #4a73e8);
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-primary-gradient:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 149, 246, 0.2);
+}
+
+/* Account Actions */
+.account-action-links {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: #fafafa;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.account-action-link {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: white;
+    text-decoration: none;
+    color: #262626;
+    border-bottom: 1px solid #f0f0f0;
+    transition: all 0.2s ease;
+}
+
+.account-action-link:last-child {
+    border-bottom: none;
+}
+
+.account-action-link:hover {
+    background: #f8f9fa;
+    transform: translateX(2px);
+}
+
+.account-action-link i:first-child {
+    font-size: 20px;
+    color: #0095f6;
+    width: 24px;
+}
+
+.account-action-link i:last-child {
+    color: #dbdbdb;
+    margin-left: auto;
+    font-size: 14px;
+}
+
+.action-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.action-title {
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.action-desc {
+    font-size: 13px;
+    color: #8e8e8e;
+}
+
+.account-action-link.logout i:first-child {
+    color: #ed4956;
+}
+
+.account-action-link.logout:hover {
+    background: #fff0f0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .profile-header-section {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .profile-info {
+        width: 100%;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .account-action-link {
+        padding: 14px;
+    }
+}
+</style>
+
 <script>
 function previewImage(event) {
     const reader = new FileReader();
     reader.onload = function() {
-        const preview = document.getElementById('profilePreview');
+        const preview = document.querySelector('.profile-avatar');
         preview.src = reader.result;
     }
     reader.readAsDataURL(event.target.files[0]);
@@ -146,7 +615,7 @@ function previewImage(event) {
 
 function togglePassword(fieldId) {
     const password = document.getElementById(fieldId);
-    const icon = password.nextElementSibling.querySelector('i');
+    const icon = password.parentElement.querySelector('.password-toggle-btn i');
     
     if (password.type === 'password') {
         password.type = 'text';
@@ -205,5 +674,13 @@ function getLocation() {
         }
     );
 }
+
+// Trigger file input when clicking on avatar edit
+document.querySelector('.avatar-edit-overlay').addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('profile_pic').click();
+});
+
+document.getElementById('profile_pic').addEventListener('change', previewImage);
 </script>
 {% endblock %}
