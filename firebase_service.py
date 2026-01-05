@@ -19,10 +19,12 @@ load_dotenv()
 # ======================================================
 
 class FirebaseConfig:
+    # Project Info
     PROJECT_ID = os.getenv("FIREBASE_PROJECT_ID")
     STORAGE_BUCKET = os.getenv("FIREBASE_STORAGE_BUCKET")
     DATABASE_URL = os.getenv("FIREBASE_DATABASE_URL")
 
+    # Web SDK Config (Frontend)
     WEB_CONFIG = {
         "apiKey": os.getenv("FIREBASE_API_KEY"),
         "authDomain": os.getenv("FIREBASE_AUTH_DOMAIN"),
@@ -30,10 +32,11 @@ class FirebaseConfig:
         "storageBucket": STORAGE_BUCKET,
         "messagingSenderId": os.getenv("FIREBASE_MESSAGING_SENDER_ID"),
         "appId": os.getenv("FIREBASE_APP_ID"),
+        "measurementId": os.getenv("FIREBASE_MEASUREMENT_ID"),
         "databaseURL": DATABASE_URL,
     }
 
-    # ✅ ENV first, fallback to local JSON file (development)
+    # Admin SDK Config (Backend)
     SERVICE_ACCOUNT_PATH = os.getenv(
         "SERVICE_ACCOUNT_PATH",
         "bite-me-buddy-service-account-key.json"
@@ -41,28 +44,26 @@ class FirebaseConfig:
 
     APP_NAME = "bite-me-buddy-app"
 
-
 # ======================================================
 # INITIALIZE FIREBASE ADMIN (ONLY ONCE)
 # ======================================================
 
 def initialize_firebase_admin():
     """Initialize Firebase Admin SDK safely"""
-
     try:
+        # Already initialized?
         if firebase_admin._apps:
-            # Already initialized
             return firebase_admin.get_app(FirebaseConfig.APP_NAME)
 
-        # 1️⃣ Service account JSON file (local dev)
+        # 1️⃣ Local JSON file (development)
         if os.path.exists(FirebaseConfig.SERVICE_ACCOUNT_PATH):
             cred = credentials.Certificate(FirebaseConfig.SERVICE_ACCOUNT_PATH)
 
-        # 2️⃣ Service account JSON from ENV (Render / Production)
+        # 2️⃣ JSON from ENV (Render / Production)
         elif os.getenv("FIREBASE_SERVICE_ACCOUNT_KEY"):
             raw = os.getenv("FIREBASE_SERVICE_ACCOUNT_KEY")
             cred_dict = json.loads(raw)
-            # 🔹 Fix \n in private_key
+            # Fix line breaks in private_key
             cred_dict["private_key"] = cred_dict["private_key"].replace("\\n", "\n")
             cred = credentials.Certificate(cred_dict)
 
@@ -89,7 +90,6 @@ def initialize_firebase_admin():
         print(f"❌ Firebase initialization failed: {e}")
         raise
 
-
 # ======================================================
 # CLIENT HELPERS
 # ======================================================
@@ -112,7 +112,6 @@ def get_storage_bucket():
 def get_pyrebase_client():
     """Frontend-like Firebase client (OTP / Login)"""
     return pyrebase.initialize_app(FirebaseConfig.WEB_CONFIG)
-
 
 # ======================================================
 # EXPORTS
