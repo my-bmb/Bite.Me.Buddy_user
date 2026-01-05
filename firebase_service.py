@@ -33,6 +33,7 @@ class FirebaseConfig:
         "databaseURL": DATABASE_URL,
     }
 
+    # ✅ ENV first, fallback to local JSON file (development)
     SERVICE_ACCOUNT_PATH = os.getenv(
         "SERVICE_ACCOUNT_PATH",
         "bite-me-buddy-service-account-key.json"
@@ -50,19 +51,26 @@ def initialize_firebase_admin():
 
     try:
         if firebase_admin._apps:
+            # Already initialized
             return firebase_admin.get_app(FirebaseConfig.APP_NAME)
 
-        # 1️⃣ Service account JSON file
+        # 1️⃣ Service account JSON file (local dev)
         if os.path.exists(FirebaseConfig.SERVICE_ACCOUNT_PATH):
             cred = credentials.Certificate(FirebaseConfig.SERVICE_ACCOUNT_PATH)
 
-        # 2️⃣ Service account JSON from ENV (Render)
+        # 2️⃣ Service account JSON from ENV (Render / Production)
         elif os.getenv("FIREBASE_SERVICE_ACCOUNT_KEY"):
-            cred_dict = json.loads(os.getenv("FIREBASE_SERVICE_ACCOUNT_KEY"))
+            raw = os.getenv("FIREBASE_SERVICE_ACCOUNT_KEY")
+            cred_dict = json.loads(raw)
+            # 🔹 Fix \n in private_key
+            cred_dict["private_key"] = cred_dict["private_key"].replace("\\n", "\n")
             cred = credentials.Certificate(cred_dict)
 
         else:
-            raise RuntimeError("Firebase service account not found")
+            raise RuntimeError(
+                "Firebase service account not found. "
+                "Set FIREBASE_SERVICE_ACCOUNT_KEY in ENV or SERVICE_ACCOUNT_PATH locally."
+            )
 
         app = firebase_admin.initialize_app(
             cred,
