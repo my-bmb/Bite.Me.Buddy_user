@@ -1,717 +1,676 @@
-{% extends "base.html" %}
-
-{% block title %}Register{% endblock %}
-
-{% block head %}
-{{ super() }}
-<!-- Add FontAwesome for icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-{% endblock %}
-
-{% block content %}
-
-<div class="auth-container">  
-    <div class="auth-card">  
-        <div class="auth-header">
-            <h1 class="auth-title">Create Account</h1>
-            <p class="auth-subtitle">Join our community today</p>
-        </div>
-        
-        <form method="POST" enctype="multipart/form-data" class="auth-form">  
-            <!-- Profile Picture Section -->
-            <div class="form-group">  
-                <label for="profile_pic" class="form-label">Profile Picture</label>  
-                <div class="profile-upload-section">
-                    <div class="profile-upload-wrapper">
-                        <!-- Upload area -->
-                        <div class="upload-area" id="uploadArea">
-                            <div class="upload-icon">
-                                <i class="fas fa-user-circle"></i>
-                            </div>
-                            <div class="upload-info">
-                                <p class="upload-title">Add profile photo</p>
-                                <p class="upload-subtitle">JPG, PNG up to 5MB</p>
-                            </div>
-                            <button type="button" class="upload-action-btn" onclick="document.getElementById('profile_pic').click()">
-                                <i class="fas fa-upload"></i> Upload
-                            </button>
-                        </div>
-                        
-                        <!-- Preview area (hidden by default) -->
-                        <div class="preview-area" id="previewArea" style="display: none;">
-                            <div class="preview-container">
-                                <img id="imagePreview" src="" alt="Profile Preview" class="preview-image">
-                                <div class="preview-overlay">
-                                    <button type="button" class="change-photo-btn" onclick="document.getElementById('profile_pic').click()">
-                                        <i class="fas fa-camera"></i> Change
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="preview-info">
-                                <p class="file-name" id="fileName"></p>
-                                <button type="button" class="remove-photo-btn" onclick="removePhoto()">
-                                    <i class="fas fa-times"></i> Remove
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <input type="file" id="profile_pic" name="profile_pic" accept="image/*" style="display: none;">  
-                    </div>
-                </div>
-            </div>  
-            
-            <!-- Form Fields -->
-            <div class="form-grid">
-                <div class="form-group">  
-                    <label for="full_name" class="form-label">
-                        <i class="fas fa-user icon-left"></i> Full Name
-                    </label>  
-                    <input type="text" id="full_name" name="full_name" class="form-input" placeholder="Enter your full name" required>  
-                </div>  
-                  
-                <div class="form-group">  
-                    <label for="phone" class="form-label">
-                        <i class="fas fa-phone icon-left"></i> Mobile Number
-                    </label>  
-                    <input type="tel" id="phone" name="phone" class="form-input" placeholder="10-15 digits" required pattern="[0-9]{10,15}">  
-                </div>  
-            </div>
-              
-            <div class="form-group">  
-                <label for="email" class="form-label">
-                    <i class="fas fa-envelope icon-left"></i> Email Address
-                </label>  
-                <input type="email" id="email" name="email" class="form-input" placeholder="you@example.com" required>  
-            </div>  
-              
-            <div class="form-group">  
-                <label for="location" class="form-label">
-                    <i class="fas fa-map-marker-alt icon-left"></i> Location
-                </label>  
-                <div class="location-input-group">  
-                    <input type="text" id="location" name="location" class="form-input" placeholder="Enter your location" required>  
-                    <button type="button" class="location-btn" onclick="getLocation()">  
-                        <i class="fas fa-location-arrow"></i> Detect
-                    </button>  
-                </div>  
-                <small id="locationHelp" class="help-text"></small>  
-            </div>  
-            
-            <div class="form-grid">
-                <div class="form-group">  
-                    <label for="password" class="form-label">
-                        <i class="fas fa-lock icon-left"></i> Password
-                    </label>  
-                    <div class="password-input">
-                        <input type="password" id="password" name="password" class="form-input" placeholder="Minimum 6 characters" required minlength="6">
-                        <button type="button" class="password-toggle" onclick="togglePassword('password')">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>  
-                  
-                <div class="form-group">  
-                    <label for="confirm_password" class="form-label">
-                        <i class="fas fa-lock icon-left"></i> Confirm Password
-                    </label>  
-                    <div class="password-input">
-                        <input type="password" id="confirm_password" name="confirm_password" class="form-input" placeholder="Confirm your password" required minlength="6">
-                        <button type="button" class="password-toggle" onclick="togglePassword('confirm_password')">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>  
-            </div>
-            
-            <!-- Terms and Conditions -->
-            <div class="form-group terms-group">
-                <label class="checkbox-container">
-                    <input type="checkbox" id="terms" name="terms" required>
-                    <span class="checkmark"></span>
-                    I agree to the <a href="#" class="link">Terms of Service</a> and <a href="#" class="link">Privacy Policy</a>
-                </label>
-            </div>
-              
-            <button type="submit" class="btn btn-primary btn-block">  
-                <i class="fas fa-user-plus btn-icon"></i> Create Account
-            </button>  
-              
-            <div class="auth-footer">  
-                Already have an account? 
-                <a href="{{ url_for('login') }}" class="auth-link">
-                    <i class="fas fa-sign-in-alt"></i> Sign In
-                </a>  
-            </div>  
-        </form>  
-    </div>
-</div>  
-
-<style>
-/* Professional Styling */
-.auth-container {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.auth-card {
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 500px;
-    padding: 40px;
-}
-
-.auth-header {
-    text-align: center;
-    margin-bottom: 40px;
-}
-
-.auth-title {
-    font-size: 32px;
-    font-weight: 700;
-    color: #2d3748;
-    margin-bottom: 10px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.auth-subtitle {
-    color: #718096;
-    font-size: 16px;
-    font-weight: 400;
-}
-
-/* Profile Upload Section */
-.profile-upload-section {
-    margin-bottom: 30px;
-}
-
-.upload-area {
-    display: flex;
-    align-items: center;
-    padding: 25px;
-    border: 2px dashed #e2e8f0;
-    border-radius: 12px;
-    background: #f8fafc;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.upload-area:hover {
-    border-color: #667eea;
-    background: #f0f4ff;
-}
-
-.upload-icon {
-    margin-right: 20px;
-}
-
-.upload-icon i {
-    font-size: 48px;
-    color: #cbd5e0;
-    transition: color 0.3s ease;
-}
-
-.upload-area:hover .upload-icon i {
-    color: #667eea;
-}
-
-.upload-info {
-    flex: 1;
-}
-
-.upload-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #2d3748;
-    margin: 0 0 5px 0;
-}
-
-.upload-subtitle {
-    font-size: 14px;
-    color: #718096;
-    margin: 0;
-}
-
-.upload-action-btn {
-    background: white;
-    border: 2px solid #667eea;
-    color: #667eea;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.upload-action-btn:hover {
-    background: #667eea;
-    color: white;
-}
-
-/* Preview Area */
-.preview-area {
-    text-align: center;
-}
-
-.preview-container {
-    position: relative;
-    width: 120px;
-    height: 120px;
-    margin: 0 auto 15px;
-}
-
-.preview-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 4px solid white;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-}
-
-.preview-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.preview-container:hover .preview-overlay {
-    opacity: 1;
-}
-
-.change-photo-btn {
-    background: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 20px;
-    color: #2d3748;
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: transform 0.3s ease;
-}
-
-.change-photo-btn:hover {
-    transform: scale(1.05);
-}
-
-.preview-info {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-}
-
-.file-name {
-    font-size: 14px;
-    color: #4a5568;
-    margin: 0;
-    max-width: 150px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.remove-photo-btn {
-    background: none;
-    border: none;
-    color: #e53e3e;
-    font-size: 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    transition: color 0.3s ease;
-}
-
-.remove-photo-btn:hover {
-    color: #c53030;
-}
-
-/* Form Styling */
-.form-label {
-    display: block;
-    font-size: 14px;
-    font-weight: 600;
-    color: #4a5568;
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.icon-left {
-    color: #667eea;
-    width: 16px;
-    text-align: center;
-}
-
-.form-input {
-    width: 100%;
-    padding: 14px 16px;
-    border: 2px solid #e2e8f0;
-    border-radius: 10px;
-    font-size: 16px;
-    color: #2d3748;
-    transition: all 0.3s ease;
-    box-sizing: border-box;
-}
-
-.form-input:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.form-input::placeholder {
-    color: #a0aec0;
-}
-
-.form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
-
-.location-input-group {
-    display: flex;
-    gap: 10px;
-}
-
-.location-btn {
-    background: #edf2f7;
-    border: 2px solid #e2e8f0;
-    color: #4a5568;
-    padding: 0 20px;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.location-btn:hover {
-    background: #667eea;
-    border-color: #667eea;
-    color: white;
-}
-
-.password-input {
-    position: relative;
-}
-
-.password-toggle {
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: #a0aec0;
-    cursor: pointer;
-    font-size: 16px;
-    transition: color 0.3s ease;
-}
-
-.password-toggle:hover {
-    color: #667eea;
-}
-
-/* Terms and Conditions */
-.terms-group {
-    margin: 25px 0;
-}
-
-.checkbox-container {
-    display: flex;
-    align-items: center;
-    position: relative;
-    padding-left: 35px;
-    cursor: pointer;
-    font-size: 14px;
-    color: #4a5568;
-    user-select: none;
-}
-
-.checkbox-container input {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-    height: 0;
-    width: 0;
-}
-
-.checkmark {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 22px;
-    width: 22px;
-    background-color: #edf2f7;
-    border: 2px solid #e2e8f0;
-    border-radius: 6px;
-    transition: all 0.3s ease;
-}
-
-.checkbox-container:hover input ~ .checkmark {
-    background-color: #e2e8f0;
-}
-
-.checkbox-container input:checked ~ .checkmark {
-    background-color: #667eea;
-    border-color: #667eea;
-}
-
-.checkmark:after {
-    content: "";
-    position: absolute;
-    display: none;
-    left: 7px;
-    top: 3px;
-    width: 5px;
-    height: 10px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
-}
-
-.checkbox-container input:checked ~ .checkmark:after {
-    display: block;
-}
-
-.link {
-    color: #667eea;
-    text-decoration: none;
-    font-weight: 600;
-    transition: color 0.3s ease;
-}
-
-.link:hover {
-    color: #764ba2;
-    text-decoration: underline;
-}
-
-/* Button Styling */
-.btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    padding: 16px;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
-}
-
-.btn-primary:active {
-    transform: translateY(0);
-}
-
-.btn-icon {
-    font-size: 18px;
-}
-
-/* Footer */
-.auth-footer {
-    text-align: center;
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid #e2e8f0;
-    color: #718096;
-    font-size: 15px;
-}
-
-.auth-link {
-    color: #667eea;
-    text-decoration: none;
-    font-weight: 600;
-    margin-left: 8px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: color 0.3s ease;
-}
-
-.auth-link:hover {
-    color: #764ba2;
-}
-
-/* Help Text */
-.help-text {
-    display: block;
-    margin-top: 8px;
-    font-size: 13px;
-    color: #718096;
-}
-
-/* Responsive */
-@media (max-width: 576px) {
-    .auth-card {
-        padding: 30px 20px;
-    }
-    
-    .form-grid {
-        grid-template-columns: 1fr;
-        gap: 15px;
-    }
-    
-    .location-input-group {
-        flex-direction: column;
-    }
-    
-    .location-btn {
-        width: 100%;
-        justify-content: center;
-        padding: 12px;
-    }
-}
-</style>
-
-<script>  
-function previewImage(event) {  
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();  
-    reader.onload = function() {  
-        // Show preview area
-        document.getElementById('uploadArea').style.display = 'none';
-        document.getElementById('previewArea').style.display = 'block';
-        
-        // Set preview image
-        const preview = document.getElementById('imagePreview');
-        preview.src = reader.result;
-        
-        // Set file name
-        document.getElementById('fileName').textContent = file.name;
-    }  
-    reader.readAsDataURL(file);  
-}
-
-function removePhoto() {
-    // Hide preview area
-    document.getElementById('previewArea').style.display = 'none';
-    document.getElementById('uploadArea').style.display = 'flex';
-    
-    // Reset file input
-    document.getElementById('profile_pic').value = '';
-}
-
-function togglePassword(fieldId) {
-    const field = document.getElementById(fieldId);
-    const icon = field.parentElement.querySelector('.password-toggle i');
-    
-    if (field.type === 'password') {
-        field.type = 'text';
-        icon.className = 'fas fa-eye-slash';
-    } else {
-        field.type = 'password';
-        icon.className = 'fas fa-eye';
-    }
-}
-
-function getLocation() {  
-    if (!navigator.geolocation) {  
-        document.getElementById('locationHelp').textContent = 'Geolocation not supported';  
-        return;  
-    }  
-      
-    document.getElementById('locationHelp').textContent = 'Getting location...';  
-    document.getElementById('locationHelp').style.color = '#667eea';
-      
-    navigator.geolocation.getCurrentPosition(  
-        function(position) {  
-            const lat = position.coords.latitude;  
-            const lon = position.coords.longitude;  
-              
-            // Reverse geocoding using Nominatim (OpenStreetMap)  
-            fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)  
-                .then(response => response.json())  
-                .then(data => {  
-                    const address = data.display_name || `${lat}, ${lon}`;  
-                    document.getElementById('location').value = address;  
-                    document.getElementById('locationHelp').textContent = 'Location detected successfully!';  
-                    document.getElementById('locationHelp').style.color = '#38a169';
-                })  
-                .catch(() => {  
-                    document.getElementById('location').value = `${lat}, ${lon}`;  
-                    document.getElementById('locationHelp').textContent = 'Coordinates saved';  
-                    document.getElementById('locationHelp').style.color = '#38a169';
-                });  
-        },  
-        function(error) {  
-            let message = 'Unable to get location: ';  
-            switch(error.code) {  
-                case error.PERMISSION_DENIED:  
-                    message += 'Permission denied';  
-                    break;  
-                case error.POSITION_UNAVAILABLE:  
-                    message += 'Position unavailable';  
-                    break;  
-                case error.TIMEOUT:  
-                    message += 'Request timeout';  
-                    break;  
-                default:  
-                    message += 'Unknown error';  
-            }  
-            document.getElementById('locationHelp').textContent = message;  
-            document.getElementById('locationHelp').style.color = '#e53e3e';
-        }  
-    );  
-}
-
-// Make upload area clickable
-document.addEventListener('DOMContentLoaded', function() {
-    const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('profile_pic');
-    
-    if (uploadArea && fileInput) {
-        uploadArea.addEventListener('click', function(e) {
-            if (e.target.tagName !== 'BUTTON') {
-                fileInput.click();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Create Account</title>
+    <!-- FontAwesome CDN for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        /* New: Full page gradient background */
+        body {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 25%, #fae8ff 50%, #fefce8 75%, #f0fdf4 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* New: Animated background elements */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 20%),
+                radial-gradient(circle at 50% 30%, rgba(34, 197, 94, 0.05) 0%, transparent 30%);
+            z-index: -1;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        /* New: Floating animation for background */
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0deg);
             }
-        });
-    }
-});
-</script>  
+            33% {
+                transform: translate(-10px, -10px) rotate(1deg);
+            }
+            66% {
+                transform: translate(10px, 10px) rotate(-1deg);
+            }
+        }
 
-{% endblock %}
+        .auth-container {
+            width: 100%;
+            max-width: 480px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        /* New: Container animation */
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .auth-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                0 2px 8px rgba(59, 130, 246, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* New: Decorative corner accent */
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, transparent 50%, rgba(59, 130, 246, 0.1) 50%);
+            border-radius: 0 20px 0 0;
+        }
+
+        .auth-title {
+            text-align: center;
+            color: #1e293b;
+            margin-bottom: 32px;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Rest of your existing styles remain exactly the same */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #475569;
+            font-weight: 500;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.2s ease;
+            background: white;
+            color: #334155;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: #94a3b8;
+        }
+
+        /* Professional Profile Upload Section */
+        .profile-upload {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .upload-container {
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 20px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .upload-circle {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .upload-container:hover .upload-circle {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            transform: scale(1.02);
+        }
+
+        /* Camera Icon - Simple and Clean */
+        .camera-icon {
+            color: #94a3b8;
+            font-size: 32px;
+            transition: all 0.3s ease;
+        }
+
+        .upload-container:hover .camera-icon {
+            color: #3b82f6;
+            transform: scale(1.1);
+        }
+
+        .upload-text {
+            font-size: 15px;
+            color: #475569;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        /* File Browser Option */
+        .file-browser-option {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: white;
+            color: #3b82f6;
+            border: 1.5px solid #3b82f6;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            margin-top: 8px;
+        }
+
+        .file-browser-option:hover {
+            background: #eff6ff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+
+        .file-browser-option:active {
+            transform: translateY(0);
+        }
+
+        .file-browser-option i {
+            font-size: 16px;
+        }
+
+        .profile-upload input[type="file"] {
+            display: none;
+        }
+
+        /* Preview Image Styling */
+        #imagePreview {
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #3b82f6;
+            display: none;
+            position: relative;
+        }
+
+        #imagePreview.has-image {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .change-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        #imagePreview:hover .change-overlay {
+            opacity: 1;
+        }
+
+        .change-icon {
+            color: white;
+            font-size: 20px;
+            background: #3b82f6;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Location Input */
+        .location-input {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .location-input input {
+            flex: 1;
+        }
+
+        .location-btn {
+            padding: 12px 20px;
+            background: #f8fafc;
+            color: #475569;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .location-btn:hover {
+            background: #f1f5f9;
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        .location-btn i {
+            font-size: 14px;
+        }
+
+        .help-text {
+            display: block;
+            margin-top: 6px;
+            color: #64748b;
+            font-size: 12px;
+            min-height: 18px;
+        }
+
+        /* Register Button */
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+            letter-spacing: 0.3px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        /* Auth Footer */
+        .auth-footer {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(226, 232, 240, 0.5);
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .auth-footer a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+            margin-left: 4px;
+        }
+
+        .auth-footer a:hover {
+            color: #1d4ed8;
+            text-decoration: underline;
+        }
+
+        /* Form Validation Styles */
+        .form-group input:invalid:not(:focus):not(:placeholder-shown) {
+            border-color: #ef4444;
+        }
+
+        .form-group input:valid:not(:focus):not(:placeholder-shown) {
+            border-color: #10b981;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 576px) {
+            .auth-card {
+                padding: 24px;
+                box-shadow: none;
+                border: none;
+                background: rgba(255, 255, 255, 0.98);
+            }
+            
+            .auth-title {
+                font-size: 22px;
+                margin-bottom: 28px;
+            }
+            
+            .upload-container {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .camera-icon {
+                font-size: 28px;
+            }
+            
+            .location-input {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .location-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            #imagePreview {
+                width: 120px;
+                height: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">  
+        <div class="auth-card">  
+            <h1 class="auth-title">Create Account</h1>  
+            <form method="POST" enctype="multipart/form-data" class="auth-form">  
+                <div class="form-group">  
+                    <label for="profile_pic">Profile Picture</label>  
+                    <div class="profile-upload">  
+                        <!-- Upload Container -->
+                        <div class="upload-container" id="uploadContainer">
+                            <div class="upload-circle">
+                                <i class="fas fa-camera camera-icon"></i>
+                            </div>
+                            <div class="upload-text">Add photo</div>
+                        </div>
+                        
+                        <!-- Image Preview (hidden by default) -->
+                        <img id="imagePreview" alt="Profile Preview">
+                        
+                        <!-- Browse Files Option -->
+                        <a href="javascript:void(0)" class="file-browser-option" onclick="document.getElementById('profile_pic').click()">
+                            <i class="fas fa-folder-open"></i> Browse Files
+                        </a>
+                        
+                        <input type="file" id="profile_pic" name="profile_pic" accept="image/*" onchange="previewImage(event)">  
+                    </div>  
+                </div>  
+                  
+                <div class="form-group">  
+                    <label for="full_name">Full Name</label>  
+                    <input type="text" id="full_name" name="full_name" required placeholder="Enter your full name">  
+                </div>  
+                  
+                <div class="form-group">  
+                    <label for="phone">Mobile Number</label>  
+                    <input type="tel" id="phone" name="phone" required pattern="[0-9]{10,15}" placeholder="Enter 10-digit mobile number">  
+                </div>  
+                  
+                <div class="form-group">  
+                    <label for="email">Email Address</label>  
+                    <input type="email" id="email" name="email" required placeholder="Enter your email address">  
+                </div>  
+                  
+                <div class="form-group">  
+                    <label for="location">Location</label>  
+                    <div class="location-input">  
+                        <input type="text" id="location" name="location" required placeholder="Enter your location">  
+                        <button type="button" class="location-btn" onclick="getLocation()" id="locationBtn">  
+                            <i class="fas fa-location-crosshairs"></i> 
+                            <span>Live Location</span>
+                        </button>  
+                    </div>  
+                    <small id="locationHelp" class="help-text"></small>  
+                </div>  
+                  
+                <div class="form-group">  
+                    <label for="password">Password</label>  
+                    <input type="password" id="password" name="password" required minlength="6" placeholder="Create a password (min. 6 characters)">  
+                </div>  
+                  
+                <div class="form-group">  
+                    <label for="confirm_password">Confirm Password</label>  
+                    <input type="password" id="confirm_password" name="confirm_password" required minlength="6" placeholder="Re-enter your password">  
+                </div>  
+                  
+                <button type="submit" class="btn-primary">Register</button>  
+                  
+                <div class="auth-footer">  
+                    Already have an account? <a href="{{ url_for('login') }}">Login</a>  
+                </div>  
+            </form>  
+        </div>
+    </div>
+
+    <script>  
+    function previewImage(event) {  
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();  
+        reader.onload = function() {  
+            const preview = document.getElementById('imagePreview');
+            preview.src = reader.result;
+            preview.classList.add('has-image');
+            
+            // Hide upload container
+            document.getElementById('uploadContainer').style.display = 'none';
+            
+            // Add change overlay
+            if (!preview.querySelector('.change-overlay')) {
+                const overlay = document.createElement('div');
+                overlay.className = 'change-overlay';
+                overlay.innerHTML = '<div class="change-icon"><i class="fas fa-camera"></i></div>';
+                preview.appendChild(overlay);
+                
+                // Make overlay clickable
+                overlay.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    document.getElementById('profile_pic').click();
+                });
+            }
+            
+            // Make preview clickable
+            preview.addEventListener('click', function(e) {
+                if (!e.target.closest('.change-overlay')) {
+                    document.getElementById('profile_pic').click();
+                }
+            });
+            
+            // Update browse files option
+            document.querySelector('.file-browser-option').innerHTML = '<i class="fas fa-sync-alt"></i> Change Photo';
+        };
+        
+        reader.readAsDataURL(file);
+    }
+      
+    // Click handlers
+    document.addEventListener('DOMContentLoaded', function() {
+        const uploadContainer = document.getElementById('uploadContainer');
+        const fileInput = document.getElementById('profile_pic');
+        const fileBrowserOption = document.querySelector('.file-browser-option');
+        
+        if (uploadContainer) {
+            uploadContainer.addEventListener('click', function(e) {
+                e.preventDefault();
+                fileInput.click();
+            });
+        }
+        
+        if (fileBrowserOption) {
+            fileBrowserOption.addEventListener('click', function(e) {
+                e.preventDefault();
+                fileInput.click();
+            });
+        }
+    });
+
+    function getLocation() {  
+        const locationBtn = document.getElementById('locationBtn');
+        const locationHelp = document.getElementById('locationHelp');
+        const locationInput = document.getElementById('location');
+        
+        if (!navigator.geolocation) {  
+            locationHelp.textContent = 'Geolocation not supported by your browser';  
+            return;  
+        }  
+        
+        // Show loading state
+        const originalHTML = locationBtn.innerHTML;
+        locationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Getting location...</span>';
+        locationBtn.disabled = true;
+        locationHelp.textContent = 'Detecting your location...';
+        locationHelp.style.color = '#3b82f6';
+          
+        navigator.geolocation.getCurrentPosition(  
+            function(position) {  
+                const lat = position.coords.latitude;  
+                const lon = position.coords.longitude;  
+                
+                // Reverse geocoding using Nominatim (OpenStreetMap)  
+                fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)  
+                    .then(response => response.json())  
+                    .then(data => {  
+                        const address = data.display_name || `${lat.toFixed(6)}, ${lon.toFixed(6)}`;  
+                        locationInput.value = address;  
+                        locationHelp.textContent = 'Location detected successfully!';  
+                        locationHelp.style.color = '#10b981';
+                    })  
+                    .catch(() => {  
+                        locationInput.value = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;  
+                        locationHelp.textContent = 'Coordinates saved';  
+                        locationHelp.style.color = '#10b981';
+                    })  
+                    .finally(() => {
+                        locationBtn.innerHTML = originalHTML;
+                        locationBtn.disabled = false;
+                    });
+            },  
+            function(error) {  
+                let message = 'Unable to get location: ';  
+                switch(error.code) {  
+                    case error.PERMISSION_DENIED:  
+                        message = 'Location access denied. Please enable location services.';  
+                        break;  
+                    case error.POSITION_UNAVAILABLE:  
+                        message = 'Location information unavailable.';  
+                        break;  
+                    case error.TIMEOUT:  
+                        message = 'Location request timed out.';  
+                        break;  
+                    default:  
+                        message = 'Unable to detect location.';  
+                }  
+                locationHelp.textContent = message;  
+                locationHelp.style.color = '#ef4444';
+                locationBtn.innerHTML = '<i class="fas fa-location-crosshairs"></i><span>Retry Location</span>';
+                locationBtn.disabled = false;
+            }  
+        );  
+    }
+    
+    // Form validation
+    document.addEventListener('DOMContentLoaded', function() {
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirm_password');
+        
+        if (confirmPassword) {
+            confirmPassword.addEventListener('input', function() {
+                if (password.value !== confirmPassword.value) {
+                    confirmPassword.style.borderColor = '#ef4444';
+                } else {
+                    confirmPassword.style.borderColor = '#10b981';
+                }
+            });
+        }
+        
+        // Phone number validation
+        const phoneInput = document.getElementById('phone');
+        if (phoneInput) {
+            phoneInput.addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '');
+            });
+        }
+    });
+    </script>
+</body>
+</html>
