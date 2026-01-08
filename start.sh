@@ -1,13 +1,24 @@
-#!/bin/bash
-# start.sh - Start script for Render
+#!/usr/bin/env bash
+# start.sh - Render start script
 
-# Activate virtual environment if exists
-if [ -d "venv" ]; then
-    source venv/bin/activate
+echo "Starting application..."
+echo "Python version: $(python --version)"
+
+# Create necessary directories
+mkdir -p static/uploads
+chmod -R 755 static/uploads
+
+# Check if templates exist
+if [ ! -d "templates" ]; then
+    echo "ERROR: templates directory not found!"
+    exit 1
 fi
 
-# Create uploads directory
-mkdir -p static/uploads
-
-# Run the application with gunicorn
-gunicorn app:app --bind 0.0.0.0:${PORT:-5000} --workers 2 --timeout 120
+# Start Gunicorn
+echo "Starting Gunicorn..."
+gunicorn app:app \
+    --workers 4 \
+    --bind 0.0.0.0:$PORT \
+    --timeout 120 \
+    --access-logfile - \
+    --error-logfile -

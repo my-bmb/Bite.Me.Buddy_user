@@ -1,5 +1,5 @@
--- schema.sql - Database schema
--- This is for reference, tables will be created automatically by app.py
+-- schema.sql
+-- Run this on your PostgreSQL database before deploying
 
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Services table
+-- Services table (pre-populated by another system)
 CREATE TABLE IF NOT EXISTS services (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS services (
     status VARCHAR(20) DEFAULT 'active'
 );
 
--- Menu table
+-- Menu table (pre-populated by another system)
 CREATE TABLE IF NOT EXISTS menu (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -67,3 +67,10 @@ CREATE TABLE IF NOT EXISTS order_items (
     quantity INTEGER NOT NULL,
     price DECIMAL(10, 2) NOT NULL
 );
+
+-- Create indexes for better performance
+CREATE INDEX idx_cart_user_id ON cart(user_id);
+CREATE INDEX idx_orders_user_id ON orders(user_id);
+CREATE INDEX idx_order_items_order_id ON order_items(order_id);
+CREATE INDEX idx_services_status ON services(status);
+CREATE INDEX idx_menu_status ON menu(status);

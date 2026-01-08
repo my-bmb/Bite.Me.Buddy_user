@@ -1,24 +1,14 @@
 # render.yaml
 services:
   - type: web
-    name: my-flask-app
+    name: flask-app
     env: python
     pythonVersion: "3.12"
-    plan: free
     buildCommand: chmod +x build.sh && ./build.sh
     startCommand: chmod +x start.sh && ./start.sh
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: database_md9y
-          property: connectionString
+        sync: false
       - key: SECRET_KEY
         generateValue: true
-      - key: CLOUDINARY_CLOUD_NAME
-        sync: false
-      - key: CLOUDINARY_API_KEY
-        sync: false
-      - key: CLOUDINARY_API_SECRET
-        sync: false
     autoDeploy: true
-    healthCheckPath: /
