@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bite Me Buddy - Loading</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .logo-container {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 30px;
+            position: relative;
+        }
+        
+        .logo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 20px;
+            border: 4px solid white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .logo-border {
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: -8px;
+            bottom: -8px;
+            border: 3px solid transparent;
+            border-radius: 28px;
+            animation: borderRotate 3s linear infinite;
+        }
+        
+        @keyframes borderRotate {
+            0% { 
+                border-top-color: #667eea;
+                border-right-color: transparent;
+                border-bottom-color: transparent;
+                border-left-color: transparent;
+            }
+            25% { 
+                border-top-color: transparent;
+                border-right-color: #f093fb;
+                border-bottom-color: transparent;
+                border-left-color: transparent;
+            }
+            50% { 
+                border-top-color: transparent;
+                border-right-color: transparent;
+                border-bottom-color: #4fd1c7;
+                border-left-color: transparent;
+            }
+            75% { 
+                border-top-color: transparent;
+                border-right-color: transparent;
+                border-bottom-color: transparent;
+                border-left-color: #f6ad55;
+            }
+            100% { 
+                border-top-color: #667eea;
+                border-right-color: transparent;
+                border-bottom-color: transparent;
+                border-left-color: transparent;
+            }
+        }
+        
+        h1 {
+            color: #2d3748;
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            color: #718096;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+        
+        .loading-animation {
+            margin: 30px 0;
+            position: relative;
+            height: 80px;
+        }
+        
+        .dots {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+        
+        .dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            animation: dotBounce 1.4s infinite ease-in-out;
+        }
+        
+        .dot:nth-child(1) {
+            background: #667eea;
+            animation-delay: -0.32s;
+        }
+        .dot:nth-child(2) {
+            background: #f093fb;
+            animation-delay: -0.16s;
+        }
+        .dot:nth-child(3) {
+            background: #4fd1c7;
+            animation-delay: 0s;
+        }
+        .dot:nth-child(4) {
+            background: #f6ad55;
+        }
+        
+        @keyframes dotBounce {
+            0%, 80%, 100% { 
+                transform: scale(0);
+                opacity: 0.5;
+            }
+            40% { 
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .progress-container {
+            background: #e2e8f0;
+            border-radius: 10px;
+            height: 6px;
+            overflow: hidden;
+            margin: 25px 0;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #f093fb, #4fd1c7);
+            border-radius: 10px;
+            width: 30%;
+            animation: progressLoad 2s infinite ease-in-out;
+        }
+        
+        @keyframes progressLoad {
+            0% { 
+                width: 30%;
+                margin-left: 0%;
+            }
+            50% { 
+                width: 60%;
+                margin-left: 40%;
+            }
+            100% { 
+                width: 30%;
+                margin-left: 0%;
+            }
+        }
+        
+        .status-text {
+            color: #4a5568;
+            font-size: 16px;
+            margin: 15px 0;
+            min-height: 40px;
+            font-weight: 500;
+        }
+        
+        .time-counter {
+            color: #667eea;
+            font-size: 14px;
+            font-family: monospace;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+        
+        .info-note {
+            background: #f7fafc;
+            border-left: 4px solid #667eea;
+            padding: 12px 15px;
+            margin-top: 25px;
+            text-align: left;
+            border-radius: 0 8px 8px 0;
+            font-size: 14px;
+            color: #4a5568;
+        }
+        
+        .success-state {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+        }
+        
+        .success-state .progress-bar {
+            background: #48bb78;
+            animation: none;
+            width: 100%;
+            margin-left: 0;
+            transition: width 0.5s ease;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .logo-container {
+                width: 100px;
+                height: 100px;
+                margin-bottom: 25px;
+            }
+            
+            .status-text {
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-container">
+            <div class="logo-border"></div>
+            <img src="https://i.postimg.cc/85bY3wn9/20251124-181121.jpg" alt="Bite Me Buddy Logo" class="logo">
+        </div>
+        
+        <h1>Bite Me Buddy</h1>
+        <div class="subtitle">Food & Services at your doorstep</div>
+        
+        <div class="loading-animation">
+            <div class="dots">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <div class="status-text" id="statusText">
+            Preparing your experience...
+        </div>
+        
+        <div class="time-counter" id="timeCounter">Loading: 0s</div>
+        
+        <div class="info-note" id="infoNote">
+            ⚡ Please wait while we prepare everything for you.
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const HEALTH_CHECK_URL = window.location.origin + '/health';
+        const READY_CHECK_URL = window.location.origin + '/api/ready';
+        let checkCount = 0;
+        let maxChecks = 50;
+        let startTime = Date.now();
+        let checkInterval;
+        
+        // DOM Elements
+        const statusText = document.getElementById('statusText');
+        const timeCounter = document.getElementById('timeCounter');
+        const progressBar = document.getElementById('progressBar');
+        const infoNote = document.getElementById('infoNote');
+        const container = document.querySelector('.container');
+        
+        // Status messages cycle
+        const statusMessages = [
+            "Preparing your experience...",
+            "Loading application...",
+            "Getting things ready...",
+            "Almost there...",
+            "Final touches..."
+        ];
+        
+        // Update timer display
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            timeCounter.textContent = `Loading: ${elapsed}s`;
+            
+            // Rotate status messages
+            const messageIndex = Math.min(Math.floor(elapsed / 5), statusMessages.length - 1);
+            statusText.textContent = statusMessages[messageIndex];
+        }
+        
+        // Update progress bar
+        function updateProgress(percent) {
+            progressBar.style.width = `${percent}%`;
+            
+            // Speed up animation as progress increases
+            const speed = 2 - (percent / 100);
+            progressBar.style.animationDuration = `${speed}s`;
+        }
+        
+        // Check if server is ready
+        async function checkServerStatus() {
+            checkCount++;
+            
+            if (checkCount > maxChecks) {
+                // Too many attempts
+                statusText.textContent = "Preparing your connection...";
+                clearInterval(checkInterval);
+                // Try to redirect anyway
+                setTimeout(() => {
+                    window.location.href = window.location.origin;
+                }, 3000);
+                return;
+            }
+            
+            // Update progress based on checks
+            const progressPercent = Math.min((checkCount / maxChecks) * 100, 95);
+            updateProgress(progressPercent);
+            
+            try {
+                // Try health check first
+                const response = await fetch(HEALTH_CHECK_URL, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.status === 'healthy') {
+                        // Server is healthy, check if ready
+                        const readyResponse = await fetch(READY_CHECK_URL);
+                        const readyData = await readyResponse.json();
+                        
+                        if (readyData.ready) {
+                            // Server is fully ready!
+                            serverIsReady(readyData.redirect_to);
+                        } else {
+                            // Server is waking up but not fully ready
+                            infoNote.textContent = "✅ Almost ready! Preparing your dashboard...";
+                            infoNote.classList.remove('success-state');
+                        }
+                    }
+                }
+            } catch (error) {
+                // Server still initializing
+                console.log(`Check ${checkCount}: Preparing server...`);
+                
+                // Update info note based on time
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                if (elapsed > 20) {
+                    infoNote.textContent = "🔄 Preparing server components...";
+                } else if (elapsed > 40) {
+                    infoNote.textContent = "⚡ Finalizing setup...";
+                }
+            }
+        }
+        
+        // When server is ready
+        function serverIsReady(redirectUrl) {
+            clearInterval(checkInterval);
+            
+            // Show success state
+            container.classList.add('success-state');
+            statusText.textContent = "✅ Ready!";
+            infoNote.textContent = "🚀 Redirecting to Bite Me Buddy...";
+            infoNote.classList.add('success-state');
+            updateProgress(100);
+            
+            // Update final time
+            updateTimer();
+            
+            // Redirect after 1 second
+            setTimeout(() => {
+                window.location.href = redirectUrl || window.location.origin;
+            }, 1000);
+            
+            // Safety redirect after 3 seconds
+            setTimeout(() => {
+                window.location.href = redirectUrl || window.location.origin;
+            }, 3000);
+        }
+        
+        // Start checking process
+        function startChecking() {
+            // Start timer update
+            const timerInterval = setInterval(updateTimer, 1000);
+            
+            // Start checking server status every 2 seconds
+            checkInterval = setInterval(checkServerStatus, 2000);
+            
+            // First check immediately
+            setTimeout(checkServerStatus, 500);
+            
+            // Clean up after max time
+            setTimeout(() => {
+                clearInterval(timerInterval);
+                if (!container.classList.contains('success-state')) {
+                    // Final attempt
+                    statusText.textContent = "Finalizing connection...";
+                    checkServerStatus();
+                }
+            }, 120000);
+        }
+        
+        // Initial quick check
+        async function initialCheck() {
+            try {
+                const response = await fetch(HEALTH_CHECK_URL, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    signal: AbortSignal.timeout(2000)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.status === 'healthy') {
+                        // Server is already awake, redirect immediately
+                        const readyResponse = await fetch(READY_CHECK_URL);
+                        const readyData = await readyResponse.json();
+                        if (readyData.ready) {
+                            window.location.href = readyData.redirect_to || window.location.origin;
+                            return true;
+                        }
+                    }
+                }
+            } catch (error) {
+                // Server is initializing, start checking process
+                console.log("Preparing server...");
+            }
+            
+            // Start the checking process
+            startChecking();
+            return false;
+        }
+        
+        // Start when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            // Start initial check after a small delay
+            setTimeout(initialCheck, 300);
+        });
+    </script>
+</body>
+</html>
