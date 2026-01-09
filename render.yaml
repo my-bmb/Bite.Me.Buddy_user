@@ -1,4 +1,3 @@
-# render.yaml
 services:
   - type: web
     name: flask-app
@@ -6,9 +5,25 @@ services:
     pythonVersion: "3.12"
     buildCommand: chmod +x build.sh && ./build.sh
     startCommand: chmod +x start.sh && ./start.sh
+    healthCheckPath: /health
+    autoDeploy: true
     envVars:
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: your-db-name    # ✅ Change to your database name
+          property: connectionString
       - key: SECRET_KEY
         generateValue: true
-    autoDeploy: true
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+
+# ✅ ADD DATABASE SECTION IF YOU HAVE DATABASE
+databases:
+  - name: your-db-name         # ✅ Same name as above
+    plan: free
+    databaseName: flaskdb
+    user: flaskuser
