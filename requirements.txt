@@ -5,3 +5,4 @@ Jinja2==3.1.2
 gunicorn==21.2.0
 python-dotenv==1.0.0
 cloudinary
+requests>=2.31.0
