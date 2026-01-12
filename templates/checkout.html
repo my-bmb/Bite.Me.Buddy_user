@@ -11,55 +11,24 @@
             <p class="welcome-text">Complete your order</p>
         </div>
         <div class="header-right">
-            <!-- ✅ LINE 12 UPDATED FOR CLOUDINARY -->
             <img src="{{ session.profile_pic }}" 
                  alt="Profile" class="profile-pic"
                  onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
         </div>
     </header>
 
-    <!-- Checkout Form -->
+    <!-- Checkout Form - SIMPLIFIED -->
     <main class="main-content">
         <form method="POST" action="{{ url_for('checkout') }}" class="checkout-form" id="checkoutForm">
-            <input type="hidden" name="cart_items_json" id="cartItemsJson">
-            
-            <div class="form-section">
-                <h3><i class="fas fa-user"></i> Contact Information</h3>
-                
-                <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" value="{{ session.full_name }}" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label>Mobile Number</label>
-                    <input type="text" value="{{ session.phone }}" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" value="{{ session.email }}" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label>Registration Location</label>
-                    <input type="text" value="{{ session.location }}" readonly>
-                </div>
-            </div>
-            
+            <!-- SIMPLE FORM - NO COMPLEX JS -->
             <div class="form-section">
                 <h3><i class="fas fa-map-marker-alt"></i> Delivery Information</h3>
                 
                 <div class="form-group">
                     <label for="delivery_location">Delivery Location *</label>
-                    <textarea id="delivery_location" name="delivery_location" rows="3" required placeholder="Enter complete address with landmark, city, pin code"></textarea>
+                    <textarea id="delivery_location" name="delivery_location" rows="3" required 
+                              placeholder="Enter complete address with landmark, city, pin code">{{ session.location|default('') }}</textarea>
                     <small>Enter the complete delivery address</small>
-                </div>
-                
-                <div class="form-group">
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="useCurrentLocation()">
-                        <i class="fas fa-location-crosshairs"></i> Use Current Location
-                    </button>
                 </div>
             </div>
             
@@ -102,25 +71,13 @@
                 </div>
             </div>
             
-            <!-- Order Summary -->
+            <!-- Order Summary - SIMPLIFIED -->
             <div class="form-section">
                 <h3><i class="fas fa-receipt"></i> Order Summary</h3>
                 <div class="order-summary">
-                    <div class="summary-item">
-                        <span>Subtotal</span>
-                        <span id="cartSubtotal">Loading...</span>
-                    </div>
-                    <div class="summary-item">
-                        <span>Delivery Charges</span>
-                        <span>₹0.00</span>
-                    </div>
-                    <div class="summary-item">
-                        <span>Taxes</span>
-                        <span>₹0.00</span>
-                    </div>
                     <div class="summary-item total">
                         <span><strong>Total Amount</strong></span>
-                        <span><strong id="cartTotal">Loading...</strong></span>
+                        <span><strong>₹{{ "%.2f"|format(cart_total) }}</strong></span>
                     </div>
                 </div>
             </div>
@@ -130,7 +87,7 @@
                     <i class="fas fa-arrow-left"></i> Back to Cart
                 </a>
                 <button type="submit" class="btn btn-primary" id="confirmOrderBtn">
-                    <i class="fas fa-check"></i> Confirm Order
+                    <i class="fas fa-check"></i> Confirm Order (₹{{ "%.2f"|format(cart_total) }})
                 </button>
             </div>
         </form>
@@ -161,90 +118,45 @@
     </nav>
 </div>
 
+<!-- SIMPLE VALIDATION SCRIPT -->
 <script>
-// Function to get cart items from server
-async function getCartItems() {
-    try {
-        const response = await fetch('{{ url_for("cart") }}?json=1');
-        if (!response.ok) throw new Error('Failed to fetch cart');
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('checkoutForm');
+    
+    // Basic form validation
+    form.addEventListener('submit', function(e) {
+        const location = document.getElementById('delivery_location').value.trim();
+        const paymentMode = document.querySelector('input[name="payment_mode"]:checked');
         
-        const html = await response.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        
-        // Extract cart items from the page
-        const cartItems = [];
-        let totalAmount = 0;
-        
-        // Find cart items in the page
-        const cartElements = doc.querySelectorAll('.cart-item, [data-item-type], .order-item');
-        if (cartElements.length > 0) {
-            cartElements.forEach(item => {
-                const itemType = item.getAttribute('data-item-type') || 
-                               item.querySelector('[data-type]')?.getAttribute('data-type') || 
-                               'service';
-                const itemId = item.getAttribute('data-item-id') || 
-                             item.querySelector('[data-id]')?.getAttribute('data-id') || 
-                             '1';
-                const itemName = item.querySelector('.item-name, .product-name, [data-name]')?.textContent?.trim() || 
-                               'Item';
-                const quantity = parseInt(item.getAttribute('data-quantity') || 
-                                        item.querySelector('.quantity')?.textContent || 
-                                        '1');
-                const price = parseFloat(item.getAttribute('data-price') || 
-                                       item.querySelector('.price')?.textContent?.replace('₹', '') || 
-                                       '0');
-                
-                cartItems.push({
-                    item_type: itemType,
-                    item_id: parseInt(itemId),
-                    item_name: itemName,
-                    quantity: quantity,
-                    price: price
-                });
-                
-                totalAmount += price * quantity;
-            });
-        } else {
-            // Fallback: If no items found, use dummy data
-            console.warn('No cart items found, using fallback');
-            totalAmount = {{ cart_total|default(0) }};
+        if (!location) {
+            alert('Please enter delivery location');
+            e.preventDefault();
+            return;
         }
         
-        return { cartItems, totalAmount };
-    } catch (error) {
-        console.error('Error fetching cart:', error);
-        return { cartItems: [], totalAmount: 0 };
+        if (!paymentMode) {
+            alert('Please select payment method');
+            e.preventDefault();
+            return;
+        }
+        
+        // Disable button to prevent double click
+        const submitBtn = document.getElementById('confirmOrderBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    });
+    
+    // Auto-populate delivery location if empty
+    const deliveryField = document.getElementById('delivery_location');
+    if (deliveryField && !deliveryField.value.trim()) {
+        const userLocation = "{{ session.location|default('') }}";
+        if (userLocation) {
+            deliveryField.value = userLocation;
+        }
     }
-}
+});
 
-// Function to update order summary
-async function updateOrderSummary() {
-    const { cartItems, totalAmount } = await getCartItems();
-    
-    // Update display
-    document.getElementById('cartSubtotal').textContent = '₹' + totalAmount.toFixed(2);
-    document.getElementById('cartTotal').textContent = '₹' + totalAmount.toFixed(2);
-    
-    // Store cart items in hidden field for form submission
-    document.getElementById('cartItemsJson').value = JSON.stringify(cartItems);
-    
-    // Update button state
-    const confirmBtn = document.getElementById('confirmOrderBtn');
-    if (cartItems.length === 0) {
-        confirmBtn.disabled = true;
-        confirmBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Cart is Empty';
-        confirmBtn.classList.add('btn-disabled');
-    } else {
-        confirmBtn.disabled = false;
-        confirmBtn.innerHTML = '<i class="fas fa-check"></i> Confirm Order';
-        confirmBtn.classList.remove('btn-disabled');
-    }
-    
-    return cartItems;
-}
-
-// Location functions
+// Simple location function (optional)
 function useCurrentLocation() {
     if (!navigator.geolocation) {
         alert('Geolocation not supported by your browser');
@@ -258,128 +170,41 @@ function useCurrentLocation() {
         function(position) {
             const lat = position.coords.latitude;
             const lon = position.coords.longitude;
-            
-            fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
-                .then(response => response.json())
-                .then(data => {
-                    const address = data.display_name || `${lat}, ${lon}`;
-                    locationField.value = address;
-                    locationField.placeholder = '';
-                })
-                .catch(() => {
-                    locationField.value = `${lat}, ${lon}`;
-                    locationField.placeholder = '';
-                });
+            locationField.value = `${lat}, ${lon}`;
+            locationField.placeholder = '';
         },
-        function(error) {
-            let message = 'Unable to get location. ';
-            switch(error.code) {
-                case error.PERMISSION_DENIED:
-                    message += 'Permission denied';
-                    break;
-                case error.POSITION_UNAVAILABLE:
-                    message += 'Position unavailable';
-                    break;
-                case error.TIMEOUT:
-                    message += 'Request timeout';
-                    break;
-                default:
-                    message += 'Unknown error';
-            }
-            alert(message);
+        function() {
+            alert('Unable to get location. Please enter manually.');
             locationField.placeholder = 'Enter delivery address';
         }
     );
 }
-
-// Form validation and submission
-document.getElementById('checkoutForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const deliveryLocation = document.getElementById('delivery_location').value.trim();
-    const paymentMode = document.querySelector('input[name="payment_mode"]:checked');
-    
-    if (!deliveryLocation) {
-        alert('Please enter delivery location');
-        document.getElementById('delivery_location').focus();
-        return;
-    }
-    
-    if (!paymentMode) {
-        alert('Please select payment method');
-        return;
-    }
-    
-    const cartItems = await getCartItems();
-    if (cartItems.cartItems.length === 0) {
-        alert('Your cart is empty. Please add items before checkout.');
-        window.location.href = '{{ url_for("cart") }}';
-        return;
-    }
-    
-    // Show loading state
-    const submitBtn = document.getElementById('confirmOrderBtn');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-    submitBtn.disabled = true;
-    
-    // Submit the form
-    this.submit();
-});
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    updateOrderSummary();
-    
-    // Auto-populate delivery location with user's registered location
-    const deliveryField = document.getElementById('delivery_location');
-    const userLocation = "{{ session.location|default('') }}";
-    if (userLocation && !deliveryField.value) {
-        deliveryField.value = userLocation;
-    }
-});
-
-// Add some styles for better UX
-const style = document.createElement('style');
-style.textContent = `
-    .order-summary {
-        background: #f8f9fa;
-        border-radius: 8px;
-        padding: 15px;
-        margin-top: 10px;
-    }
-    
-    .summary-item {
-        display: flex;
-        justify-content: space-between;
-        padding: 8px 0;
-        border-bottom: 1px dashed #dee2e6;
-    }
-    
-    .summary-item:last-child {
-        border-bottom: none;
-    }
-    
-    .summary-item.total {
-        font-size: 1.1em;
-        border-top: 2px solid #dee2e6;
-        margin-top: 10px;
-        padding-top: 15px;
-    }
-    
-    .btn-disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-    
-    #delivery_location:invalid {
-        border-color: #dc3545;
-    }
-    
-    #delivery_location:valid {
-        border-color: #28a745;
-    }
-`;
-document.head.appendChild(style);
 </script>
+
+<style>
+.order-summary {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 10px;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px dashed #dee2e6;
+}
+
+.summary-item:last-child {
+    border-bottom: none;
+}
+
+.summary-item.total {
+    font-size: 1.1em;
+    border-top: 2px solid #dee2e6;
+    margin-top: 10px;
+    padding-top: 15px;
+}
+</style>
 {% endblock %}
