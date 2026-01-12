@@ -4,23 +4,36 @@
 
 {% block content %}
 <div class="dashboard">
-    <!-- Top Header -->
-    <header class="dashboard-header">
-        <div class="header-left">
-            <h1>Order History</h1>
-            <p class="welcome-text">Your past orders</p>
-        </div>
-        <div class="header-right">
-            <!-- ✅ LINE 12 UPDATED FOR CLOUDINARY -->
-            <img src="{{ session.profile_pic }}" 
-                 alt="Profile" class="profile-pic"
-                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
-        </div>
-    </header>
+    <!-- Top Header (base.html se aayega) -->
+    <!-- Bottom Navigation (base.html se aayega) -->
 
     <!-- Orders Content -->
     <main class="main-content">
-        {% if orders %}
+        {% if orders and orders|length > 0 %}
+            <div class="orders-stats">
+                <div class="stat-card">
+                    <i class="fas fa-box-open"></i>
+                    <div>
+                        <h3>{{ orders|length }}</h3>
+                        <p>Total Orders</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-check-circle"></i>
+                    <div>
+                        <h3>{{ orders|selectattr('status', 'equalto', 'completed')|list|length }}</h3>
+                        <p>Completed</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-clock"></i>
+                    <div>
+                        <h3>{{ orders|selectattr('status', 'equalto', 'pending')|list|length }}</h3>
+                        <p>Pending</p>
+                    </div>
+                </div>
+            </div>
+
             <div class="orders-list">
                 {% for order in orders %}
                     <div class="order-card">
@@ -29,46 +42,67 @@
                                 <h3>Order #{{ order.order_id }}</h3>
                                 <p class="order-date">
                                     <i class="far fa-calendar"></i>
-                                    {{ order.order_date.strftime('%d %b %Y, %I:%M %p') }}
+                                    {% if order.order_date %}
+                                        {% if order.order_date is string %}
+                                            {{ order.order_date }}
+                                        {% else %}
+                                            {{ order.order_date.strftime('%d %b %Y, %I:%M %p') }}
+                                        {% endif %}
+                                    {% else %}
+                                        Date not available
+                                    {% endif %}
                                 </p>
                             </div>
-                            <span class="order-status status-{{ order.status|lower }}">
-                                {{ order.status|title }}
+                            <span class="order-status status-{{ order.status|lower if order.status else 'pending' }}">
+                                {{ order.status|title if order.status else 'Pending' }}
                             </span>
                         </div>
                         
-                        <!-- ✅ UPDATED ORDER ITEMS SECTION -->
+                        <!-- ✅ FIXED ORDER ITEMS SECTION -->
                         <div class="order-items">
-                            <p class="items-count">
-                                <i class="fas fa-box"></i>
-                                {{ order.items|length }} item{{ 's' if order.items|length != 1 }}
-                            </p>
-                            <div class="items-list">
-                                {% for item in order.items %}
-                                    <div class="order-item">
-                                        <div class="item-info">
-                                            <span class="item-type {{ item.type|lower }}">
-                                                {{ item.type|title }}
-                                            </span>
-                                            <span class="item-name">{{ item.name }}</span>
+                            {% if order.items and order.items|length > 0 %}
+                                <p class="items-count">
+                                    <i class="fas fa-box"></i>
+                                    {{ order.items|length }} item{{ 's' if order.items|length != 1 }}
+                                </p>
+                                <div class="items-list">
+                                    {% for item in order.items %}
+                                        <div class="order-item">
+                                            <div class="item-info">
+                                                <span class="item-type {{ item.type|default('unknown')|lower }}">
+                                                    {{ item.type|default('item')|title }}
+                                                </span>
+                                                <span class="item-name">{{ item.name|default('Unknown Item') }}</span>
+                                            </div>
+                                            <div class="item-details">
+                                                <span class="item-quantity">{{ item.quantity|default(1) }} ×</span>
+                                                <span class="item-price">₹{{ "%.2f"|format(item.price|default(0)|float) }}</span>
+                                                <span class="item-total">₹{{ "%.2f"|format((item.price|default(0)|float) * (item.quantity|default(1))) }}</span>
+                                            </div>
                                         </div>
-                                        <div class="item-details">
-                                            <span class="item-quantity">{{ item.quantity }} ×</span>
-                                            <span class="item-price">₹{{ "%.2f"|format(item.price) }}</span>
-                                            <span class="item-total">₹{{ "%.2f"|format(item.price * item.quantity) }}</span>
-                                        </div>
-                                    </div>
-                                {% endfor %}
-                            </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="items-count no-items">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    No items found for this order
+                                </p>
+                            {% endif %}
                         </div>
                         
                         <div class="order-footer">
                             <div class="order-payment">
-                                <span><i class="fas fa-credit-card"></i> {{ order.payment_mode }}</span>
-                                <span><i class="fas fa-map-marker-alt"></i> {{ order.delivery_location[:30] }}{% if order.delivery_location|length > 30 %}...{% endif %}</span>
+                                <span><i class="fas fa-credit-card"></i> {{ order.payment_mode|default('COD') }}</span>
+                                <span><i class="fas fa-map-marker-alt"></i> 
+                                    {% if order.delivery_location %}
+                                        {{ order.delivery_location[:30] }}{% if order.delivery_location|length > 30 %}...{% endif %}
+                                    {% else %}
+                                        Location not specified
+                                    {% endif %}
+                                </span>
                             </div>
                             <div class="order-total">
-                                Total: <strong>₹{{ "%.2f"|format(order.total_amount) }}</strong>
+                                Total: <strong>₹{{ "%.2f"|format(order.total_amount|default(0)|float) }}</strong>
                             </div>
                         </div>
                     </div>
@@ -78,7 +112,7 @@
             <div class="empty-state">
                 <i class="fas fa-history fa-3x"></i>
                 <h3>No orders yet</h3>
-                <p>Your order history will appear here</p>
+                <p>Your order history will appear here once you place an order</p>
                 <div class="empty-actions">
                     <a href="{{ url_for('services') }}" class="btn btn-primary">
                         <i class="fas fa-concierge-bell"></i> Browse Services
@@ -86,55 +120,148 @@
                     <a href="{{ url_for('menu') }}" class="btn btn-primary">
                         <i class="fas fa-utensils"></i> View Menu
                     </a>
+                    <a href="{{ url_for('cart') }}" class="btn btn-success">
+                        <i class="fas fa-shopping-cart"></i> Go to Cart
+                    </a>
                 </div>
             </div>
         {% endif %}
     </main>
-
-    <!-- Bottom Navigation -->
-    <nav class="bottom-nav">
-        <a href="{{ url_for('services') }}" class="nav-item">
-            <i class="fas fa-concierge-bell"></i>
-            <span>Services</span>
-        </a>
-        <a href="{{ url_for('menu') }}" class="nav-item">
-            <i class="fas fa-utensils"></i>
-            <span>Menu</span>
-        </a>
-        <a href="{{ url_for('cart') }}" class="nav-item">
-            <i class="fas fa-shopping-cart"></i>
-            <span>Cart</span>
-        </a>
-        <a href="{{ url_for('order_history') }}" class="nav-item active">
-            <i class="fas fa-history"></i>
-            <span>Orders</span>
-        </a>
-        <a href="{{ url_for('profile') }}" class="nav-item">
-            <i class="fas fa-user"></i>
-            <span>Profile</span>
-        </a>
-    </nav>
 </div>
 
-<!-- ✅ ADD SOME STYLES FOR BETTER DISPLAY -->
+<!-- ✅ ONLY ORDERS-SPECIFIC STYLES -->
 <style>
+    .orders-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border: 1px solid #eaeaea;
+    }
+    
+    .stat-card i {
+        font-size: 2rem;
+        color: #4f46e5;
+    }
+    
+    .stat-card h3 {
+        margin: 0;
+        font-size: 1.8rem;
+        color: #1f2937;
+    }
+    
+    .stat-card p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+    
     .order-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        border: 1px solid #eaeaea;
         position: relative;
     }
     
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f3f4f6;
+    }
+    
+    .order-header h3 {
+        margin: 0;
+        color: #1f2937;
+        font-size: 1.2rem;
+    }
+    
+    .order-date {
+        color: #6b7280;
+        font-size: 0.9rem;
+        margin-top: 5px;
+    }
+    
+    .order-status {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+        border: 1px solid #fbbf24;
+    }
+    
+    .status-completed {
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid #10b981;
+    }
+    
+    .status-processing {
+        background: #dbeafe;
+        color: #1e40af;
+        border: 1px solid #3b82f6;
+    }
+    
+    .status-cancelled {
+        background: #f3f4f6;
+        color: #374151;
+        border: 1px solid #9ca3af;
+    }
+    
+    .order-items {
+        margin: 15px 0;
+    }
+    
+    .items-count {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #4b5563;
+        font-weight: 500;
+        margin-bottom: 10px;
+    }
+    
+    .items-count.no-items {
+        color: #9ca3af;
+        font-style: italic;
+    }
+    
     .items-list {
-        background: #f8f9fa;
+        background: #f8fafc;
         border-radius: 8px;
-        padding: 10px;
+        padding: 12px;
         margin: 10px 0;
+        border: 1px solid #e2e8f0;
     }
     
     .order-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 8px 0;
-        border-bottom: 1px dashed #dee2e6;
+        padding: 10px 0;
+        border-bottom: 1px dashed #e2e8f0;
     }
     
     .order-item:last-child {
@@ -148,67 +275,146 @@
     }
     
     .item-type {
-        font-size: 0.75em;
-        padding: 2px 8px;
+        font-size: 0.7rem;
+        padding: 3px 10px;
         border-radius: 12px;
         font-weight: 600;
         text-transform: uppercase;
     }
     
     .item-type.service {
-        background: #e3f2fd;
-        color: #1976d2;
+        background: #e0f2fe;
+        color: #0369a1;
     }
     
     .item-type.menu {
-        background: #e8f5e9;
-        color: #388e3c;
+        background: #dcfce7;
+        color: #166534;
+    }
+    
+    .item-type.unknown {
+        background: #f3f4f6;
+        color: #6b7280;
     }
     
     .item-name {
         font-weight: 500;
-        color: #333;
+        color: #1f2937;
     }
     
     .item-details {
         display: flex;
         align-items: center;
-        gap: 8px;
-        color: #555;
+        gap: 10px;
+        color: #4b5563;
     }
     
     .item-quantity {
-        color: #666;
+        color: #6b7280;
+        font-size: 0.9rem;
     }
     
     .item-price {
         font-weight: 500;
+        color: #1f2937;
+        min-width: 60px;
+        text-align: right;
     }
     
     .item-total {
         font-weight: 600;
-        color: #333;
-        min-width: 60px;
+        color: #111827;
+        min-width: 70px;
         text-align: right;
+    }
+    
+    .order-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 2px solid #f3f4f6;
+    }
+    
+    .order-payment {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+    
+    .order-payment span {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .order-total {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #111827;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    
+    .empty-state i {
+        color: #d1d5db;
+        margin-bottom: 20px;
+    }
+    
+    .empty-state h3 {
+        color: #374151;
+        margin-bottom: 10px;
+    }
+    
+    .empty-state p {
+        color: #9ca3af;
+        margin-bottom: 25px;
     }
     
     .empty-actions {
         display: flex;
         gap: 15px;
         justify-content: center;
-        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .empty-actions .btn {
+        min-width: 160px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
     
     @media (max-width: 768px) {
+        .orders-stats {
+            grid-template-columns: 1fr;
+        }
+        
         .order-item {
             flex-direction: column;
             align-items: flex-start;
-            gap: 5px;
+            gap: 8px;
         }
         
         .item-details {
             width: 100%;
             justify-content: space-between;
+        }
+        
+        .order-footer {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
         }
         
         .empty-actions {
@@ -218,6 +424,21 @@
         .empty-actions .btn {
             width: 100%;
             margin-bottom: 10px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .order-header {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .order-status {
+            align-self: flex-start;
+        }
+        
+        .item-details {
+            flex-wrap: wrap;
         }
     }
 </style>
