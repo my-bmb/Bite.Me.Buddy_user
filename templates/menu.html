@@ -11,7 +11,6 @@
             <p class="welcome-text">Browse our delicious offerings</p>
         </div>
         <div class="header-right">
-            <!-- ✅ CLOUDINARY PROFILE PIC SUPPORT -->
             <img src="{{ session.profile_pic }}" 
                  alt="Profile" class="profile-pic"
                  onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
@@ -21,33 +20,35 @@
     <!-- Menu Content -->
     <main class="main-content">
         {% if menu_items %}
-            <div class="menu-items-grid">
+            <div class="menu-grid-container">
                 {% for item in menu_items %}
-                    <div class="menu-item-card">
-                        <div class="menu-item-image">
-                            <!-- ✅ CLOUDINARY MENU IMAGE SUPPORT -->
+                    <div class="menu-grid-item">
+                        <!-- Photo Container -->
+                        <div class="menu-photo-container">
                             <img src="{{ item.photo if item.photo and item.photo.startswith('http') else 'https://res.cloudinary.com/demo/image/upload/v1633427556/sample_food.jpg' }}" 
                                  alt="{{ item.name }}"
+                                 class="menu-item-photo"
                                  onerror="this.onerror=null; this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_food.jpg'">
                         </div>
                         
-                        <div class="menu-item-info">
-                            <h3 class="menu-item-title">{{ item.name }}</h3>
-                            <p class="menu-item-description">{{ item.description[:60] }}{% if item.description|length > 60 %}...{% endif %}</p>
+                        <!-- Item Details -->
+                        <div class="menu-item-content">
+                            <h3 class="menu-item-name">{{ item.name }}</h3>
                             
-                            <div class="menu-price-section">
+                            <div class="menu-price-tag">
                                 {% if item.discount > 0 %}
                                     <span class="menu-original-price">₹{{ "%.2f"|format(item.price) }}</span>
-                                    <span class="menu-discount">-{{ "%.0f"|format(item.discount) }}%</span>
+                                    <span class="menu-discount-badge">-{{ "%.0f"|format(item.discount) }}%</span>
                                 {% endif %}
-                                <span class="menu-final-price">₹{{ "%.2f"|format(item.final_price) }}</span>
+                                <span class="menu-current-price">₹{{ "%.2f"|format(item.final_price) }}</span>
                             </div>
                             
-                            <div class="menu-item-actions">
-                                <button class="btn btn-secondary btn-sm" onclick="viewMenuItemDetails({{ item.id }})">
-                                    <i class="fas fa-eye"></i> View
+                            <!-- Action Buttons -->
+                            <div class="menu-action-buttons">
+                                <button class="btn-view-item" onclick="viewMenuItemDetails({{ item.id }})">
+                                    <i class="fas fa-eye"></i>
                                 </button>
-                                <button class="btn btn-primary btn-sm" onclick="addToCart('menu', {{ item.id }})">
+                                <button class="btn-add-cart" onclick="addToCart('menu', {{ item.id }})">
                                     <i class="fas fa-cart-plus"></i> Add
                                 </button>
                             </div>
@@ -56,10 +57,10 @@
                 {% endfor %}
             </div>
         {% else %}
-            <div class="empty-state">
+            <div class="empty-menu-state">
                 <i class="fas fa-utensils fa-3x"></i>
-                <h3>Menu not available at the time</h3>
-                <p>Check back later for our menu items</p>
+                <h3>Menu not available</h3>
+                <p>Check back later for delicious items</p>
             </div>
         {% endif %}
     </main>
@@ -90,15 +91,15 @@
 </div>
 
 <!-- Menu Item Details Modal -->
-<div id="menuModal" class="modal">
-    <div class="modal-content">
-        <span class="close-modal" onclick="closeMenuModal()">&times;</span>
+<div id="menuModal" class="menu-modal">
+    <div class="menu-modal-content">
+        <span class="menu-modal-close" onclick="closeMenuModal()">&times;</span>
         <div id="menuModalContent"></div>
     </div>
 </div>
 
 <script>
-// ✅ ADD TO CART FUNCTION - FIXED
+// ✅ ADD TO CART FUNCTION
 function addToCart(itemType, itemId, quantity = 1) {
     fetch('/add_to_cart', {
         method: 'POST',
@@ -110,37 +111,42 @@ function addToCart(itemType, itemId, quantity = 1) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Show success message
-            showNotification(data.message || 'Item added to cart!', 'success');
+            showNotification('✅ Added to cart!', 'success');
         } else {
-            showNotification('Error: ' + data.message, 'error');
+            showNotification('❌ ' + data.message, 'error');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showNotification('Failed to add item to cart', 'error');
+        showNotification('❌ Failed to add item', 'error');
     });
 }
 
 // ✅ NOTIFICATION FUNCTION
 function showNotification(message, type = 'info') {
-    // Create notification element
+    document.querySelectorAll('.notification').forEach(n => n.remove());
+    
     const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
+    notification.className = `notification notification-${type}`;
     notification.innerHTML = `
-        <span>${message}</span>
-        <button onclick="this.parentElement.remove()">&times;</button>
+        <div class="notification-box">
+            <div class="notification-icon">
+                ${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}
+            </div>
+            <div class="notification-message">${message}</div>
+            <button class="notification-close-btn" onclick="this.parentElement.parentElement.remove()">
+                &times;
+            </button>
+        </div>
     `;
     
-    // Add to page
     document.body.appendChild(notification);
     
-    // Auto remove after 3 seconds
     setTimeout(() => {
         if (notification.parentElement) {
             notification.remove();
         }
-    }, 3000);
+    }, 2500);
 }
 
 function viewMenuItemDetails(menuId) {
@@ -151,20 +157,20 @@ function viewMenuItemDetails(menuId) {
                 const menu = data.menu;
                 
                 const modalContent = `
-                    <div class="modal-item">
+                    <div class="menu-modal-details">
                         <img src="${menu.photo}" 
-                             alt="${menu.name}" class="modal-image"
+                             alt="${menu.name}" class="menu-modal-photo"
                              onerror="this.onerror=null; this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_food.jpg'">
-                        <h2>${menu.name}</h2>
-                        <p class="modal-description">${menu.description}</p>
-                        <div class="modal-price">
+                        <h2 class="menu-modal-title">${menu.name}</h2>
+                        <p class="menu-modal-description">${menu.description}</p>
+                        <div class="menu-modal-price">
                             ${menu.discount > 0 ? `
-                                <span class="original-price">₹${menu.price.toFixed(2)}</span>
-                                <span class="discount">-${menu.discount}%</span>
+                                <span class="menu-modal-old-price">₹${menu.price.toFixed(2)}</span>
+                                <span class="menu-modal-discount">-${menu.discount}% OFF</span>
                             ` : ''}
-                            <span class="final-price">₹${menu.final_price.toFixed(2)}</span>
+                            <span class="menu-modal-final-price">₹${menu.final_price.toFixed(2)}</span>
                         </div>
-                        <button class="btn btn-primary btn-block" onclick="addToCart('menu', ${menuId}); closeMenuModal()">
+                        <button class="menu-modal-add-btn" onclick="addToCart('menu', ${menuId}); closeMenuModal()">
                             <i class="fas fa-cart-plus"></i> Add to Cart
                         </button>
                     </div>
@@ -172,12 +178,12 @@ function viewMenuItemDetails(menuId) {
                 document.getElementById('menuModalContent').innerHTML = modalContent;
                 document.getElementById('menuModal').style.display = 'block';
             } else {
-                showNotification(data.message, 'error');
+                showNotification('❌ ' + data.message, 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            showNotification('Failed to load menu item details', 'error');
+            showNotification('❌ Failed to load details', 'error');
         });
 }
 
@@ -185,7 +191,6 @@ function closeMenuModal() {
     document.getElementById('menuModal').style.display = 'none';
 }
 
-// Close modal when clicking outside
 window.onclick = function(event) {
     const modal = document.getElementById('menuModal');
     if (event.target == modal) {
@@ -193,260 +198,427 @@ window.onclick = function(event) {
     }
 }
 
-// ✅ ADD CSS FOR 2-COLUMN MOBILE LAYOUT AND NOTIFICATIONS
+// ✅ PERFECT MOBILE CSS
 const style = document.createElement('style');
 style.textContent = `
-    /* 2-Column Mobile Layout */
-    .menu-items-grid {
+    /* ========== MENU GRID LAYOUT ========== */
+    .menu-grid-container {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-        padding: 10px;
+        gap: 12px;
+        padding: 12px;
+        width: 100%;
+        box-sizing: border-box;
     }
     
-    .menu-item-card {
+    .menu-grid-item {
         background: white;
         border-radius: 12px;
         overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
         display: flex;
         flex-direction: column;
         height: 100%;
     }
     
-    .menu-item-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    .menu-grid-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.12);
     }
     
-    .menu-item-image {
+    /* Photo Container - Perfect Size */
+    .menu-photo-container {
         height: 140px;
+        width: 100%;
         overflow: hidden;
+        position: relative;
     }
     
-    .menu-item-image img {
+    .menu-item-photo {
         width: 100%;
         height: 100%;
         object-fit: cover;
         transition: transform 0.3s ease;
     }
     
-    .menu-item-image img:hover {
+    .menu-photo-container:hover .menu-item-photo {
         transform: scale(1.05);
     }
     
-    .menu-item-info {
+    /* Item Content */
+    .menu-item-content {
         padding: 12px;
         flex-grow: 1;
         display: flex;
         flex-direction: column;
     }
     
-    .menu-item-title {
-        font-size: 16px;
+    .menu-item-name {
+        font-size: 14px;
         font-weight: 600;
         color: #2c3e50;
-        margin-bottom: 6px;
+        margin: 0 0 8px 0;
         line-height: 1.3;
+        height: 36px;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
     }
     
-    .menu-item-description {
-        font-size: 12px;
-        color: #7f8c8d;
+    /* Price Tag */
+    .menu-price-tag {
         margin-bottom: 10px;
-        flex-grow: 1;
-        line-height: 1.4;
-    }
-    
-    .menu-price-section {
-        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 4px;
     }
     
     .menu-original-price {
-        font-size: 12px;
+        font-size: 11px;
         color: #95a5a6;
         text-decoration: line-through;
-        margin-right: 5px;
     }
     
-    .menu-discount {
-        font-size: 11px;
-        background: #e74c3c;
+    .menu-discount-badge {
+        font-size: 10px;
+        background: linear-gradient(135deg, #ff6b6b, #e74c3c);
         color: white;
         padding: 2px 6px;
-        border-radius: 3px;
-        margin-right: 5px;
+        border-radius: 10px;
+        font-weight: 600;
     }
     
-    .menu-final-price {
+    .menu-current-price {
         font-size: 16px;
         font-weight: 700;
         color: #27ae60;
+        margin-left: auto;
     }
     
-    .menu-item-actions {
+    /* Action Buttons - Perfect for Mobile */
+    .menu-action-buttons {
         display: flex;
         gap: 8px;
         margin-top: auto;
     }
     
-    .menu-item-actions .btn {
-        flex: 1;
-        padding: 6px 8px;
-        font-size: 12px;
+    .btn-view-item {
+        flex: 0 0 36px;
+        height: 36px;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        color: #6c757d;
+        cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 4px;
+        font-size: 14px;
+        transition: all 0.2s;
     }
     
-    /* Tablet and Desktop */
+    .btn-view-item:hover {
+        background: #e9ecef;
+        color: #495057;
+    }
+    
+    .btn-add-cart {
+        flex: 1;
+        height: 36px;
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    
+    .btn-add-cart:hover {
+        background: linear-gradient(135deg, #2980b9, #1c6ea4);
+        transform: translateY(-1px);
+    }
+    
+    /* Tablet (3 columns) */
     @media (min-width: 768px) {
-        .menu-items-grid {
+        .menu-grid-container {
             grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            padding: 16px;
+        }
+        
+        .menu-photo-container {
+            height: 150px;
+        }
+        
+        .menu-item-name {
+            font-size: 15px;
+        }
+        
+        .btn-view-item, .btn-add-cart {
+            height: 38px;
+        }
+    }
+    
+    /* Desktop (4 columns) */
+    @media (min-width: 1024px) {
+        .menu-grid-container {
+            grid-template-columns: repeat(4, 1fr);
             gap: 20px;
             padding: 20px;
         }
         
-        .menu-item-image {
+        .menu-photo-container {
             height: 160px;
-        }
-        
-        .menu-item-title {
-            font-size: 18px;
-        }
-        
-        .menu-item-description {
-            font-size: 14px;
-        }
-        
-        .menu-item-actions .btn {
-            font-size: 14px;
-            padding: 8px 12px;
-        }
-    }
-    
-    @media (min-width: 1024px) {
-        .menu-items-grid {
-            grid-template-columns: repeat(4, 1fr);
         }
     }
     
     /* Empty State */
-    .empty-state {
+    .empty-menu-state {
         text-align: center;
         padding: 60px 20px;
-        color: #7f8c8d;
     }
     
-    .empty-state i {
+    .empty-menu-state i {
         color: #bdc3c7;
         margin-bottom: 20px;
     }
     
-    .empty-state h3 {
+    .empty-menu-state h3 {
         color: #2c3e50;
         margin-bottom: 10px;
+        font-size: 20px;
     }
     
-    /* Notifications */
+    .empty-menu-state p {
+        color: #7f8c8d;
+        font-size: 14px;
+    }
+    
+    /* ========== NOTIFICATION STYLES ========== */
     .notification {
         position: fixed;
-        top: 20px;
+        top: 80px;
         right: 20px;
-        padding: 15px 20px;
-        border-radius: 5px;
-        color: white;
-        z-index: 1000;
+        z-index: 9999;
+        min-width: 280px;
+        animation: slideInRight 0.3s ease;
+    }
+    
+    .notification-box {
+        background: white;
+        border-radius: 10px;
+        padding: 14px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        min-width: 300px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        animation: slideIn 0.3s ease;
+        gap: 12px;
+        border-left: 4px solid;
     }
     
-    .notification.success {
-        background: #27ae60;
+    .notification-success .notification-box {
+        border-left-color: #27ae60;
+        background: #d5f4e6;
     }
     
-    .notification.error {
-        background: #e74c3c;
+    .notification-error .notification-box {
+        border-left-color: #e74c3c;
+        background: #fadbd8;
     }
     
-    .notification.info {
-        background: #3498db;
+    .notification-icon {
+        font-size: 18px;
+        flex-shrink: 0;
     }
     
-    .notification button {
+    .notification-message {
+        flex-grow: 1;
+        font-size: 14px;
+        font-weight: 500;
+        color: #2c3e50;
+    }
+    
+    .notification-close-btn {
         background: none;
         border: none;
-        color: white;
         font-size: 20px;
+        color: #7f8c8d;
         cursor: pointer;
-        margin-left: 10px;
+        padding: 0;
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
     }
     
-    @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
     }
     
-    /* Modal Styles */
-    .modal {
+    /* Mobile notification */
+    @media (max-width: 768px) {
+        .notification {
+            top: 70px;
+            right: 10px;
+            left: 10px;
+            min-width: auto;
+        }
+        
+        .notification-box {
+            padding: 12px;
+        }
+    }
+    
+    /* ========== MODAL STYLES ========== */
+    .menu-modal {
         display: none;
         position: fixed;
-        z-index: 1000;
+        z-index: 9998;
         left: 0;
         top: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0,0,0,0.5);
+        background: rgba(0,0,0,0.5);
+        animation: fadeIn 0.3s;
     }
     
-    .modal-content {
-        background-color: white;
+    .menu-modal-content {
+        background: white;
         margin: 10% auto;
-        padding: 20px;
-        border-radius: 10px;
+        padding: 25px;
+        border-radius: 15px;
         width: 90%;
-        max-width: 500px;
-        max-height: 80vh;
+        max-width: 450px;
+        max-height: 85vh;
         overflow-y: auto;
         position: relative;
+        animation: slideUp 0.3s;
     }
     
-    .close-modal {
+    .menu-modal-close {
         position: absolute;
         top: 15px;
         right: 20px;
         font-size: 28px;
         cursor: pointer;
-        color: #7f8c8d;
+        color: #95a5a6;
+        transition: color 0.2s;
     }
     
-    .modal-item {
+    .menu-modal-close:hover {
+        color: #e74c3c;
+    }
+    
+    .menu-modal-details {
         text-align: center;
     }
     
-    .modal-image {
+    .menu-modal-photo {
         width: 100%;
-        max-height: 250px;
+        height: 200px;
         object-fit: cover;
-        border-radius: 8px;
+        border-radius: 10px;
         margin-bottom: 20px;
     }
     
-    .modal-description {
+    .menu-modal-title {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 22px;
+    }
+    
+    .menu-modal-description {
         color: #7f8c8d;
         margin: 15px 0;
         line-height: 1.6;
+        font-size: 15px;
     }
     
-    .modal-price {
+    .menu-modal-price {
         margin: 20px 0;
         font-size: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .menu-modal-old-price {
+        color: #95a5a6;
+        text-decoration: line-through;
+        font-size: 16px;
+    }
+    
+    .menu-modal-discount {
+        background: #e74c3c;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    
+    .menu-modal-final-price {
+        color: #27ae60;
+        font-size: 24px;
+        font-weight: 700;
+    }
+    
+    .menu-modal-add-btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+        transition: all 0.2s;
+    }
+    
+    .menu-modal-add-btn:hover {
+        background: linear-gradient(135deg, #2980b9, #1c6ea4);
+        transform: translateY(-2px);
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes slideUp {
+        from {
+            transform: translateY(30px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
     }
 `;
 document.head.appendChild(style);
