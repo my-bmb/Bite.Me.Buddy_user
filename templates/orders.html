@@ -4,12 +4,22 @@
 
 {% block content %}
 <div class="dashboard">
-    <!-- Top Header (base.html se aayega) -->
-    <!-- Bottom Navigation (base.html se aayega) -->
+    <!-- Top Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1>Order History</h1>
+            <p class="welcome-text">Your past orders</p>
+        </div>
+        <div class="header-right">
+            <img src="{{ session.profile_pic }}" 
+                 alt="Profile" class="profile-pic"
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+    </header>
 
     <!-- Orders Content -->
     <main class="main-content">
-        {% if orders and orders|length > 0 %}
+        {% if orders is defined and orders is iterable and orders|length > 0 %}
             <div class="orders-stats">
                 <div class="stat-card">
                     <i class="fas fa-box-open"></i>
@@ -43,11 +53,7 @@
                                 <p class="order-date">
                                     <i class="far fa-calendar"></i>
                                     {% if order.order_date %}
-                                        {% if order.order_date is string %}
-                                            {{ order.order_date }}
-                                        {% else %}
-                                            {{ order.order_date.strftime('%d %b %Y, %I:%M %p') }}
-                                        {% endif %}
+                                        {{ order.order_date }}
                                     {% else %}
                                         Date not available
                                     {% endif %}
@@ -60,7 +66,7 @@
                         
                         <!-- ✅ FIXED ORDER ITEMS SECTION -->
                         <div class="order-items">
-                            {% if order.items and order.items|length > 0 %}
+                            {% if order.items is defined and order.items is iterable and order.items|length > 0 %}
                                 <p class="items-count">
                                     <i class="fas fa-box"></i>
                                     {{ order.items|length }} item{{ 's' if order.items|length != 1 }}
@@ -127,9 +133,33 @@
             </div>
         {% endif %}
     </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item">
+            <i class="fas fa-concierge-bell"></i>
+            <span>Services</span>
+        </a>
+        <a href="{{ url_for('menu') }}" class="nav-item">
+            <i class="fas fa-utensils"></i>
+            <span>Menu</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item active">
+            <i class="fas fa-history"></i>
+            <span>Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
 </div>
 
-<!-- ✅ ONLY ORDERS-SPECIFIC STYLES -->
+<!-- ✅ ORDERS-SPECIFIC STYLES ONLY -->
 <style>
     .orders-stats {
         display: grid;
