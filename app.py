@@ -640,10 +640,10 @@ def login():
                             session['created_at'] = 'Recently'
                         
                         flash('Login successful!', 'success')
-                        return redirect(url_for('dashboard'))
+                        return redirect(url_for('dashboard')
                     else:
                         flash('Invalid phone number or password', 'error')
-                        return render_template('login.html'))
+                        return render_template('login.html')
                         
         except Exception as e:
             flash(f'Login failed: {str(e)}', 'error')
