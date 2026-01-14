@@ -1,0 +1,1698 @@
+{% extends "base.html" %}
+
+{% block title %}Order History{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Top Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1>Order History</h1>
+            <p class="welcome-text">Your past orders with complete details</p>
+        </div>
+        <div class="header-right">
+            <img src="{{ session.profile_pic }}" 
+                 alt="Profile" class="profile-pic"
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+    </header>
+
+    <!-- Loading Indicator (Hidden by default) -->
+    <div id="loading-indicator" class="loading-indicator">
+        <div class="loading-content">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+            </div>
+            <div class="loading-text">
+                <h4 class="loading-title">Loading...</h4>
+                <p class="loading-description">Please wait while we process your request</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders Content -->
+    <main class="main-content">
+        {% if orders and orders|length > 0 %}
+            <!-- Collapsible Stats Section with 3 lines -->
+            <div class="collapsible-stats">
+                <div class="stats-summary" onclick="toggleStats()">
+                    <div class="summary-line">
+                        <i class="fas fa-box-open"></i>
+                        <span>Total Orders: <strong>{{ orders|length }}</strong></span>
+                    </div>
+                    <div class="summary-line">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Completed: <strong>{{ orders|selectattr('status', 'equalto', 'completed')|list|length }}</strong></span>
+                    </div>
+                    <div class="summary-line">
+                        <i class="fas fa-rupee-sign"></i>
+                        <span>Total Spent: <strong>₹{{ "%.0f"|format(orders|sum(attribute='total_amount')) }}</strong></span>
+                    </div>
+                    <div class="summary-toggle">
+                        <i class="fas fa-chevron-down" id="stats-arrow"></i>
+                    </div>
+                </div>
+                <div class="stats-details" id="stats-content">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <i class="fas fa-box-open"></i>
+                            <div>
+                                <h3>{{ orders|length }}</h3>
+                                <p>Total Orders</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-check-circle"></i>
+                            <div>
+                                <h3>{{ orders|selectattr('status', 'equalto', 'completed')|list|length }}</h3>
+                                <p>Completed</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <h3>{{ orders|selectattr('status', 'equalto', 'pending')|list|length }}</h3>
+                                <p>Pending</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-rupee-sign"></i>
+                            <div>
+                                <h3>₹{{ "%.0f"|format(orders|sum(attribute='total_amount')) }}</h3>
+                                <p>Total Spent</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="orders-list">
+                {% for order in orders %}
+                    <div class="order-card">
+                        <div class="order-header">
+                            <div>
+                                <h3>Order #{{ order.order_id }}</h3>
+                                <p class="order-date">
+                                    <i class="far fa-calendar"></i>
+                                    {% if order.order_date %}
+                                        {{ order.order_date }}
+                                    {% else %}
+                                        Date not available
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <span class="order-status status-{{ order.status|lower if order.status else 'pending' }}">
+                                {{ order.status|title if order.status else 'Pending' }}
+                            </span>
+                        </div>
+                        
+                        <!-- ✅ ORDER SUMMARY -->
+                        <div class="order-summary">
+                            <div class="summary-row">
+                                <span><i class="fas fa-credit-card"></i> Payment:</span>
+                                <span class="payment-mode">{{ order.payment_mode|default('COD') }}</span>
+                            </div>
+                            <div class="summary-row">
+                                <span><i class="fas fa-map-marker-alt"></i> Delivery:</span>
+                                <span class="delivery-location">{{ order.delivery_location|default('Location not specified') }}</span>
+                            </div>
+                            <div class="summary-row">
+                                <span><i class="fas fa-wallet"></i> Total:</span>
+                                <span class="order-total-amount">₹{{ "%.2f"|format(order.total_amount|default(0)|float) }}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- ✅ ORDER ITEMS WITH PHOTOS (Cloudinary सेटिंग के साथ) -->
+                        <div class="order-items-section">
+                            <h4 class="section-title">
+                                <i class="fas fa-box"></i>
+                                Order Items ({{ order['items']|length if order['items'] else 0 }})
+                            </h4>
+                            
+                            {% if order['items'] and order['items']|length > 0 %}
+                                <div class="items-grid">
+                                    {% for item in order['items'] %}
+                                        <div class="order-item-card">
+                                            <!-- ITEM PHOTO (Cloudinary सेटिंग) -->
+                                            <div class="item-photo-container">
+                                                {% if item.photo %}
+                                                    <img
+                                                        src="{{ item.photo }}"
+                                                        alt="{{ item.name|default(item.item_name) }}"
+                                                        class="item-photo"
+                                                        loading="lazy"
+                                                        onerror="this.src='https://res.cloudinary.com/YOUR_CLOUD_NAME/image/upload/v1/placeholder.png'"
+                                                    >
+                                                {% elif item.item_photo %}
+                                                    <img
+                                                        src="{{ item.item_photo }}"
+                                                        alt="{{ item.name|default(item.item_name) }}"
+                                                        class="item-photo"
+                                                        loading="lazy"
+                                                        onerror="this.src='https://res.cloudinary.com/YOUR_CLOUD_NAME/image/upload/v1/placeholder.png'"
+                                                    >
+                                                {% else %}
+                                                    <img
+                                                        src="https://res.cloudinary.com/YOUR_CLOUD_NAME/image/upload/v1/placeholder.png"
+                                                        alt="No image"
+                                                        class="item-photo"
+                                                    >
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <!-- ITEM DETAILS -->
+                                            <div class="item-details-container">
+                                                <div class="item-header">
+                                                    <span class="item-type-badge {{ item.type|default(item.item_type)|default('unknown')|lower }}">
+                                                        {{ item.type|default(item.item_type)|default('item')|title }}
+                                                    </span>
+                                                    <h5 class="item-name">{{ item.name|default(item.item_name|default('Unknown Item')) }}</h5>
+                                                </div>
+                                                
+                                                {% if item.description or item.item_description %}
+                                                <p class="item-description">
+                                                    {{ item.description|default(item.item_description|default(''))|truncate(100) }}
+                                                </p>
+                                                {% endif %}
+                                                
+                                                <div class="item-meta">
+                                                    <span class="item-quantity">
+                                                        <i class="fas fa-hashtag"></i> {{ item.quantity|default(1) }} units
+                                                    </span>
+                                                    <span class="item-price">
+                                                        <i class="fas fa-tag"></i> ₹{{ "%.2f"|format(item.price|default(0)|float) }} each
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- ITEM TOTAL -->
+                                            <div class="item-total-container">
+                                                <div class="item-total-amount">
+                                                    ₹{{ "%.2f"|format((item.price|default(0)|float) * (item.quantity|default(1))) }}
+                                                </div>
+                                                <div class="item-unit-price">
+                                                    ₹{{ "%.2f"|format(item.price|default(0)|float) }} × {{ item.quantity|default(1) }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="no-items-message">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    <p>No items found for this order</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- ✅ ORDER ACTIONS (Only View Details) -->
+                        <div class="order-actions">
+                            <button class="btn btn-view-details" onclick="viewOrderDetails({{ order.order_id }})">
+                                <i class="fas fa-eye"></i> View Details
+                            </button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-history fa-3x"></i>
+                <h3>No orders yet</h3>
+                <p>Your order history will appear here once you place an order</p>
+                <div class="empty-actions">
+                    <a href="{{ url_for('services') }}" class="btn btn-primary">
+                        <i class="fas fa-concierge-bell"></i> Browse Services
+                    </a>
+                    <a href="{{ url_for('menu') }}" class="btn btn-primary">
+                        <i class="fas fa-utensils"></i> View Menu
+                    </a>
+                    <a href="{{ url_for('cart') }}" class="btn btn-success">
+                        <i class="fas fa-shopping-cart"></i> Go to Cart
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item">
+            <i class="fas fa-concierge-bell"></i>
+            <span>Services</span>
+        </a>
+        <a href="{{ url_for('menu') }}" class="nav-item">
+            <i class="fas fa-utensils"></i>
+            <span>Menu</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item active">
+            <i class="fas fa-history"></i>
+            <span>Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+</div>
+
+<!-- ✅ LOADING INDICATOR STYLES -->
+<style>
+    /* Loading Indicator Styles */
+    .loading-indicator {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.95);
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease forwards;
+    }
+    
+    .loading-indicator.show {
+        display: flex;
+    }
+    
+    .loading-content {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        max-width: 350px;
+        width: 90%;
+        text-align: center;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .loading-spinner {
+        position: relative;
+        width: 60px;
+        height: 60px;
+    }
+    
+    .spinner {
+        width: 100%;
+        height: 100%;
+        border: 4px solid #f3f4f6;
+        border-top: 4px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    .loading-text {
+        width: 100%;
+    }
+    
+    .loading-title {
+        margin: 0 0 8px 0;
+        color: #1f2937;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+    
+    .loading-description {
+        margin: 0;
+        color: #6b7280;
+        font-size: 0.95rem;
+        line-height: 1.4;
+    }
+    
+    /* Animations */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+    
+    @keyframes fadeOut {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .loading-content {
+            padding: 25px;
+            width: 85%;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+        }
+        
+        .loading-title {
+            font-size: 1.1rem;
+        }
+        
+        .loading-description {
+            font-size: 0.9rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .loading-content {
+            padding: 20px;
+            width: 80%;
+        }
+        
+        .loading-spinner {
+            width: 45px;
+            height: 45px;
+        }
+        
+        .loading-title {
+            font-size: 1rem;
+        }
+        
+        .loading-description {
+            font-size: 0.85rem;
+        }
+    }
+
+    /* ✅ EXISTING STYLES (Same as before) */
+    .collapsible-stats {
+        background: white;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border: 1px solid #eaeaea;
+        overflow: hidden;
+    }
+    
+    .stats-summary {
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        cursor: pointer;
+        transition: all 0.3s;
+        position: relative;
+    }
+    
+    .stats-summary:hover {
+        background-color: #f9fafb;
+    }
+    
+    .summary-line {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 20px;
+        border-bottom: 1px solid #f3f4f6;
+        transition: background-color 0.3s;
+    }
+    
+    .summary-line:last-child {
+        border-bottom: none;
+    }
+    
+    .summary-line:hover {
+        background-color: #f1f5f9;
+    }
+    
+    .summary-line i {
+        width: 24px;
+        text-align: center;
+        color: #4f46e5;
+        font-size: 1.1rem;
+    }
+    
+    .summary-line span {
+        flex: 1;
+        color: #374151;
+        font-size: 0.95rem;
+    }
+    
+    .summary-line strong {
+        color: #1f2937;
+        font-weight: 600;
+        margin-left: 5px;
+    }
+    
+    .summary-toggle {
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6b7280;
+        transition: all 0.3s;
+    }
+    
+    .stats-summary:hover .summary-toggle {
+        color: #4f46e5;
+    }
+    
+    #stats-arrow {
+        transition: transform 0.3s;
+    }
+    
+    .stats-details {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.5s ease;
+        background: #f8fafc;
+    }
+    
+    .stats-details.active {
+        max-height: 500px;
+        border-top: 1px solid #e5e7eb;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+        padding: 20px;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 10px;
+        padding: 18px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    
+    .stat-card i {
+        font-size: 1.8rem;
+        color: #4f46e5;
+    }
+    
+    .stat-card h3 {
+        margin: 0;
+        font-size: 1.6rem;
+        color: #1f2937;
+    }
+    
+    .stat-card p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 0.85rem;
+    }
+    
+    /* Order Card Styles */
+    .order-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        border: 1px solid #e5e7eb;
+        transition: box-shadow 0.3s;
+    }
+    
+    .order-card:hover {
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f3f4f6;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .order-header h3 {
+        margin: 0;
+        color: #1f2937;
+        font-size: 1.2rem;
+    }
+    
+    .order-date {
+        color: #6b7280;
+        font-size: 0.85rem;
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .order-status {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        min-width: 90px;
+        text-align: center;
+    }
+    
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+        border: 1px solid #fbbf24;
+    }
+    
+    .status-completed {
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid #10b981;
+    }
+    
+    .status-processing {
+        background: #dbeafe;
+        color: #1e40af;
+        border: 1px solid #3b82f6;
+    }
+    
+    .status-cancelled {
+        background: #f3f4f6;
+        color: #374151;
+        border: 1px solid #9ca3af;
+    }
+    
+    .order-summary {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+    }
+    
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0;
+    }
+    
+    .summary-row span:first-child {
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.9rem;
+    }
+    
+    .payment-mode {
+        color: #1f2937;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .delivery-location {
+        color: #1f2937;
+        max-width: 180px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 0.9rem;
+    }
+    
+    .order-total-amount {
+        color: #10b981;
+        font-weight: 700;
+        font-size: 1rem;
+    }
+    
+    /* Order Items */
+    .order-items-section {
+        margin: 20px 0;
+    }
+    
+    .section-title {
+        color: #374151;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1rem;
+    }
+    
+    .items-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .order-item-card {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 15px;
+        padding: 12px;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        transition: background-color 0.3s;
+    }
+    
+    .order-item-card:hover {
+        background-color: #f9fafb;
+    }
+    
+    .item-photo-container {
+        flex-shrink: 0;
+    }
+    
+    .item-photo {
+        width: 70px;
+        height: 70px;
+        object-fit: cover;
+        border-radius: 6px;
+        border: 2px solid #e5e7eb;
+    }
+    
+    .item-photo-placeholder {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9ca3af;
+        font-size: 24px;
+        border: 2px dashed #d1d5db;
+    }
+    
+    .item-details-container {
+        min-width: 0;
+    }
+    
+    .item-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+        flex-wrap: wrap;
+    }
+    
+    .item-type-badge {
+        font-size: 0.65rem;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+    
+    .item-type-badge.service {
+        background: #e0f2fe;
+        color: #0369a1;
+    }
+    
+    .item-type-badge.menu {
+        background: #dcfce7;
+        color: #166534;
+    }
+    
+    .item-type-badge.unknown {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+    
+    .item-name {
+        margin: 0;
+        color: #1f2937;
+        font-size: 0.95rem;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .item-description {
+        color: #6b7280;
+        font-size: 0.8rem;
+        margin: 4px 0 8px 0;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .item-meta {
+        display: flex;
+        gap: 12px;
+        color: #6b7280;
+        font-size: 0.8rem;
+        flex-wrap: wrap;
+    }
+    
+    .item-quantity, .item-price {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .item-total-container {
+        flex-shrink: 0;
+        text-align: right;
+        min-width: 90px;
+    }
+    
+    .item-total-amount {
+        color: #1f2937;
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 2px;
+    }
+    
+    .item-unit-price {
+        color: #6b7280;
+        font-size: 0.8rem;
+    }
+    
+    .no-items-message {
+        text-align: center;
+        padding: 25px;
+        color: #9ca3af;
+        background: #f9fafb;
+        border-radius: 8px;
+        border: 2px dashed #d1d5db;
+    }
+    
+    /* Order Actions (Only View Details) */
+    .order-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 2px solid #f3f4f6;
+    }
+    
+    .btn-view-details {
+        padding: 10px 24px;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 0.95rem;
+        transition: all 0.3s;
+        background: #3b82f6;
+        color: white;
+        width: 100%;
+    }
+    
+    .btn-view-details:hover {
+        background: #2563eb;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 50px 20px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    
+    .empty-state i {
+        color: #d1d5db;
+        margin-bottom: 15px;
+    }
+    
+    .empty-state h3 {
+        color: #374151;
+        margin-bottom: 8px;
+        font-size: 1.3rem;
+    }
+    
+    .empty-state p {
+        color: #9ca3af;
+        margin-bottom: 20px;
+    }
+    
+    .empty-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .empty-actions .btn {
+        min-width: 150px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 20px;
+    }
+    
+    /* ✅ MOBILE OPTIMIZATION - 15% COMPRESSION */
+    /* Large Mobile (576px - 767px) */
+    @media (min-width: 576px) and (max-width: 767px) {
+        /* Collapsible Stats */
+        .stats-summary {
+            font-size: 85%;
+        }
+        
+        .summary-line i {
+            font-size: 0.935rem !important;
+        }
+        
+        .summary-line span {
+            font-size: 0.8075rem;
+        }
+        
+        .stats-grid {
+            padding: 17px;
+            gap: 12.75px;
+        }
+        
+        .stat-card {
+            padding: 15.3px;
+            gap: 10.2px;
+        }
+        
+        .stat-card i {
+            font-size: 1.53rem !important;
+        }
+        
+        .stat-card h3 {
+            font-size: 1.36rem;
+        }
+        
+        .stat-card p {
+            font-size: 0.7225rem;
+        }
+        
+        /* Order Cards */
+        .order-card {
+            padding: 17px;
+            margin-bottom: 17px;
+        }
+        
+        .order-header h3 {
+            font-size: 1.02rem;
+        }
+        
+        .order-date {
+            font-size: 0.7225rem;
+        }
+        
+        .order-status {
+            font-size: 0.6375rem;
+            padding: 4.25px 10.2px;
+            min-width: 76.5px;
+        }
+        
+        /* Order Summary */
+        .order-summary {
+            padding: 12.75px;
+            gap: 10.2px;
+        }
+        
+        .summary-row span:first-child {
+            font-size: 0.765rem;
+        }
+        
+        .payment-mode, .delivery-location {
+            font-size: 0.765rem;
+        }
+        
+        .order-total-amount {
+            font-size: 0.85rem;
+        }
+        
+        /* Order Items */
+        .order-items-section {
+            margin: 17px 0;
+        }
+        
+        .section-title {
+            font-size: 0.85rem;
+            margin-bottom: 10.2px;
+        }
+        
+        .items-grid {
+            gap: 8.5px;
+        }
+        
+        .order-item-card {
+            padding: 10.2px;
+            gap: 12.75px;
+        }
+        
+        .item-photo {
+            width: 59.5px;
+            height: 59.5px;
+        }
+        
+        .item-photo-placeholder {
+            width: 59.5px;
+            height: 59.5px;
+            font-size: 20.4px !important;
+        }
+        
+        .item-type-badge {
+            font-size: 0.5525rem;
+            padding: 1.7px 6.8px;
+        }
+        
+        .item-name {
+            font-size: 0.8075rem;
+        }
+        
+        .item-description {
+            font-size: 0.68rem;
+        }
+        
+        .item-meta {
+            font-size: 0.68rem;
+            gap: 10.2px;
+        }
+        
+        .item-total-amount {
+            font-size: 0.85rem;
+        }
+        
+        .item-unit-price {
+            font-size: 0.68rem;
+        }
+        
+        /* Order Actions */
+        .order-actions {
+            margin-top: 17px;
+            padding-top: 17px;
+        }
+        
+        .btn-view-details {
+            padding: 8.5px 20.4px;
+            font-size: 0.8075rem;
+        }
+        
+        .btn-view-details i {
+            font-size: 0.85em !important;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            padding: 42.5px 17px;
+        }
+        
+        .empty-state i {
+            font-size: 2.55rem !important;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.105rem;
+        }
+        
+        .empty-state p {
+            font-size: 0.85em;
+        }
+        
+        .empty-actions .btn {
+            min-width: 127.5px;
+            padding: 10.2px 17px;
+            font-size: 0.85em;
+        }
+        
+        .empty-actions .btn i {
+            font-size: 0.85em !important;
+        }
+        
+        /* Loading Indicator */
+        .loading-content {
+            padding: 21.25px;
+        }
+        
+        .loading-spinner {
+            width: 42.5px;
+            height: 42.5px;
+        }
+        
+        .loading-title {
+            font-size: 0.935rem;
+        }
+        
+        .loading-description {
+            font-size: 0.765rem;
+        }
+    }
+    
+    /* Small Mobile (375px - 575px) */
+    @media (min-width: 375px) and (max-width: 575px) {
+        /* Collapsible Stats */
+        .stats-summary {
+            font-size: 85%;
+        }
+        
+        .summary-line {
+            padding: 11.9px 17px;
+        }
+        
+        .summary-line i {
+            font-size: 0.935rem !important;
+        }
+        
+        .summary-line span {
+            font-size: 0.8075rem;
+        }
+        
+        .stats-grid {
+            padding: 17px;
+            gap: 12.75px;
+        }
+        
+        .stat-card {
+            padding: 15.3px;
+            gap: 10.2px;
+        }
+        
+        .stat-card i {
+            font-size: 1.53rem !important;
+        }
+        
+        .stat-card h3 {
+            font-size: 1.36rem;
+        }
+        
+        .stat-card p {
+            font-size: 0.7225rem;
+        }
+        
+        /* Order Cards */
+        .order-card {
+            padding: 17px;
+            margin-bottom: 17px;
+        }
+        
+        .order-header h3 {
+            font-size: 1.02rem;
+        }
+        
+        .order-date {
+            font-size: 0.7225rem;
+        }
+        
+        .order-status {
+            font-size: 0.6375rem;
+            padding: 4.25px 10.2px;
+            min-width: 76.5px;
+        }
+        
+        /* Order Summary */
+        .order-summary {
+            padding: 12.75px;
+            gap: 10.2px;
+        }
+        
+        .summary-row span:first-child {
+            font-size: 0.765rem;
+        }
+        
+        .payment-mode, .delivery-location {
+            font-size: 0.765rem;
+        }
+        
+        .order-total-amount {
+            font-size: 0.85rem;
+        }
+        
+        /* Order Items */
+        .order-items-section {
+            margin: 17px 0;
+        }
+        
+        .section-title {
+            font-size: 0.85rem;
+            margin-bottom: 10.2px;
+        }
+        
+        .items-grid {
+            gap: 8.5px;
+        }
+        
+        .order-item-card {
+            padding: 10.2px;
+            gap: 12.75px;
+        }
+        
+        .item-photo {
+            width: 59.5px;
+            height: 59.5px;
+        }
+        
+        .item-photo-placeholder {
+            width: 59.5px;
+            height: 59.5px;
+            font-size: 20.4px !important;
+        }
+        
+        .item-type-badge {
+            font-size: 0.5525rem;
+            padding: 1.7px 6.8px;
+        }
+        
+        .item-name {
+            font-size: 0.8075rem;
+        }
+        
+        .item-description {
+            font-size: 0.68rem;
+        }
+        
+        .item-meta {
+            font-size: 0.68rem;
+            gap: 10.2px;
+        }
+        
+        .item-total-amount {
+            font-size: 0.85rem;
+        }
+        
+        .item-unit-price {
+            font-size: 0.68rem;
+        }
+        
+        /* Order Actions */
+        .order-actions {
+            margin-top: 17px;
+            padding-top: 17px;
+        }
+        
+        .btn-view-details {
+            padding: 8.5px 20.4px;
+            font-size: 0.8075rem;
+        }
+        
+        .btn-view-details i {
+            font-size: 0.85em !important;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            padding: 42.5px 17px;
+        }
+        
+        .empty-state i {
+            font-size: 2.55rem !important;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.105rem;
+        }
+        
+        .empty-state p {
+            font-size: 0.85em;
+        }
+        
+        .empty-actions .btn {
+            min-width: 127.5px;
+            padding: 10.2px 17px;
+            font-size: 0.85em;
+        }
+        
+        .empty-actions .btn i {
+            font-size: 0.85em !important;
+        }
+        
+        /* Loading Indicator */
+        .loading-content {
+            padding: 21.25px;
+        }
+        
+        .loading-spinner {
+            width: 42.5px;
+            height: 42.5px;
+        }
+        
+        .loading-title {
+            font-size: 0.935rem;
+        }
+        
+        .loading-description {
+            font-size: 0.765rem;
+        }
+    }
+    
+    /* Extra Small Mobile (below 375px) */
+    @media (max-width: 374px) {
+        /* Collapsible Stats */
+        .stats-summary {
+            font-size: 85%;
+        }
+        
+        .summary-line {
+            padding: 11.9px 15.3px;
+        }
+        
+        .summary-line i {
+            font-size: 0.935rem !important;
+        }
+        
+        .summary-line span {
+            font-size: 0.8075rem;
+        }
+        
+        .stats-grid {
+            padding: 15.3px;
+            gap: 12.75px;
+        }
+        
+        .stat-card {
+            padding: 15.3px;
+            gap: 10.2px;
+        }
+        
+        .stat-card i {
+            font-size: 1.53rem !important;
+        }
+        
+        .stat-card h3 {
+            font-size: 1.36rem;
+        }
+        
+        .stat-card p {
+            font-size: 0.7225rem;
+        }
+        
+        /* Order Cards */
+        .order-card {
+            padding: 15.3px;
+            margin-bottom: 17px;
+        }
+        
+        .order-header h3 {
+            font-size: 1.02rem;
+        }
+        
+        .order-date {
+            font-size: 0.7225rem;
+        }
+        
+        .order-status {
+            font-size: 0.6375rem;
+            padding: 4.25px 10.2px;
+            min-width: 76.5px;
+        }
+        
+        /* Order Summary */
+        .order-summary {
+            padding: 12.75px;
+            gap: 10.2px;
+        }
+        
+        .summary-row span:first-child {
+            font-size: 0.765rem;
+        }
+        
+        .payment-mode, .delivery-location {
+            font-size: 0.765rem;
+        }
+        
+        .order-total-amount {
+            font-size: 0.85rem;
+        }
+        
+        /* Order Items */
+        .order-items-section {
+            margin: 17px 0;
+        }
+        
+        .section-title {
+            font-size: 0.85rem;
+            margin-bottom: 10.2px;
+        }
+        
+        .items-grid {
+            gap: 8.5px;
+        }
+        
+        .order-item-card {
+            padding: 10.2px;
+            gap: 12.75px;
+        }
+        
+        .item-photo {
+            width: 59.5px;
+            height: 59.5px;
+        }
+        
+        .item-photo-placeholder {
+            width: 59.5px;
+            height: 59.5px;
+            font-size: 20.4px !important;
+        }
+        
+        .item-type-badge {
+            font-size: 0.5525rem;
+            padding: 1.7px 6.8px;
+        }
+        
+        .item-name {
+            font-size: 0.8075rem;
+        }
+        
+        .item-description {
+            font-size: 0.68rem;
+        }
+        
+        .item-meta {
+            font-size: 0.68rem;
+            gap: 10.2px;
+        }
+        
+        .item-total-amount {
+            font-size: 0.85rem;
+        }
+        
+        .item-unit-price {
+            font-size: 0.68rem;
+        }
+        
+        /* Order Actions */
+        .order-actions {
+            margin-top: 17px;
+            padding-top: 17px;
+        }
+        
+        .btn-view-details {
+            padding: 8.5px 20.4px;
+            font-size: 0.8075rem;
+        }
+        
+        .btn-view-details i {
+            font-size: 0.85em !important;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            padding: 42.5px 15.3px;
+        }
+        
+        .empty-state i {
+            font-size: 2.55rem !important;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.105rem;
+        }
+        
+        .empty-state p {
+            font-size: 0.85em;
+        }
+        
+        .empty-actions .btn {
+            min-width: 127.5px;
+            padding: 10.2px 15.3px;
+            font-size: 0.85em;
+        }
+        
+        .empty-actions .btn i {
+            font-size: 0.85em !important;
+        }
+        
+        /* Loading Indicator */
+        .loading-content {
+            padding: 19.125px;
+        }
+        
+        .loading-spinner {
+            width: 38.25px;
+            height: 38.25px;
+        }
+        
+        .loading-title {
+            font-size: 0.935rem;
+        }
+        
+        .loading-description {
+            font-size: 0.765rem;
+        }
+    }
+    
+    /* ✅ ORIGINAL MOBILE RESPONSIVE (untouched) */
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 15px;
+        }
+        
+        .stat-card {
+            padding: 15px;
+        }
+        
+        .stat-card i {
+            font-size: 1.5rem;
+        }
+        
+        .stat-card h3 {
+            font-size: 1.4rem;
+        }
+        
+        .summary-line {
+            padding: 12px 15px;
+            font-size: 0.9rem;
+        }
+        
+        .summary-line i {
+            font-size: 1rem;
+        }
+        
+        .summary-toggle {
+            right: 15px;
+        }
+        
+        .order-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .order-status {
+            align-self: flex-start;
+        }
+        
+        .order-summary {
+            grid-template-columns: 1fr;
+        }
+        
+        .order-item-card {
+            grid-template-columns: 1fr;
+            text-align: center;
+        }
+        
+        .item-header {
+            justify-content: center;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .item-photo-container {
+            display: flex;
+            justify-content: center;
+        }
+        
+        .item-meta {
+            justify-content: center;
+        }
+        
+        .item-total-container {
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        .btn-view-details {
+            padding: 12px;
+            font-size: 0.9rem;
+        }
+        
+        .empty-actions {
+            flex-direction: column;
+        }
+        
+        .empty-actions .btn {
+            width: 100%;
+            margin-bottom: 8px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .summary-line {
+            padding: 10px 15px;
+            font-size: 0.85rem;
+        }
+        
+        .order-card {
+            padding: 15px;
+        }
+        
+        .item-meta {
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .section-title {
+            font-size: 0.95rem;
+        }
+        
+        .item-name {
+            font-size: 0.9rem;
+        }
+        
+        .btn-view-details {
+            padding: 10px;
+            font-size: 0.85rem;
+        }
+    }
+    
+    /* Tablet Responsive */
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .order-item-card {
+            grid-template-columns: auto 1fr;
+        }
+        
+        .item-total-container {
+            grid-column: 1 / -1;
+            text-align: left;
+            margin-top: 10px;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 10px;
+        }
+        
+        .summary-line {
+            padding: 16px 20px;
+        }
+    }
+    
+    /* Desktop Responsive */
+    @media (min-width: 1025px) {
+        .collapsible-stats {
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .orders-list {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+    }
+</style>
+
+<!-- ✅ UPDATED JAVASCRIPT WITH LOADING FUNCTIONS -->
+<script>
+// Toggle stats section
+function toggleStats() {
+    const statsContent = document.getElementById('stats-content');
+    const statsArrow = document.getElementById('stats-arrow');
+    
+    statsContent.classList.toggle('active');
+    
+    if (statsContent.classList.contains('active')) {
+        statsArrow.style.transform = 'rotate(180deg)';
+    } else {
+        statsArrow.style.transform = 'rotate(0deg)';
+    }
+}
+
+// Initialize stats as collapsed by default
+document.addEventListener('DOMContentLoaded', function() {
+    const statsContent = document.getElementById('stats-content');
+    const statsArrow = document.getElementById('stats-arrow');
+    statsContent.style.maxHeight = '0';
+    statsArrow.style.transform = 'rotate(0deg)';
+});
+
+// Loading Indicator Functions
+function showLoading(message = 'Loading...', description = 'Please wait while we process your request') {
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const loadingTitle = document.querySelector('.loading-title');
+    const loadingDescription = document.querySelector('.loading-description');
+    
+    loadingTitle.textContent = message;
+    loadingDescription.textContent = description;
+    loadingIndicator.classList.add('show');
+}
+
+function hideLoading() {
+    const loadingIndicator = document.getElementById('loading-indicator');
+    loadingIndicator.style.animation = 'fadeOut 0.3s ease forwards';
+    
+    setTimeout(() => {
+        loadingIndicator.classList.remove('show');
+        loadingIndicator.style.animation = '';
+    }, 300);
+}
+
+// View Order Details with loading indicator
+function viewOrderDetails(orderId) {
+    showLoading('Loading Order', `Loading details for Order #${orderId}...`);
+    
+    // Simulate API call or redirect
+    setTimeout(() => {
+        window.location.href = '/order/' + orderId;
+    }, 1000);
+}
+
+// Debug function to check item data
+function debugItem(item) {
+    console.log('Item data:', {
+        name: item.name,
+        item_name: item.item_name,
+        photo: item.photo,
+        item_photo: item.item_photo,
+        description: item.description,
+        item_description: item.item_description,
+        type: item.type,
+        item_type: item.item_type,
+        quantity: item.quantity,
+        price: item.price
+    });
+}
+
+// Test loading function
+function testLoading() {
+    showLoading('Processing', 'This is a test loading indicator');
+    setTimeout(hideLoading, 2000);
+}
+</script>
+{% endblock %}
