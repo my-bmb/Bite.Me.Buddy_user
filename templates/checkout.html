@@ -1,0 +1,515 @@
+<!-- checkout.html - COMPLETE VERSION -->
+{% extends "base.html" %}
+
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Top Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1>Checkout</h1>
+            <p class="welcome-text">Review your order</p>
+        </div>
+        <div class="header-right">
+            <img src="{{ session.profile_pic }}" 
+                 alt="Profile" class="profile-pic"
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="checkout-container">
+            <!-- User Details Section -->
+            <div class="checkout-section">
+                <h2><i class="fas fa-user-circle"></i> Your Details</h2>
+                <div class="user-details-card">
+                    <div class="detail-row">
+                        <span class="detail-label">Full Name:</span>
+                        <span class="detail-value">{{ session.full_name }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Email:</span>
+                        <span class="detail-value">{{ session.email }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Mobile:</span>
+                        <span class="detail-value">{{ session.phone }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Address:</span>
+                        <span class="detail-value">{{ session.location }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Items Section -->
+            <div class="checkout-section">
+                <h2><i class="fas fa-shopping-cart"></i> Order Items ({{ cart_items|length }})</h2>
+                
+                {% if cart_items and cart_items|length > 0 %}
+                <div class="cart-items-list">
+                    {% for item in cart_items %}
+                    <div class="cart-item-card">
+                        {% if item.details.photo %}
+                        <img src="{{ item.details.photo }}" 
+                             alt="{{ item.details.name }}" 
+                             class="item-photo"
+                             onerror="this.src='{{ url_for('static', filename='default-item.jpg') }}'">
+                        {% else %}
+                        <div class="item-photo-placeholder">
+                            <i class="fas fa-{{ 'concierge-bell' if item.type == 'service' else 'utensils' }}"></i>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="item-details">
+                            <h4>{{ item.details.name }}</h4>
+                            <p class="item-description">{{ item.details.description|default('No description available') }}</p>
+                            <div class="item-meta">
+                                <span class="item-type {{ item.type }}">{{ item.type|title }}</span>
+                                <span class="item-quantity">Qty: {{ item.quantity }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="item-pricing">
+                            <div class="item-price">₹{{ "%.2f"|format(item.details.price) }}</div>
+                            <div class="item-total">₹{{ "%.2f"|format(item.item_total) }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="order-summary">
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span>₹{{ "%.2f"|format(cart_total) }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Delivery Charge</span>
+                        <span>₹0.00</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span><strong>Total Amount</strong></span>
+                        <span><strong>₹{{ "%.2f"|format(cart_total) }}</strong></span>
+                    </div>
+                </div>
+                {% else %}
+                <div class="empty-cart">
+                    <i class="fas fa-shopping-cart fa-3x"></i>
+                    <h3>Your cart is empty</h3>
+                    <p>Add items to cart before checkout</p>
+                    <a href="{{ url_for('services') }}" class="btn btn-primary">
+                        <i class="fas fa-concierge-bell"></i> Browse Services
+                    </a>
+                    <a href="{{ url_for('menu') }}" class="btn btn-primary">
+                        <i class="fas fa-utensils"></i> Browse Menu
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Checkout Form -->
+            {% if cart_items and cart_items|length > 0 %}
+            <div class="checkout-section">
+                <h2><i class="fas fa-credit-card"></i> Payment & Delivery</h2>
+                <form method="POST" action="{{ url_for('checkout') }}" class="checkout-form">
+                    <!-- Delivery Location -->
+                    <div class="form-group">
+                        <label for="delivery_location">
+                            <i class="fas fa-map-marker-alt"></i> Delivery Address
+                        </label>
+                        <textarea id="delivery_location" name="delivery_location" 
+                                  class="form-control" rows="3" required
+                                  placeholder="Enter complete delivery address">{{ session.location }}</textarea>
+                        <small>We'll deliver to this address</small>
+                    </div>
+                    
+                    <!-- Payment Mode -->
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-money-bill-wave"></i> Payment Method
+                        </label>
+                        <div class="payment-options">
+                            <label class="payment-option">
+                                <input type="radio" name="payment_mode" value="COD" checked>
+                                <div class="option-content">
+                                    <i class="fas fa-money-bill"></i>
+                                    <span>Cash on Delivery (COD)</span>
+                                </div>
+                            </label>
+                            <label class="payment-option">
+                                <input type="radio" name="payment_mode" value="UPI">
+                                <div class="option-content">
+                                    <i class="fas fa-mobile-alt"></i>
+                                    <span>UPI / PhonePe / GPay</span>
+                                </div>
+                            </label>
+                            <label class="payment-option">
+                                <input type="radio" name="payment_mode" value="Card">
+                                <div class="option-content">
+                                    <i class="fas fa-credit-card"></i>
+                                    <span>Credit/Debit Card</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Terms & Submit -->
+                    <div class="form-group terms">
+                        <label>
+                            <input type="checkbox" required>
+                            I agree to the terms and conditions
+                        </label>
+                    </div>
+                    
+                    <div class="checkout-actions">
+                        <a href="{{ url_for('cart') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Cart
+                        </a>
+                        <button type="submit" class="btn btn-success btn-confirm">
+                            <i class="fas fa-check-circle"></i> Confirm Order (₹{{ "%.2f"|format(cart_total) }})
+                        </button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item">
+            <i class="fas fa-concierge-bell"></i>
+            <span>Services</span>
+        </a>
+        <a href="{{ url_for('menu') }}" class="nav-item">
+            <i class="fas fa-utensils"></i>
+            <span>Menu</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item">
+            <i class="fas fa-history"></i>
+            <span>Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+</div>
+
+<!-- Checkout Styles -->
+<style>
+.checkout-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.checkout-section {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    border: 1px solid #eaeaea;
+}
+
+.checkout-section h2 {
+    color: #333;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-details-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.detail-value {
+    color: #212529;
+    font-weight: 600;
+}
+
+.cart-items-list {
+    margin: 20px 0;
+}
+
+.cart-item-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    background: #fff;
+}
+
+.item-photo {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.item-photo-placeholder {
+    width: 80px;
+    height: 80px;
+    background: #e9ecef;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    font-size: 24px;
+}
+
+.item-details {
+    flex: 1;
+}
+
+.item-details h4 {
+    margin: 0 0 5px 0;
+    color: #212529;
+}
+
+.item-description {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+}
+
+.item-meta {
+    display: flex;
+    gap: 10px;
+}
+
+.item-type {
+    font-size: 0.8rem;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.item-type.service {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.item-type.menu {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.item-quantity {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.item-pricing {
+    text-align: right;
+}
+
+.item-price {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #212529;
+}
+
+.item-total {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.order-summary {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px dashed #dee2e6;
+}
+
+.summary-row:last-child {
+    border-bottom: none;
+}
+
+.summary-row.total {
+    font-size: 1.2rem;
+    color: #212529;
+}
+
+.checkout-form {
+    margin-top: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #495057;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #4dabf7;
+    box-shadow: 0 0 0 0.2rem rgba(77, 171, 247, 0.25);
+}
+
+.payment-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+}
+
+.payment-option {
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.payment-option:hover {
+    border-color: #4dabf7;
+    background: #f8f9fa;
+}
+
+.payment-option input[type="radio"] {
+    display: none;
+}
+
+.payment-option input[type="radio"]:checked + .option-content {
+    color: #4dabf7;
+}
+
+.payment-option input[type="radio"]:checked {
+    border-color: #4dabf7;
+    background: #e7f5ff;
+}
+
+.option-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: #6c757d;
+}
+
+.option-content i {
+    font-size: 24px;
+}
+
+.terms {
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 6px;
+}
+
+.checkout-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-success {
+    background: #28a745;
+    color: white;
+}
+
+.btn-confirm {
+    flex: 1;
+    font-size: 1.1rem;
+}
+
+.empty-cart {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+}
+
+.empty-cart i {
+    margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+    .cart-item-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .item-meta {
+        justify-content: center;
+    }
+    
+    .payment-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .checkout-actions {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}
