@@ -1,0 +1,1917 @@
+<!-- checkout.html - FIXED: Mobile me bina update kiye location display -->
+{% extends "base.html" %}
+
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Top Header - UNCHANGED -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1>Checkout</h1>
+            <p class="welcome-text">Review your order</p>
+        </div>
+        <div class="header-right">
+            <img src="{{ session.profile_pic }}" 
+                 alt="Profile" class="profile-pic"
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="checkout-container">
+            <!-- Order Items Section -->
+            <div class="checkout-section">
+                <h2><i class="fas fa-shopping-cart"></i> Order Items ({{ cart_items|length }})</h2>
+                
+                {% if cart_items and cart_items|length > 0 %}
+                <div class="cart-items-list">
+                    {% for item in cart_items %}
+                    <div class="cart-item-card">
+                        <!-- PHOTO SECTION - UNCHANGED -->
+                        {% if item.details.photo %}
+                        <img src="{{ item.details.photo }}" 
+                             alt="{{ item.details.name }}" 
+                             class="item-photo"
+                             onerror="this.src='{{ url_for('static', filename='default-item.jpg') }}'">
+                        {% else %}
+                        <div class="item-photo-placeholder">
+                            <i class="fas fa-{{ 'concierge-bell' if item.type == 'service' else 'utensils' }}"></i>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="item-details">
+                            <h4>{{ item.details.name }}</h4>
+                            <p class="item-description">{{ item.details.description|default('No description available') }}</p>
+                            <div class="item-meta">
+                                <span class="item-type {{ item.type }}">{{ item.type|title }}</span>
+                                <span class="item-quantity">Qty: {{ item.quantity }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="item-pricing">
+                            <div class="item-price">₹{{ "%.2f"|format(item.details.price) }}</div>
+                            <div class="item-total">₹{{ "%.2f"|format(item.item_total) }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="order-summary">
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span>₹{{ "%.2f"|format(cart_total) }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Delivery Charge</span>
+                        <span>₹0.00</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span><strong>Total Amount</strong></span>
+                        <span><strong>₹{{ "%.2f"|format(cart_total) }}</strong></span>
+                    </div>
+                </div>
+                {% else %}
+                <div class="empty-cart">
+                    <i class="fas fa-shopping-cart fa-3x"></i>
+                    <h3>Your cart is empty</h3>
+                    <p>Add items to cart before checkout</p>
+                    <a href="{{ url_for('services') }}" class="btn btn-primary">
+                        <i class="fas fa-concierge-bell"></i> Browse Services
+                    </a>
+                    <a href="{{ url_for('menu') }}" class="btn btn-primary">
+                        <i class="fas fa-utensils"></i> Browse Menu
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Checkout Form -->
+            {% if cart_items and cart_items|length > 0 %}
+            <div class="checkout-section">
+                <h2><i class="fas fa-credit-card"></i> Payment & Delivery</h2>
+                <form method="POST" action="{{ url_for('checkout') }}" class="checkout-form" id="checkoutForm">
+                    <!-- Hidden field for registration location -->
+                    <input type="hidden" id="registration_location" value="{{ session.location }}">
+                    
+                    <!-- Delivery Location -->
+                    <div class="form-group">
+                        <label for="delivery_location">
+                            <i class="fas fa-map-marker-alt"></i> Delivery Address
+                        </label>
+                        
+                        <!-- Registration Location Display (Readonly) -->
+                        <div class="location-display">
+                            <div class="location-label">Registered Address:</div>
+                            <div class="location-value" id="registeredLocation">{{ session.location }}</div>
+                        </div>
+                        
+                        <!-- Current Location Update Section -->
+                        <div class="location-update-section">
+                            <div class="update-label">
+                                <i class="fas fa-sync-alt"></i> 
+                                <strong>Update Current Location (Required)</strong>
+                            </div>
+                            
+                            <!-- Professional Status Row -->
+                            <div class="status-row" id="statusRow">
+                                <div class="status-indicator">
+                                    <div class="status-icon not-updated" id="statusIcon">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                    </div>
+                                    <div class="status-text">
+                                        <span class="label">Current Location Status:</span>
+                                        <span class="value" id="statusText">Not Updated</span>
+                                    </div>
+                                </div>
+                                <div class="pro-badge not-updated" id="statusBadge">Required</div>
+                                <button type="button" class="update-action-btn" id="statusUpdateBtn">
+                                    <i class="fas fa-map-marker-alt"></i> Update Now
+                                </button>
+                            </div>
+                            
+                            <div class="location-input-group">
+                                <input type="text" 
+                                       id="current_location" 
+                                       name="delivery_location"
+                                       class="form-control" 
+                                       readonly
+                                       placeholder="Click 'Get Current Location' to update"
+                                       required>
+                                
+                                <button type="button" 
+                                        class="btn-location-update" 
+                                        id="getLocationBtn">
+                                    <i class="fas fa-crosshairs"></i> Get Current Location
+                                </button>
+                            </div>
+                            
+                            <!-- Current Location Display - INITIALLY HIDDEN -->
+                            <div class="current-location-display" id="currentLocationDisplay" style="display: none;">
+                                <div class="location-display-header">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span id="locationDisplayTitle">Current Location Updated Successfully</span>
+                                </div>
+                                <div class="location-address" id="locationAddress">
+                                    <!-- Address will appear here -->
+                                </div>
+                                <div class="location-accuracy" id="locationAccuracy">
+                                    <!-- Accuracy will be shown here -->
+                                </div>
+                            </div>
+                            
+                            <div class="location-help" id="locationHelp">
+                                <i class="fas fa-info-circle"></i>
+                                <span>You must update your current location for this order.</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Mode -->
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-money-bill-wave"></i> Payment Method
+                        </label>
+                        <div class="payment-options">
+                            <label class="payment-option">
+                                <input type="radio" name="payment_mode" value="COD" checked>
+                                <div class="option-content">
+                                    <i class="fas fa-money-bill"></i>
+                                    <span>Cash on Delivery (COD)</span>
+                                </div>
+                            </label>
+                            <label class="payment-option">
+                                <input type="radio" name="payment_mode" value="UPI">
+                                <div class="option-content">
+                                    <i class="fas fa-mobile-alt"></i>
+                                    <span>UPI / PhonePe / GPay</span>
+                                </div>
+                            </label>
+                            <label class="payment-option">
+                                <input type="radio" name="payment_mode" value="Card">
+                                <div class="option-content">
+                                    <i class="fas fa-credit-card"></i>
+                                    <span>Credit/Debit Card</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Checkout Actions -->
+                    <div class="checkout-actions">
+                        <a href="{{ url_for('cart') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Cart
+                        </a>
+                        <button type="button" 
+                                class="btn btn-success btn-confirm" 
+                                id="confirmOrderBtn">
+                            <i class="fas fa-check-circle"></i> Confirm Order (₹{{ "%.2f"|format(cart_total) }})
+                        </button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- Bottom Navigation - UNCHANGED -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item">
+            <i class="fas fa-concierge-bell"></i>
+            <span>Services</span>
+        </a>
+        <a href="{{ url_for('menu') }}" class="nav-item">
+            <i class="fas fa-utensils"></i>
+            <span>Menu</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item">
+            <i class="fas fa-history"></i>
+            <span>Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+</div>
+
+<!-- Checkout Styles -->
+<style>
+.checkout-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.checkout-section {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    border: 1px solid #eaeaea;
+}
+
+.checkout-section h2 {
+    color: #333;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.3rem;
+}
+
+/* Location Display Styles */
+.location-display {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-left: 4px solid #4dabf7;
+}
+
+.location-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.location-value {
+    color: #212529;
+    font-weight: 500;
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+
+/* Current Location Display - FIXED: Initially hidden */
+.current-location-display {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border: 2px solid #28a745;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 15px 0;
+    animation: fadeIn 0.5s ease;
+    display: none; /* FIX: Initially hidden */
+}
+
+.location-display-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    color: #155724;
+    font-weight: 600;
+}
+
+.location-display-header i {
+    font-size: 1.2em;
+    color: #28a745;
+}
+
+.location-address {
+    padding: 12px;
+    background: white;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.location-accuracy {
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: #6c757d;
+    text-align: center;
+    font-style: italic;
+}
+
+/* Location Update Section */
+.location-update-section {
+    background: #fff;
+    border: 2px solid #eaeaea;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 15px;
+}
+
+.update-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    color: #212529;
+    font-size: 1rem;
+}
+
+.update-label i {
+    color: #4dabf7;
+}
+
+/* Professional Status Row */
+.status-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #e9ecef;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.status-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.status-icon.not-updated {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.status-icon.updated {
+    background: #d1fae5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+}
+
+.status-text {
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.status-text .label {
+    color: #6c757d;
+    font-weight: 400;
+}
+
+.status-text .value {
+    color: #212529;
+    font-weight: 600;
+}
+
+/* Professional Badge */
+.pro-badge {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.pro-badge.not-updated {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.pro-badge.updated {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+/* Update Button */
+.update-action-btn {
+    padding: 8px 18px;
+    background: #4dabf7;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.update-action-btn:hover {
+    background: #1c7ed6;
+    transform: translateY(-1px);
+}
+
+.update-action-btn:active {
+    transform: translateY(0);
+}
+
+.update-action-btn:disabled {
+    background: #94d3a2;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.update-action-btn i {
+    font-size: 0.9em;
+}
+
+/* Location Input Group */
+.location-input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.location-input-group .form-control {
+    flex: 1;
+    background: #f8f9fa;
+    cursor: not-allowed;
+    border: 1px solid #ced4da;
+    font-size: 0.95rem;
+    padding: 12px 16px;
+}
+
+.btn-location-update {
+    padding: 12px 20px;
+    background: #4dabf7;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+    white-space: nowrap;
+    font-size: 0.95rem;
+}
+
+.btn-location-update:hover {
+    background: #1c7ed6;
+    transform: translateY(-1px);
+}
+
+.btn-location-update:active {
+    transform: translateY(0);
+}
+
+.btn-location-update:disabled {
+    background: #adb5bd;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.location-help {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    color: #6c757d;
+    font-size: 0.9rem;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 3px solid #ffc107;
+}
+
+.location-help i {
+    color: #ffc107;
+    margin-top: 2px;
+}
+
+/* Error Message Modal */
+.error-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.error-modal-content {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    animation: slideUp 0.3s ease;
+}
+
+.error-icon {
+    font-size: 48px;
+    color: #ef4444;
+    margin-bottom: 20px;
+}
+
+.error-title {
+    font-size: 1.3rem;
+    color: #1e293b;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.error-message {
+    color: #64748b;
+    margin-bottom: 25px;
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+
+.error-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.btn-error {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+    font-size: 0.95rem;
+}
+
+.btn-error-primary {
+    background: #4dabf7;
+    color: white;
+}
+
+.btn-error-primary:hover {
+    background: #1c7ed6;
+}
+
+.btn-error-secondary {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.btn-error-secondary:hover {
+    background: #e2e8f0;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { 
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Cart Items */
+.cart-items-list {
+    margin: 20px 0;
+}
+
+.cart-item-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    background: #fff;
+}
+
+/* PHOTO SECTION - UNCHANGED */
+.item-photo {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.item-photo-placeholder {
+    width: 80px;
+    height: 80px;
+    background: #e9ecef;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    font-size: 24px;
+}
+
+.item-details {
+    flex: 1;
+}
+
+.item-details h4 {
+    margin: 0 0 5px 0;
+    color: #212529;
+    font-size: 1.1rem;
+}
+
+.item-description {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+}
+
+.item-meta {
+    display: flex;
+    gap: 10px;
+}
+
+.item-type {
+    font-size: 0.8rem;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.item-type.service {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.item-type.menu {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.item-quantity {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.item-pricing {
+    text-align: right;
+}
+
+.item-price {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #212529;
+}
+
+.item-total {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.order-summary {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px dashed #dee2e6;
+    font-size: 0.95rem;
+}
+
+.summary-row:last-child {
+    border-bottom: none;
+}
+
+.summary-row.total {
+    font-size: 1.2rem;
+    color: #212529;
+}
+
+.checkout-form {
+    margin-top: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #495057;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #4dabf7;
+    box-shadow: 0 0 0 0.2rem rgba(77, 171, 247, 0.25);
+}
+
+.payment-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+}
+
+.payment-option {
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.payment-option:hover {
+    border-color: #4dabf6;
+    background: #f8f9fa;
+}
+
+.payment-option input[type="radio"] {
+    display: none;
+}
+
+.payment-option input[type="radio"]:checked + .option-content {
+    color: #4dabf7;
+}
+
+.payment-option input[type="radio"]:checked {
+    border-color: #4dabf7;
+    background: #e7f5ff;
+}
+
+.option-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: #6c757d;
+}
+
+.option-content i {
+    font-size: 24px;
+}
+
+.option-content span {
+    font-size: 0.9rem;
+}
+
+.checkout-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-success {
+    background: #28a745;
+    color: white;
+}
+
+.btn-confirm {
+    flex: 1;
+    font-size: 1.1rem;
+}
+
+.empty-cart {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+}
+
+.empty-cart i {
+    margin-bottom: 20px;
+}
+
+.empty-cart h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
+.empty-cart p {
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+}
+
+/* Location message styles */
+.location-message {
+    padding: 12px;
+    border-radius: 6px;
+    margin-top: 10px;
+    font-weight: 500;
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.message-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    display: block;
+}
+
+.message-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    display: block;
+}
+
+.message-info {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+    display: block;
+}
+
+.message-warning {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+    display: block;
+}
+
+/* Toast Notification */
+.toast-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #ef4444;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: none;
+    align-items: center;
+    gap: 10px;
+    z-index: 9999;
+    max-width: 350px;
+    animation: slideInRight 0.3s ease;
+}
+
+.toast-notification i {
+    font-size: 20px;
+}
+
+.toast-content {
+    flex: 1;
+}
+
+.toast-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.toast-message {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* =========================================== */
+/* MOBILE OPTIMIZATION - 13.5% TEXT & SYMBOL COMPRESSION */
+/* HEADER, BOTTOM NAV & CONFIRM BUTTON UNTOUCHED */
+/* =========================================== */
+
+/* Large Mobile (576px - 767px) */
+@media (min-width: 576px) and (max-width: 767px) {
+    /* Status Row Mobile */
+    .status-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .status-indicator {
+        order: 1;
+    }
+    
+    .pro-badge {
+        order: 2;
+        align-self: flex-start;
+    }
+    
+    .update-action-btn {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        padding: 10px;
+    }
+    
+    /* Apply 13.5% compression to TEXT & SYMBOLS only */
+    
+    /* Checkout container */
+    .checkout-container {
+        padding: 0 15px;
+    }
+    
+    /* Checkout section */
+    .checkout-section {
+        padding: calc(25px * 0.865); /* 21.625px */
+        margin-bottom: calc(20px * 0.865); /* 17.3px */
+    }
+    
+    /* Headings - TEXT 13.5% smaller */
+    .checkout-section h2 {
+        font-size: calc(1.3rem * 0.865) !important; /* 1.1245rem */
+        margin-bottom: calc(20px * 0.865); /* 17.3px */
+    }
+    
+    /* Icons/Symbols - 13.5% smaller */
+    .checkout-section h2 i {
+        font-size: calc(1em * 0.865) !important;
+    }
+    
+    /* Text elements - TEXT 13.5% smaller */
+    .location-label {
+        font-size: calc(0.9rem * 0.865) !important; /* 0.7785rem */
+    }
+    
+    .location-value {
+        font-size: calc(0.95rem * 0.865) !important; /* 0.82175rem */
+    }
+    
+    .update-label {
+        font-size: calc(1rem * 0.865) !important; /* 0.865rem */
+    }
+    
+    .update-label i {
+        font-size: calc(1em * 0.865) !important;
+    }
+    
+    .status-text {
+        font-size: calc(0.95rem * 0.865) !important; /* 0.82175rem */
+    }
+    
+    .status-icon {
+        font-size: calc(14px * 0.865) !important; /* 12.11px */
+    }
+    
+    .pro-badge {
+        font-size: calc(0.8rem * 0.865) !important; /* 0.692rem */
+        padding: calc(6px * 0.865) calc(14px * 0.865); /* 5.19px 12.11px */
+    }
+    
+    .update-action-btn {
+        font-size: calc(0.9rem * 0.865) !important; /* 0.7785rem */
+        padding: calc(8px * 0.865) calc(18px * 0.865); /* 6.92px 15.57px */
+    }
+    
+    .update-action-btn i {
+        font-size: calc(0.9em * 0.865) !important;
+    }
+    
+    .location-input-group .form-control {
+        font-size: calc(0.95rem * 0.865) !important; /* 0.82175rem */
+        padding: calc(12px * 0.865) calc(16px * 0.865); /* 10.38px 13.84px */
+    }
+    
+    .btn-location-update {
+        font-size: calc(0.95rem * 0.865) !important; /* 0.82175rem */
+        padding: calc(12px * 0.865) calc(20px * 0.865); /* 10.38px 17.3px */
+    }
+    
+    .btn-location-update i {
+        font-size: calc(1em * 0.865) !important;
+    }
+    
+    .location-help {
+        font-size: calc(0.9rem * 0.865) !important; /* 0.7785rem */
+        padding: calc(10px * 0.865); /* 8.65px */
+    }
+    
+    .location-help i {
+        font-size: calc(1em * 0.865) !important;
+    }
+    
+    /* Current Location Display */
+    .location-display-header {
+        font-size: calc(1rem * 0.865) !important;
+    }
+    
+    .location-display-header i {
+        font-size: calc(1.2em * 0.865) !important;
+    }
+    
+    .location-address {
+        font-size: calc(0.95rem * 0.865) !important;
+        padding: calc(12px * 0.865);
+    }
+    
+    .location-accuracy {
+        font-size: calc(0.85rem * 0.865) !important;
+    }
+    
+    /* Cart items text - TEXT 13.5% smaller */
+    .item-details h4 {
+        font-size: calc(1.1rem * 0.865) !important; /* 0.9515rem */
+    }
+    
+    .item-description {
+        font-size: calc(0.9rem * 0.865) !important; /* 0.7785rem */
+    }
+    
+    .item-type {
+        font-size: calc(0.8rem * 0.865) !important; /* 0.692rem */
+        padding: calc(3px * 0.865) calc(10px * 0.865); /* 2.595px 8.65px */
+    }
+    
+    .item-quantity {
+        font-size: calc(0.9rem * 0.865) !important; /* 0.7785rem */
+    }
+    
+    .item-price {
+        font-size: calc(1.1rem * 0.865) !important; /* 0.9515rem */
+    }
+    
+    .item-total {
+        font-size: calc(0.9rem * 0.865) !important; /* 0.7785rem */
+    }
+    
+    /* Order summary - TEXT 13.5% smaller */
+    .summary-row {
+        font-size: calc(0.95rem * 0.865) !important; /* 0.82175rem */
+        padding: calc(10px * 0.865) 0; /* 8.65px 0 */
+    }
+    
+    .summary-row.total {
+        font-size: calc(1.2rem * 0.865) !important; /* 1.038rem */
+    }
+    
+    /* Form elements - TEXT 13.5% smaller */
+    .form-group label {
+        font-size: calc(0.95rem * 0.865) !important; /* 0.82175rem */
+        margin-bottom: calc(8px * 0.865); /* 6.92px */
+    }
+    
+    .form-group label i {
+        font-size: calc(1em * 0.865) !important;
+    }
+    
+    .form-control {
+        font-size: calc(1rem * 0.865) !important; /* 0.865rem */
+        padding: calc(12px * 0.865); /* 10.38px */
+    }
+    
+    /* Payment options - TEXT & ICONS 13.5% smaller */
+    .payment-option {
+        padding: calc(15px * 0.865); /* 12.975px */
+    }
+    
+    .option-content i {
+        font-size: calc(24px * 0.865) !important; /* 20.76px */
+    }
+    
+    .option-content span {
+        font-size: calc(0.9rem * 0.865) !important; /* 0.7785rem */
+    }
+    
+    /* Buttons - TEXT 13.5% smaller (EXCEPT CONFIRM BUTTON) */
+    .btn-secondary {
+        font-size: calc(0.95rem * 0.865) !important; /* 0.82175rem */
+        padding: calc(12px * 0.865) calc(24px * 0.865); /* 10.38px 20.76px */
+    }
+    
+    .btn-secondary i {
+        font-size: calc(1em * 0.865) !important;
+    }
+    
+    /* CONFIRM BUTTON - NO COMPRESSION */
+    .btn-confirm {
+        font-size: 1.1rem !important;
+        padding: 12px 24px !important;
+    }
+    
+    .btn-confirm i {
+        font-size: 1em !important;
+    }
+    
+    /* Ensure touch-friendly sizes */
+    .btn, .btn-location-update, .update-action-btn {
+        min-height: 44px;
+    }
+    
+    .form-control {
+        min-height: 48px;
+        font-size: 16px !important;
+    }
+    
+    .location-input-group {
+        flex-direction: column;
+    }
+    
+    .btn-location-update {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Small Mobile (375px - 575px) */
+@media (min-width: 375px) and (max-width: 575px) {
+    /* Status Row Mobile */
+    .status-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding: 10px;
+    }
+    
+    .status-indicator {
+        order: 1;
+    }
+    
+    .pro-badge {
+        order: 2;
+        align-self: flex-start;
+    }
+    
+    .update-action-btn {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        padding: 12px;
+    }
+    
+    /* Apply 13.5% compression */
+    .checkout-container {
+        padding: 0 12px;
+    }
+    
+    .checkout-section {
+        padding: calc(25px * 0.865 * 0.9); /* 19.4625px */
+        margin-bottom: calc(20px * 0.865 * 0.9); /* 15.57px */
+    }
+    
+    .checkout-section h2 {
+        font-size: calc(1.3rem * 0.865 * 0.9) !important; /* 1.01205rem */
+        margin-bottom: calc(20px * 0.865 * 0.9); /* 15.57px */
+    }
+    
+    .checkout-section h2 i {
+        font-size: calc(1em * 0.865 * 0.9) !important;
+    }
+    
+    /* Current Location Display for Mobile */
+    .current-location-display {
+        padding: 12px;
+        margin: 10px 0;
+    }
+    
+    .location-display-header {
+        font-size: calc(1rem * 0.865 * 0.9) !important;
+        gap: 8px;
+    }
+    
+    .location-display-header i {
+        font-size: calc(1.2em * 0.865 * 0.9) !important;
+    }
+    
+    .location-address {
+        font-size: calc(0.9rem * 0.865 * 0.9) !important;
+        padding: 8px;
+        line-height: 1.3;
+    }
+    
+    .location-accuracy {
+        font-size: calc(0.8rem * 0.865 * 0.9) !important;
+    }
+    
+    /* REMOVED: Force display on mobile - FIXED */
+    /* .current-location-display {
+        display: block !important; 
+    } */
+    
+    /* Ensure minimum readable sizes */
+    body {
+        font-size: 14px !important;
+    }
+    
+    .checkout-section h2 {
+        min-font-size: 1.05rem !important;
+    }
+    
+    .btn, .btn-location-update, .update-action-btn {
+        min-height: 44px;
+        font-size: 14px !important;
+    }
+    
+    .form-control {
+        min-height: 48px;
+        font-size: 16px !important;
+    }
+    
+    .location-input-group {
+        flex-direction: column;
+    }
+    
+    .btn-location-update {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .payment-options {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Extra Small Mobile (below 375px) */
+@media (max-width: 374px) {
+    /* Status Row Mobile */
+    .status-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        padding: 8px;
+    }
+    
+    .status-indicator {
+        order: 1;
+    }
+    
+    .pro-badge {
+        order: 2;
+        align-self: flex-start;
+    }
+    
+    .update-action-btn {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        padding: 10px;
+    }
+    
+    /* Current Location Display for Small Screens */
+    .current-location-display {
+        padding: 10px;
+        margin: 8px 0;
+    }
+    
+    .location-address {
+        font-size: 0.85rem !important;
+        padding: 6px;
+        line-height: 1.2;
+    }
+    
+    .location-accuracy {
+        font-size: 0.75rem !important;
+    }
+    
+    /* REMOVED: Force display on mobile - FIXED */
+    /* .current-location-display {
+        display: block !important;
+    } */
+    
+    /* Apply minimum sizes for readability */
+    body {
+        font-size: 13px !important;
+    }
+    
+    .checkout-section h2 {
+        font-size: 1rem !important;
+        min-font-size: 1rem !important;
+    }
+    
+    .btn, .btn-location-update, .update-action-btn {
+        min-height: 44px;
+        font-size: 13px !important;
+    }
+    
+    .form-control {
+        min-height: 48px;
+        font-size: 16px !important;
+    }
+    
+    /* Apply compression but with minimum limits */
+    .checkout-container {
+        padding: 0 8px;
+    }
+    
+    .checkout-section {
+        padding: 15px !important;
+        margin-bottom: 12px !important;
+    }
+    
+    /* Payment options mobile */
+    .payment-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .payment-option {
+        padding: 12px 8px !important;
+    }
+    
+    .option-content i {
+        font-size: 20px !important;
+    }
+    
+    .option-content span {
+        font-size: 13px !important;
+    }
+    
+    /* Checkout actions mobile */
+    .checkout-actions {
+        flex-direction: column;
+    }
+    
+    /* CONFIRM BUTTON - NO COMPRESSION */
+    .btn-confirm {
+        font-size: 1.1rem !important;
+        padding: 12px 24px !important;
+        min-height: 50px !important;
+    }
+}
+
+/* Additional mobile optimizations */
+@media (max-width: 767px) {
+    /* Prevent horizontal scrolling */
+    html, body {
+        overflow-x: hidden;
+        max-width: 100%;
+    }
+    
+    .main-content {
+        width: 100%;
+        overflow-x: hidden;
+    }
+    
+    /* iOS zoom prevention for inputs */
+    input[type="text"],
+    input[type="tel"],
+    input[type="email"],
+    textarea {
+        font-size: 16px !important;
+    }
+    
+    /* Ensure minimum touch target sizes */
+    .btn, .btn-location-update, .update-action-btn, .payment-option {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* Improve spacing for mobile */
+    .checkout-section {
+        margin: 12px 0;
+    }
+    
+    .form-group {
+        margin-bottom: 18px;
+    }
+    
+    /* Toast notification mobile */
+    .toast-notification {
+        left: 10px;
+        right: 10px;
+        top: 10px;
+        max-width: calc(100% - 20px);
+    }
+    
+    /* Cart items mobile layout */
+    .cart-item-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+        padding: 12px;
+    }
+    
+    .item-meta {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .item-pricing {
+        text-align: center;
+        width: 100%;
+        margin-top: 10px;
+    }
+    
+    /* REMOVED: Force display on mobile - FIXED */
+    /* .current-location-display {
+        display: block !important;
+        margin-top: 15px;
+    } */
+}
+</style>
+
+<!-- JavaScript for Location Update System - FIXED: Mobile display issue -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Elements
+    const getLocationBtn = document.getElementById('getLocationBtn');
+    const currentLocationInput = document.getElementById('current_location');
+    const confirmOrderBtn = document.getElementById('confirmOrderBtn');
+    const checkoutForm = document.getElementById('checkoutForm');
+    const statusUpdateBtn = document.getElementById('statusUpdateBtn');
+    const currentLocationDisplay = document.getElementById('currentLocationDisplay');
+    const locationDisplayTitle = document.getElementById('locationDisplayTitle');
+    const locationAddress = document.getElementById('locationAddress');
+    const locationAccuracy = document.getElementById('locationAccuracy');
+    
+    let isLocationUpdated = false;
+    let currentLocationData = null;
+    let locationUpdateAttempts = 0;
+    const MAX_ATTEMPTS = 3;
+    
+    // Create Toast Notification
+    const toastNotification = document.createElement('div');
+    toastNotification.className = 'toast-notification';
+    toastNotification.innerHTML = `
+        <i class="fas fa-exclamation-circle"></i>
+        <div class="toast-content">
+            <div class="toast-title">Update Required</div>
+            <div class="toast-message" id="toastMessage">Please update your location first</div>
+        </div>
+    `;
+    document.body.appendChild(toastNotification);
+    
+    // Create message container
+    const messageContainer = document.createElement('div');
+    messageContainer.className = 'location-message';
+    document.querySelector('.location-update-section').appendChild(messageContainer);
+    
+    // Show Toast Notification
+    function showToast(message) {
+        document.getElementById('toastMessage').textContent = message;
+        toastNotification.style.display = 'flex';
+        
+        // Auto-hide after 3 seconds
+        setTimeout(() => {
+            toastNotification.style.display = 'none';
+        }, 3000);
+    }
+    
+    // Update Location Status
+    function updateLocationStatus(isUpdated, accuracy = null) {
+        isLocationUpdated = isUpdated;
+        
+        const statusIcon = document.getElementById('statusIcon');
+        const statusText = document.getElementById('statusText');
+        const statusBadge = document.getElementById('statusBadge');
+        const locationHelp = document.getElementById('locationHelp');
+        
+        if (isUpdated) {
+            // Update status row
+            statusIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
+            statusIcon.className = 'status-icon updated';
+            statusText.textContent = 'Updated';
+            statusBadge.textContent = 'Completed';
+            statusBadge.className = 'pro-badge updated';
+            statusUpdateBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Update Again';
+            
+            // Update help text
+            locationHelp.innerHTML = `<i class="fas fa-check-circle"></i> 
+                                     <span>Location updated successfully!${accuracy ? ` Accuracy: ${accuracy}m` : ''}</span>`;
+            locationHelp.style.borderLeftColor = '#10b981';
+            locationHelp.style.background = '#d1fae5';
+            locationHelp.style.color = '#065f46';
+            
+            // Show success message
+            showMessage('✅ Location updated successfully!', 'success');
+            
+            // ✅ FIXED: Only show location display when updated
+            currentLocationDisplay.style.display = 'block';
+            locationDisplayTitle.textContent = '📍 Current Location Updated Successfully';
+            
+        } else {
+            // Reset to not updated state
+            statusIcon.innerHTML = '<i class="fas fa-exclamation-circle"></i>';
+            statusIcon.className = 'status-icon not-updated';
+            statusText.textContent = 'Not Updated';
+            statusBadge.textContent = 'Required';
+            statusBadge.className = 'pro-badge not-updated';
+            statusUpdateBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Update Now';
+            
+            // Update help text
+            locationHelp.innerHTML = `<i class="fas fa-info-circle"></i> 
+                                     <span>You must update your current location for this order.</span>`;
+            locationHelp.style.borderLeftColor = '#ffc107';
+            locationHelp.style.background = '#f8f9fa';
+            locationHelp.style.color = '#6c757d';
+            
+            // ✅ FIXED: Hide location display when not updated
+            currentLocationDisplay.style.display = 'none';
+            currentLocationInput.value = '';
+            currentLocationInput.placeholder = 'Click "Get Current Location" to update';
+        }
+    }
+    
+    // ⚡ ULTRA-FAST Get Current Location with Multiple Fallbacks
+    async function getCurrentLocation() {
+        locationUpdateAttempts++;
+        
+        // Check if browser supports geolocation
+        if (!navigator.geolocation) {
+            showMessage('Your browser does not support location detection.', 'error');
+            return;
+        }
+        
+        // Show loading state
+        getLocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Detecting...';
+        getLocationBtn.disabled = true;
+        statusUpdateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Detecting...';
+        statusUpdateBtn.disabled = true;
+        showMessage('<i class="fas fa-spinner fa-spin"></i> Detecting your location...', 'info');
+        
+        // Geolocation options with multiple strategies
+        const geolocationOptions = {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 30000
+        };
+        
+        // Try fast GPS location first
+        navigator.geolocation.getCurrentPosition(
+            // Success callback
+            processLocationSuccess,
+            
+            // Error callback - Try with lower accuracy
+            function(gpsError) {
+                console.log('GPS failed, trying network location...');
+                
+                // Try network-based location (faster, less accurate)
+                navigator.geolocation.getCurrentPosition(
+                    processLocationSuccess,
+                    function(networkError) {
+                        // Try with no accuracy requirement (fastest)
+                        navigator.geolocation.getCurrentPosition(
+                            processLocationSuccess,
+                            processLocationError,
+                            {
+                                enableHighAccuracy: false,
+                                timeout: 3000,
+                                maximumAge: 60000
+                            }
+                        );
+                    },
+                    {
+                        enableHighAccuracy: false,
+                        timeout: 3000,
+                        maximumAge: 30000
+                    }
+                );
+            },
+            
+            geolocationOptions
+        );
+    }
+    
+    // Process successful location detection
+    async function processLocationSuccess(position) {
+        try {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            const accuracy = Math.round(position.coords.accuracy);
+            
+            // Store location data
+            currentLocationData = {
+                latitude: latitude,
+                longitude: longitude,
+                accuracy: accuracy,
+                timestamp: new Date().toISOString()
+            };
+            
+            // ⚡ IMMEDIATE UI UPDATE - Show friendly message
+            currentLocationInput.value = '📍 Location detected successfully';
+            
+            // ✅ FIXED: Update display with loading state
+            currentLocationDisplay.style.display = 'block';
+            locationDisplayTitle.textContent = '📍 Current Location Updated Successfully';
+            locationAddress.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching your address...';
+            
+            // Show accuracy info
+            if (accuracy < 50) {
+                locationAccuracy.textContent = '📍 High accuracy location detected';
+                locationAccuracy.style.color = '#28a745';
+            } else if (accuracy < 200) {
+                locationAccuracy.textContent = '📍 Medium accuracy location detected';
+                locationAccuracy.style.color = '#ffc107';
+            } else {
+                locationAccuracy.textContent = '📍 Low accuracy location detected';
+                locationAccuracy.style.color = '#fd7e14';
+            }
+            
+            updateLocationStatus(true, accuracy);
+            
+            // ✅ PARALLEL PROCESSING - Get address in background
+            Promise.race([
+                getAddressFromCoordinates(latitude, longitude),
+                new Promise(resolve => setTimeout(() => resolve(null), 2000))
+            ]).then(address => {
+                if (address) {
+                    // Show address in input and display
+                    currentLocationInput.value = address;
+                    locationAddress.textContent = address;
+                    locationAddress.style.color = '#155724';
+                    
+                    // Update location data with address
+                    currentLocationData.address = address;
+                    
+                    // Update hidden field
+                    updateHiddenLocationField(currentLocationData);
+                    
+                    showMessage('✅ Location captured successfully!', 'success');
+                } else {
+                    // If no address, show generic message
+                    locationAddress.textContent = 'Your current location has been captured';
+                    locationAddress.style.color = '#6c757d';
+                    updateHiddenLocationField(currentLocationData);
+                }
+            }).catch(error => {
+                console.warn('Address lookup failed:', error);
+                locationAddress.textContent = 'Your location has been captured';
+                updateHiddenLocationField(currentLocationData);
+            });
+            
+        } catch (error) {
+            console.error('Location processing error:', error);
+            showMessage('Location captured successfully!', 'success');
+        } finally {
+            // Restore buttons
+            getLocationBtn.innerHTML = '<i class="fas fa-crosshairs"></i> Get Current Location';
+            getLocationBtn.disabled = false;
+            statusUpdateBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Update Again';
+            statusUpdateBtn.disabled = false;
+            locationUpdateAttempts = 0;
+        }
+    }
+    
+    // Process location error
+    function processLocationError(error) {
+        // Restore buttons
+        getLocationBtn.innerHTML = '<i class="fas fa-crosshairs"></i> Get Current Location';
+        getLocationBtn.disabled = false;
+        statusUpdateBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Update Now';
+        statusUpdateBtn.disabled = false;
+        
+        // ✅ FIXED: Hide location display on error
+        currentLocationDisplay.style.display = 'none';
+        
+        let errorMessage = 'Unable to detect location. Please try again.';
+        let errorType = 'error';
+        
+        switch(error.code) {
+            case error.PERMISSION_DENIED:
+                errorMessage = '📍 Location access denied. Please allow location in browser settings.';
+                errorType = 'error';
+                break;
+            case error.POSITION_UNAVAILABLE:
+                if (locationUpdateAttempts < MAX_ATTEMPTS) {
+                    errorMessage = '📍 Signal weak. Trying again...';
+                    errorType = 'warning';
+                    setTimeout(getCurrentLocation, 1000);
+                    return;
+                }
+                errorMessage = '📍 Enable device location services. Turn on GPS and try again.';
+                errorType = 'warning';
+                break;
+            case error.TIMEOUT:
+                if (locationUpdateAttempts < MAX_ATTEMPTS) {
+                    errorMessage = '📍 Taking longer than expected. Trying again...';
+                    errorType = 'warning';
+                    setTimeout(getCurrentLocation, 1000);
+                    return;
+                }
+                errorMessage = '📍 Signal weak. Please move to open area and try again.';
+                errorType = 'warning';
+                break;
+        }
+        
+        showMessage(errorMessage, errorType);
+        updateLocationStatus(false);
+        
+        // Reset attempts after showing error
+        if (errorType === 'error') {
+            locationUpdateAttempts = 0;
+        }
+    }
+    
+    // Helper function to update hidden location field
+    function updateHiddenLocationField(locationData) {
+        const hiddenLocationField = document.createElement('input');
+        hiddenLocationField.type = 'hidden';
+        hiddenLocationField.name = 'current_location_data';
+        hiddenLocationField.value = JSON.stringify(locationData);
+        
+        // Remove existing if any
+        const existing = document.querySelector('input[name="current_location_data"]');
+        if (existing) existing.remove();
+        
+        checkoutForm.appendChild(hiddenLocationField);
+    }
+    
+    // FAST Address Lookup with timeout
+    async function getAddressFromCoordinates(lat, lon) {
+        return new Promise(async (resolve, reject) => {
+            const timeout = setTimeout(() => {
+                resolve(null);
+            }, 2000);
+            
+            try {
+                // Try multiple geocoding services
+                const urls = [
+                    `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`,
+                    `https://geocode.maps.co/reverse?lat=${lat}&lon=${lon}&format=json`
+                ];
+                
+                // Try first service
+                const response = await fetch(urls[0], {
+                    headers: {
+                        'User-Agent': 'FoodDeliveryApp/1.0',
+                        'Accept-Language': 'en'
+                    }
+                });
+                
+                clearTimeout(timeout);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resolve(data.display_name || null);
+                    return;
+                }
+                
+                // Try second service
+                const response2 = await fetch(urls[1]);
+                if (response2.ok) {
+                    const data2 = await response2.json();
+                    resolve(data2.display_name || null);
+                    return;
+                }
+                
+                resolve(null);
+                
+            } catch (error) {
+                clearTimeout(timeout);
+                console.warn('Address lookup failed:', error);
+                resolve(null);
+            }
+        });
+    }
+    
+    // Show Message
+    function showMessage(text, type) {
+        messageContainer.innerHTML = text;
+        messageContainer.className = `location-message message-${type}`;
+        messageContainer.style.display = 'block';
+        
+        // Auto-hide success messages after 3 seconds
+        if (type === 'success') {
+            setTimeout(() => {
+                messageContainer.style.display = 'none';
+            }, 3000);
+        }
+    }
+    
+    // Confirm Order Button Click Handler
+    confirmOrderBtn.addEventListener('click', function() {
+        if (!isLocationUpdated) {
+            // Show toast notification
+            showToast('Please update your location first');
+            
+            // Scroll to location section
+            document.getElementById('statusRow').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center' 
+            });
+            
+            // Highlight the status row
+            const statusRow = document.getElementById('statusRow');
+            statusRow.style.boxShadow = '0 0 0 2px #ef4444';
+            statusRow.style.transition = 'box-shadow 0.3s';
+            
+            setTimeout(() => {
+                statusRow.style.boxShadow = 'none';
+            }, 2000);
+            
+            return false;
+        }
+        
+        // If location is updated, submit the form
+        confirmOrderBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        confirmOrderBtn.disabled = true;
+        checkoutForm.submit();
+    });
+    
+    // Event Listeners for location buttons
+    getLocationBtn.addEventListener('click', getCurrentLocation);
+    statusUpdateBtn.addEventListener('click', getCurrentLocation);
+    
+    // Initialize - FIXED: Set initial state properly
+    updateLocationStatus(false);
+    
+    // ✅ FIXED: Ensure location display is hidden on page load
+    currentLocationDisplay.style.display = 'none';
+    
+    // Auto-focus location button on mobile for faster access
+    if (window.innerWidth <= 767) {
+        setTimeout(() => {
+            statusUpdateBtn.focus();
+        }, 500);
+    }
+});
+</script>
+{% endblock %}
