@@ -1,0 +1,429 @@
+{% extends "base.html" %}
+
+{% block title %}Cart{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Top Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1>Cart</h1>
+            <p class="welcome-text">Review your items</p>
+        </div>
+        <div class="header-right">
+            <img src="{{ session.profile_pic }}" 
+                 alt="Profile" class="profile-pic"
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+    </header>
+
+    <!-- Cart Content -->
+    <main class="main-content">
+        {% if cart_items %}
+            <div class="cart-items">
+                {% for item in cart_items %}
+                    <div class="cart-item">
+                        <div class="cart-item-image">
+                            <!-- ✅ FIXED: DIRECT CLOUDINARY URL -->
+                            {% if item.details.photo and item.details.photo.startswith('http') %}
+                                <img src="{{ item.details.photo }}" 
+                                     alt="{{ item.details.name }}"
+                                     onerror="this.onerror=null; this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg';">
+                            {% else %}
+                                {% if item.type == "service" %}
+                                    <img src="https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg" 
+                                         alt="{{ item.details.name }}">
+                                {% else %}
+                                    <img src="https://res.cloudinary.com/demo/image/upload/v1633427556/sample_food.jpg" 
+                                         alt="{{ item.details.name }}">
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                        
+                        <div class="cart-item-info">
+                            <h3>{{ item.details.name }}</h3>
+                            <p class="item-type">{{ item.type|title }}</p>
+                            <p class="item-description">{{ item.details.description[:80] }}{% if item.details.description|length > 80 %}...{% endif %}</p>
+                            
+                            <div class="cart-item-price">
+                                <span>₹{{ "%.2f"|format(item.details.price) }} each</span>
+                                <span class="item-total">Total: ₹{{ "%.2f"|format(item.item_total) }}</span>
+                            </div>
+                            
+                            <div class="quantity-controls">
+                                <button class="qty-btn" onclick="updateQuantity({{ item.id }}, 'decrease')">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <span class="quantity">{{ item.quantity }}</span>
+                                <button class="qty-btn" onclick="updateQuantity({{ item.id }}, 'increase')">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                                
+                                <form method="POST" action="{{ url_for('remove_from_cart', cart_id=item.id) }}" class="remove-form">
+                                    <button type="submit" class="remove-btn">
+                                        <i class="fas fa-trash"></i> Remove
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <div class="cart-summary">
+                <h3>Order Summary</h3>
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span>₹{{ "%.2f"|format(total_amount) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Delivery Fee</span>
+                    <span>₹0.00</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span>₹{{ "%.2f"|format(total_amount) }}</span>
+                </div>
+                
+                <a href="{{ url_for('checkout') }}" class="btn btn-primary btn-block btn-lg">
+                    <i class="fas fa-shopping-bag"></i> Checkout
+                </a>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-shopping-cart fa-3x"></i>
+                <h3>Your cart is empty</h3>
+                <p>Add items from Services or Menu</p>
+                <a href="{{ url_for('services') }}" class="btn btn-primary">
+                    <i class="fas fa-concierge-bell"></i> Browse Services
+                </a>
+                <a href="{{ url_for('menu') }}" class="btn btn-secondary">
+                    <i class="fas fa-utensils"></i> Browse Menu
+                </a>
+            </div>
+        {% endif %}
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item">
+            <i class="fas fa-concierge-bell"></i>
+            <span>Services</span>
+        </a>
+        <a href="{{ url_for('menu') }}" class="nav-item">
+            <i class="fas fa-utensils"></i>
+            <span>Menu</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item active">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item">
+            <i class="fas fa-history"></i>
+            <span>Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+</div>
+
+<style>
+/* ========== MOBILE OPTIMIZATION FOR CART CONTENT ONLY ========== */
+/* Header, bottom-nav और images untouched रहेंगे */
+
+/* Large Mobile (576px - 767px) - 15% compression */
+@media (min-width: 576px) and (max-width: 767px) {
+    /* Cart Content Area */
+    .main-content {
+        font-size: 85% !important;
+    }
+    
+    /* Headings in cart */
+    .main-content h1,
+    .main-content h2,
+    .main-content h3,
+    .main-content h4 {
+        font-size: calc(1em * 0.85) !important;
+    }
+    
+    /* Cart item text */
+    .cart-item-info h3 {
+        font-size: calc(1.2rem * 0.85) !important;
+    }
+    
+    .item-type,
+    .item-description,
+    .cart-item-price span {
+        font-size: calc(1rem * 0.85) !important;
+    }
+    
+    /* Buttons in cart area */
+    .cart-item .qty-btn,
+    .cart-item .remove-btn,
+    .cart-summary .btn {
+        font-size: calc(1rem * 0.85) !important;
+        padding: calc(0.5rem * 0.85) calc(1rem * 0.85) !important;
+    }
+    
+    /* Quantity number */
+    .cart-item .quantity {
+        font-size: calc(1.1rem * 0.85) !important;
+    }
+    
+    /* Price values */
+    .cart-item-price span,
+    .summary-row span {
+        font-size: calc(1rem * 0.85) !important;
+    }
+    
+    /* Cart summary section */
+    .cart-summary h3 {
+        font-size: calc(1.3rem * 0.85) !important;
+    }
+    
+    /* Empty state */
+    .empty-state h3 {
+        font-size: calc(1.5rem * 0.85) !important;
+    }
+    
+    .empty-state p {
+        font-size: calc(1.1rem * 0.85) !important;
+    }
+    
+    .empty-state .btn {
+        font-size: calc(1rem * 0.85) !important;
+        padding: calc(0.6rem * 0.85) calc(1.2rem * 0.85) !important;
+    }
+    
+    /* Font Awesome icons in cart content only */
+    .main-content .fas,
+    .main-content .fa,
+    .cart-item .fas,
+    .cart-item .fa,
+    .cart-summary .fas,
+    .cart-summary .fa,
+    .empty-state .fas,
+    .empty-state .fa {
+        font-size: calc(1em * 0.85) !important;
+    }
+    
+    /* Adjust spacing for compressed layout */
+    .cart-item {
+        padding: calc(1rem * 0.85) !important;
+        margin-bottom: calc(1rem * 0.85) !important;
+    }
+    
+    .cart-summary {
+        padding: calc(1.5rem * 0.85) !important;
+    }
+}
+
+/* Small Mobile (375px - 575px) - 15% compression */
+@media (min-width: 375px) and (max-width: 575px) {
+    /* Cart Content Area */
+    .main-content {
+        font-size: 85% !important;
+    }
+    
+    /* Headings in cart */
+    .main-content h1,
+    .main-content h2,
+    .main-content h3,
+    .main-content h4 {
+        font-size: calc(1em * 0.85) !important;
+    }
+    
+    /* Cart item text */
+    .cart-item-info h3 {
+        font-size: calc(1.15rem * 0.85) !important;
+    }
+    
+    .item-type,
+    .item-description,
+    .cart-item-price span {
+        font-size: calc(0.95rem * 0.85) !important;
+    }
+    
+    /* Buttons in cart area */
+    .cart-item .qty-btn,
+    .cart-item .remove-btn,
+    .cart-summary .btn {
+        font-size: calc(0.95rem * 0.85) !important;
+        padding: calc(0.45rem * 0.85) calc(0.9rem * 0.85) !important;
+    }
+    
+    /* Quantity number */
+    .cart-item .quantity {
+        font-size: calc(1rem * 0.85) !important;
+    }
+    
+    /* Price values */
+    .cart-item-price span,
+    .summary-row span {
+        font-size: calc(0.95rem * 0.85) !important;
+    }
+    
+    /* Cart summary section */
+    .cart-summary h3 {
+        font-size: calc(1.2rem * 0.85) !important;
+    }
+    
+    /* Empty state */
+    .empty-state h3 {
+        font-size: calc(1.4rem * 0.85) !important;
+    }
+    
+    .empty-state p {
+        font-size: calc(1rem * 0.85) !important;
+    }
+    
+    .empty-state .btn {
+        font-size: calc(0.95rem * 0.85) !important;
+        padding: calc(0.5rem * 0.85) calc(1rem * 0.85) !important;
+    }
+    
+    /* Font Awesome icons in cart content only */
+    .main-content .fas,
+    .main-content .fa,
+    .cart-item .fas,
+    .cart-item .fa,
+    .cart-summary .fas,
+    .cart-summary .fa,
+    .empty-state .fas,
+    .empty-state .fa {
+        font-size: calc(1em * 0.85) !important;
+    }
+    
+    /* Adjust spacing */
+    .cart-item {
+        padding: calc(0.9rem * 0.85) !important;
+        margin-bottom: calc(0.9rem * 0.85) !important;
+    }
+    
+    .cart-summary {
+        padding: calc(1.2rem * 0.85) !important;
+    }
+}
+
+/* Extra Small Mobile (below 375px) - 15% compression */
+@media (max-width: 374px) {
+    /* Cart Content Area */
+    .main-content {
+        font-size: 85% !important;
+    }
+    
+    /* Headings in cart */
+    .main-content h1,
+    .main-content h2,
+    .main-content h3,
+    .main-content h4 {
+        font-size: calc(1em * 0.85) !important;
+    }
+    
+    /* Cart item text */
+    .cart-item-info h3 {
+        font-size: calc(1.1rem * 0.85) !important;
+    }
+    
+    .item-type,
+    .item-description,
+    .cart-item-price span {
+        font-size: calc(0.9rem * 0.85) !important;
+    }
+    
+    /* Buttons in cart area */
+    .cart-item .qty-btn,
+    .cart-item .remove-btn,
+    .cart-summary .btn {
+        font-size: calc(0.9rem * 0.85) !important;
+        padding: calc(0.4rem * 0.85) calc(0.8rem * 0.85) !important;
+        margin: calc(0.2rem * 0.85) !important;
+    }
+    
+    /* Quantity number */
+    .cart-item .quantity {
+        font-size: calc(0.95rem * 0.85) !important;
+    }
+    
+    /* Price values */
+    .cart-item-price span,
+    .summary-row span {
+        font-size: calc(0.9rem * 0.85) !important;
+    }
+    
+    /* Cart summary section */
+    .cart-summary h3 {
+        font-size: calc(1.1rem * 0.85) !important;
+    }
+    
+    /* Empty state */
+    .empty-state h3 {
+        font-size: calc(1.3rem * 0.85) !important;
+    }
+    
+    .empty-state p {
+        font-size: calc(0.95rem * 0.85) !important;
+    }
+    
+    .empty-state .btn {
+        font-size: calc(0.9rem * 0.85) !important;
+        padding: calc(0.4rem * 0.85) calc(0.8rem * 0.85) !important;
+    }
+    
+    /* Font Awesome icons in cart content only */
+    .main-content .fas,
+    .main-content .fa,
+    .cart-item .fas,
+    .cart-item .fa,
+    .cart-summary .fas,
+    .cart-summary .fa,
+    .empty-state .fas,
+    .empty-state .fa {
+        font-size: calc(1em * 0.85) !important;
+    }
+    
+    /* Adjust spacing for very small screens */
+    .cart-item {
+        padding: calc(0.8rem * 0.85) !important;
+        margin-bottom: calc(0.8rem * 0.85) !important;
+    }
+    
+    .cart-summary {
+        padding: calc(1rem * 0.85) !important;
+    }
+    
+    /* Quantity controls spacing */
+    .quantity-controls {
+        gap: calc(0.5rem * 0.85) !important;
+    }
+}
+
+/* Existing JavaScript remains unchanged */
+</style>
+
+<script>
+function updateQuantity(cartId, action) {
+    fetch('/update_cart', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `cart_id=${cartId}&action=${action}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error updating quantity: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to update quantity');
+    });
+}
+</script>
+{% endblock %}
