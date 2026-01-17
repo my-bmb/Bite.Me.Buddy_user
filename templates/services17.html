@@ -1,0 +1,1056 @@
+{% extends "base.html" %}
+
+{% block title %}Services{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Top Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1>Services</h1>
+            <p class="welcome-text">Browse and book our professional services</p>
+        </div>
+        <div class="header-right">
+            <img src="{{ session.profile_pic }}" alt="Profile" class="profile-pic"
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+    </header>
+
+    <!-- Services Content -->
+    <main class="main-content">
+        {% if services %}
+            <div class="categories-container">
+                {% set batch_size = 16 %}
+                {% set total_categories = (services|length / batch_size)|round(0, 'ceil')|int %}
+                
+                {% for cat_num in range(total_categories) %}
+                    {% set start_index = cat_num * batch_size %}
+                    {% set end_index = start_index + batch_size %}
+                    {% set category_services = services[start_index:end_index] %}
+                    
+                    {% if category_services|length > 0 %}
+                        {% set header_service = category_services[0] %}
+                        
+                        <!-- MOBILE CATEGORY ITEM -->
+                        <div class="category-item" data-category="{{ cat_num + 1 }}">
+                            <div class="category-content">
+                                <!-- SQUARE PHOTO -->
+                                <div class="category-square-photo">
+                                    <img src="{{ header_service.photo if header_service.photo.startswith('http') else url_for('static', filename='uploads/' + header_service.photo) }}" 
+                                         alt="{{ header_service.name }}"
+                                         onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
+                                    <div class="category-number">
+                                        <span>{{ cat_num + 1 }}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="category-details">
+                                    <div class="category-header">
+                                        <h3 class="category-title">{{ header_service.name }}</h3>
+                                    </div>
+                                    
+                                    <p class="category-description">
+                                        {{ header_service.description[:80] }}
+                                        {% if header_service.description|length > 80 %}...{% endif %}
+                                    </p>
+                                    
+                                    <!-- VIEW BUTTON -->
+                                    <button class="btn-view-category" 
+                                            onclick="showCategoryModal({{ cat_num + 1 }})">
+                                        <i class="fas fa-eye"></i> View Services
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- HIDDEN DATA -->
+                            <div class="hidden-category-data" id="categoryData{{ cat_num + 1 }}" style="display: none;">
+                                {% for service in category_services %}
+                                <div class="category-service" 
+                                     data-id="{{ service.id }}"
+                                     data-name="{{ service.name }}"
+                                     data-desc="{{ service.description }}"
+                                     data-photo="{{ service.photo }}"
+                                     data-price="{{ service.price }}"
+                                     data-discount="{{ service.discount }}"
+                                     data-final="{{ service.final_price }}">
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-services">
+                <i class="fas fa-concierge-bell fa-3x"></i>
+                <h3>No Services Available</h3>
+                <p>Check back soon for new services!</p>
+            </div>
+        {% endif %}
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item active">
+            <i class="fas fa-concierge-bell"></i><span>Services</span>
+        </a>
+        <a href="{{ url_for('menu') }}" class="nav-item">
+            <i class="fas fa-utensils"></i><span>Menu</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item">
+            <i class="fas fa-shopping-cart"></i><span>Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item">
+            <i class="fas fa-history"></i><span>Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item">
+            <i class="fas fa-user"></i><span>Profile</span>
+        </a>
+    </nav>
+</div>
+
+<!-- CATEGORY MODAL -->
+<div id="categoryModal" class="category-modal center-modal">
+    <div class="modal-overlay" onclick="closeCategoryModal()"></div>
+    <div class="modal-container">
+        <div class="modal-header">
+            <div class="modal-title">
+                <i class="fas fa-layer-group"></i>
+                <h2>Category <span id="modalCatNumber">1</span></h2>
+            </div>
+            <button class="modal-close" onclick="closeCategoryModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-content" id="categoryServicesList"></div>
+    </div>
+</div>
+
+<!-- SERVICE DETAILS MODAL -->
+<div id="serviceModal" class="service-modal center-modal">
+    <div class="modal-overlay" onclick="closeServiceModal()"></div>
+    <div class="modal-container">
+        <div class="modal-header">
+            <div class="service-modal-title">
+                <i class="fas fa-concierge-bell"></i>
+                <h2>Service Details</h2>
+            </div>
+            <button class="modal-close" onclick="closeServiceModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-content" id="serviceDetailsContent"></div>
+    </div>
+</div>
+
+<!-- BOOKING NOTIFICATION -->
+<div id="bookingNotification" class="booking-notification-fixed">
+    <div class="notification-fixed-content">
+        <div class="notification-fixed-icon">
+            <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="notification-fixed-text">
+            <strong>Service Booked Successfully!</strong>
+            <span>Added to your cart</span>
+        </div>
+        <div class="notification-fixed-actions">
+            <button class="btn-view-cart-fixed" onclick="window.location.href='/cart'">
+                View Cart
+            </button>
+            <button class="btn-close-fixed" onclick="closeBookingNotification()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ✅ CATEGORY MODAL - IMPROVED SERVICE DISPLAY
+function showCategoryModal(categoryNumber) {
+    const categoryData = document.getElementById(`categoryData${categoryNumber}`);
+    const services = categoryData.querySelectorAll('.category-service');
+    
+    let modalHTML = '<div class="services-list-container">';
+    
+    services.forEach((service, index) => {
+        const serviceId = service.dataset.id;
+        const serviceName = service.dataset.name;
+        const serviceDesc = service.dataset.desc;
+        const servicePhoto = service.dataset.photo;
+        const servicePrice = parseFloat(service.dataset.price);
+        const serviceDiscount = parseFloat(service.dataset.discount);
+        const serviceFinal = parseFloat(service.dataset.final);
+        
+        const photoUrl = servicePhoto.startsWith('http') ? servicePhoto : '/static/uploads/' + servicePhoto;
+        
+        modalHTML += `
+            <div class="service-card">
+                <!-- CENTERED IMAGE -->
+                <div class="service-card-image">
+                    <img src="${photoUrl}" 
+                         alt="${serviceName}"
+                         onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
+                </div>
+                
+                <!-- DETAILS BELOW IMAGE -->
+                <div class="service-card-details">
+                    <h4>${serviceName}</h4>
+                    <p class="service-card-desc">
+                        ${serviceDesc.substring(0, 60)}${serviceDesc.length > 60 ? '...' : ''}
+                    </p>
+                    
+                    <div class="service-card-price">
+        `;
+        
+        if (serviceDiscount > 0) {
+            modalHTML += `
+                        <div class="price-discount">
+                            <span class="original-price">₹${servicePrice.toFixed(2)}</span>
+                            <span class="discount-percent">-${serviceDiscount}%</span>
+                        </div>
+            `;
+        }
+        
+        modalHTML += `
+                        <div class="final-price">₹${serviceFinal.toFixed(2)}</div>
+                    </div>
+                    
+                    <!-- ACTION BUTTONS -->
+                    <div class="service-card-actions">
+                        <button class="btn-view-details" onclick="showServiceDetails(${serviceId})">
+                            <i class="fas fa-info-circle"></i> Details
+                        </button>
+                        <button class="btn-book-now" onclick="bookService(${serviceId})">
+                            <i class="fas fa-calendar-check"></i> Book
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    modalHTML += '</div>';
+    
+    document.getElementById('modalCatNumber').textContent = categoryNumber;
+    document.getElementById('categoryServicesList').innerHTML = modalHTML;
+    
+    document.getElementById('categoryModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCategoryModal() {
+    document.getElementById('categoryModal').classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+
+// ✅ SERVICE DETAILS MODAL - FIXED CONTENT FIT
+function showServiceDetails(serviceId) {
+    fetch(`/get_service_details/${serviceId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const service = data.service;
+                const photoUrl = service.photo.startsWith('http') ? service.photo : '/static/uploads/' + service.photo;
+                
+                let priceHTML = '';
+                if (service.discount > 0) {
+                    priceHTML = `
+                        <div class="price-row">
+                            <span>Original Price:</span>
+                            <span class="original">₹${service.price.toFixed(2)}</span>
+                        </div>
+                        <div class="price-row">
+                            <span>Discount:</span>
+                            <span class="discount">${service.discount}% OFF</span>
+                        </div>
+                    `;
+                }
+                
+                const modalHTML = `
+                    <div class="service-details-content">
+                        <!-- CENTERED IMAGE -->
+                        <div class="details-image-container">
+                            <img src="${photoUrl}" alt="${service.name}" class="details-image">
+                        </div>
+                        
+                        <h2 class="service-name">${service.name}</h2>
+                        
+                        <div class="details-section">
+                            <h4><i class="fas fa-align-left"></i> Description</h4>
+                            <div class="description-text">
+                                ${service.description}
+                            </div>
+                        </div>
+                        
+                        <div class="details-price">
+                            ${priceHTML}
+                            <div class="price-row final-price-row">
+                                <span>Final Price:</span>
+                                <span class="final">₹${service.final_price.toFixed(2)}</span>
+                            </div>
+                        </div>
+                        
+                        <button class="btn-book-now-large" onclick="bookService(${serviceId}); closeServiceModal()">
+                            <i class="fas fa-calendar-check"></i> Book This Service
+                        </button>
+                    </div>
+                `;
+                
+                document.getElementById('serviceDetailsContent').innerHTML = modalHTML;
+                document.getElementById('serviceModal').classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        })
+        .catch(error => {
+            console.error("Error fetching service details:", error);
+        });
+}
+
+function closeServiceModal() {
+    document.getElementById('serviceModal').classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+
+// ✅ BOOKING FUNCTION
+function bookService(serviceId) {
+    fetch('/add_to_cart', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `item_type=service&item_id=${serviceId}&quantity=1`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showBookingNotification();
+        }
+    });
+}
+
+// ✅ FIXED BOOKING NOTIFICATION
+function showBookingNotification() {
+    const notification = document.getElementById('bookingNotification');
+    notification.classList.add('show');
+    
+    setTimeout(() => {
+        closeBookingNotification();
+    }, 5000);
+}
+
+function closeBookingNotification() {
+    const notification = document.getElementById('bookingNotification');
+    notification.classList.remove('show');
+}
+
+// Close modals on outside click
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('modal-overlay')) {
+        closeCategoryModal();
+        closeServiceModal();
+    }
+});
+
+// Close modals on ESC key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeCategoryModal();
+        closeServiceModal();
+        closeBookingNotification();
+    }
+});
+</script>
+
+<style>
+/* ========== MOBILE: LINE BY LINE ========== */
+.categories-container {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.category-item {
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #eef2f7;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.category-content {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    gap: 12px;
+}
+
+/* SQUARE PHOTO */
+.category-square-photo {
+    width: 90px;
+    height: 90px;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+    border: 2px solid #667eea;
+}
+
+.category-square-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.category-number {
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    width: 26px;
+    height: 26px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.category-details {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.category-header {
+    margin-bottom: 6px;
+}
+
+.category-title {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.category-description {
+    color: #5a6c7d;
+    font-size: 12px;
+    line-height: 1.4;
+    margin: 0 0 10px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.btn-view-category {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.btn-view-category:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+}
+
+/* ========== DESKTOP: 2-COLUMN GRID ========== */
+@media (min-width: 768px) {
+    .categories-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        padding: 20px;
+    }
+    
+    .category-content {
+        flex-direction: column;
+        text-align: center;
+        padding: 15px;
+        gap: 12px;
+    }
+    
+    .category-square-photo {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .category-title {
+        font-size: 16px;
+    }
+    
+    .category-description {
+        font-size: 13px;
+        margin-bottom: 12px;
+    }
+}
+
+/* ========== MODALS - FIXED CONTENT FIT ========== */
+.category-modal,
+.service-modal {
+    display: none;
+    position: fixed;
+    z-index: 9998;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.category-modal.active,
+.service-modal.active {
+    display: block;
+}
+
+.modal-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(3px);
+}
+
+/* FIXED MODAL CONTAINER */
+.center-modal .modal-container {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    background: white;
+    border-radius: 12px;
+    opacity: 0;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    max-height: 85vh;
+    max-width: 95vw;
+}
+
+.center-modal.active .modal-container {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+}
+
+.category-modal .modal-container {
+    width: 500px;
+    max-width: 90%;
+    height: 600px;
+    max-height: 85vh;
+}
+
+.service-modal .modal-container {
+    width: 450px;
+    max-width: 90%;
+    height: auto;
+    max-height: 80vh;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.modal-title, .service-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-title h2, .service-modal-title h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.modal-close {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    padding: 16px;
+    overflow-y: auto;
+    flex-grow: 1;
+    max-height: calc(85vh - 56px);
+}
+
+/* ========== SERVICE CARD LAYOUT ========== */
+.services-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-height: calc(85vh - 100px);
+    overflow-y: auto;
+}
+
+.service-card {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #eef2f7;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* CENTERED IMAGE */
+.service-card-image {
+    width: 100%;
+    height: 160px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+}
+
+.service-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* DETAILS BELOW IMAGE */
+.service-card-details {
+    padding: 15px;
+}
+
+.service-card-details h4 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.service-card-desc {
+    color: #5a6c7d;
+    font-size: 13px;
+    line-height: 1.4;
+    margin: 0 0 12px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 36px;
+}
+
+/* PRICE SECTION */
+.service-card-price {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eef2f7;
+}
+
+.price-discount {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.original-price {
+    color: #95a5a6;
+    text-decoration: line-through;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.discount-percent {
+    background: linear-gradient(135deg, #ff6b6b, #e74c3c);
+    color: white;
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.final-price {
+    font-size: 18px;
+    font-weight: 800;
+    color: #27ae60;
+}
+
+/* ACTION BUTTONS */
+.service-card-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-view-details {
+    flex: 1;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    color: #495057;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.btn-view-details:hover {
+    background: #e9ecef;
+    border-color: #dee2e6;
+    transform: translateY(-1px);
+}
+
+.btn-book-now {
+    flex: 1;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.btn-book-now:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* ========== SERVICE DETAILS MODAL - FIXED FIT ========== */
+.service-details-content {
+    text-align: center;
+    padding: 0;
+}
+
+.details-image-container {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+    border-radius: 0 0 8px 8px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+}
+
+.details-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.service-name {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 0 15px;
+    color: #2c3e50;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.details-section {
+    text-align: left;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px;
+}
+
+.details-section h4 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    color: #2c3e50;
+    font-size: 16px;
+}
+
+.description-text {
+    text-align: left;
+    line-height: 1.5;
+    font-size: 14px;
+    color: #495057;
+    max-height: 150px;
+    overflow-y: auto;
+    padding: 5px;
+}
+
+.details-price {
+    padding: 15px;
+    margin: 15px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.final-price-row {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.price-row span:first-child {
+    color: #64748b;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.original {
+    color: #94a3b8;
+    text-decoration: line-through;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.discount {
+    color: #e74c3c;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.final {
+    font-size: 20px;
+    font-weight: 800;
+    color: #27ae60;
+}
+
+.btn-book-now-large {
+    margin: 0 16px 16px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: calc(100% - 32px);
+    transition: all 0.2s;
+}
+
+.btn-book-now-large:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* ========== NO SERVICES ========== */
+.no-services {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+}
+
+.no-services i {
+    color: #dee2e6;
+    margin-bottom: 15px;
+}
+
+.no-services h3 {
+    color: #495057;
+    margin-bottom: 10px;
+}
+
+.no-services p {
+    color: #6c757d;
+}
+
+/* ========== FIXED NOTIFICATION ========== */
+.booking-notification-fixed {
+    position: fixed;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    max-width: 400px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    z-index: 99999;
+    transition: top 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    border: 1px solid #e0e0e0;
+}
+
+.booking-notification-fixed.show {
+    top: 15px;
+}
+
+.notification-fixed-content {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    gap: 12px;
+}
+
+.notification-fixed-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.notification-fixed-text {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.notification-fixed-text strong {
+    font-size: 14px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 2px;
+}
+
+.notification-fixed-text span {
+    font-size: 12px;
+    color: #5a6c7d;
+}
+
+.notification-fixed-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.btn-view-cart-fixed {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-close-fixed {
+    background: #f8f9fa;
+    color: #5a6c7d;
+    border: 1px solid #e0e0e0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 480px) {
+    .category-square-photo {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .category-title {
+        font-size: 14px;
+    }
+    
+    .category-description {
+        font-size: 11px;
+    }
+    
+    .modal-content {
+        padding: 12px;
+    }
+    
+    .service-card-image {
+        height: 140px;
+    }
+    
+    .service-card-details h4 {
+        font-size: 15px;
+    }
+    
+    .service-card-desc {
+        font-size: 12px;
+    }
+    
+    .service-card-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .details-image-container {
+        height: 160px;
+    }
+    
+    .service-name {
+        font-size: 18px;
+        padding: 0 12px;
+    }
+    
+    .details-section {
+        padding: 12px;
+        margin: 12px;
+    }
+    
+    .details-price {
+        padding: 12px;
+        margin: 12px;
+    }
+    
+    .btn-book-now-large {
+        margin: 0 12px 12px 12px;
+        padding: 12px;
+        font-size: 14px;
+    }
+}
+</style>
+{% endblock %}
