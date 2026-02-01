@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Payment - Bite Me Buddy</title>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .payment-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .payment-header {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .payment-header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .payment-header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        
+        .payment-body {
+            padding: 30px;
+        }
+        
+        .order-info {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+        
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .label {
+            color: #64748b;
+            font-weight: 500;
+        }
+        
+        .value {
+            color: #1e293b;
+            font-weight: 600;
+        }
+        
+        .amount-row {
+            background: #f0f9ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .amount-label {
+            font-size: 18px;
+            color: #0ea5e9;
+            font-weight: 600;
+        }
+        
+        .amount-value {
+            font-size: 32px;
+            color: #0ea5e9;
+            font-weight: 700;
+        }
+        
+        .payment-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .payment-option {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .payment-option:hover {
+            border-color: #4f46e5;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 70, 229, 0.1);
+        }
+        
+        .payment-option.active {
+            border-color: #4f46e5;
+            background: #f8f7ff;
+        }
+        
+        .option-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .option-details {
+            flex: 1;
+        }
+        
+        .option-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 5px;
+        }
+        
+        .option-desc {
+            font-size: 14px;
+            color: #64748b;
+        }
+        
+        .pay-button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .pay-button:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+        }
+        
+        .pay-button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .security-note {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #4f46e5;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .upi-apps {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .upi-app-btn {
+            padding: 8px 15px;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .upi-app-btn:hover {
+            background: #e2e8f0;
+            border-color: #94a3b8;
+        }
+        
+        @media (max-width: 480px) {
+            .payment-container {
+                border-radius: 15px;
+            }
+            
+            .payment-header {
+                padding: 20px;
+            }
+            
+            .payment-body {
+                padding: 20px;
+            }
+            
+            .amount-value {
+                font-size: 28px;
+            }
+            
+            .upi-apps {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-container">
+        <div class="payment-header">
+            <h1>Secure Payment</h1>
+            <p>Complete your order with safe & secure payment</p>
+        </div>
+        
+        <div class="payment-body">
+            <div class="order-info">
+                <div class="info-row">
+                    <span class="label">Order ID:</span>
+                    <span class="value">#{{ order_id }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Payment Method:</span>
+                    <span class="value">Online Payment</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Date:</span>
+                    <span class="value" id="currentDate">{{ format_ist_time(ist_now(), "%d %b %Y") }}</span>
+                </div>
+                
+                <div class="amount-row">
+                    <span class="amount-label">Total Amount:</span>
+                    <span class="amount-value">₹{{ "%.2f"|format(amount) }}</span>
+                </div>
+            </div>
+            
+            <div class="error-message" id="errorMessage">
+                <span id="errorText"></span>
+            </div>
+            
+            <div class="payment-options">
+                <div class="payment-option active" id="razorpayOption">
+                    <div class="option-icon">💳</div>
+                    <div class="option-details">
+                        <div class="option-title">Razorpay Secure</div>
+                        <div class="option-desc">Cards, UPI, NetBanking, Wallets</div>
+                        
+                        <div class="upi-apps">
+                            <button class="upi-app-btn" onclick="openUPIApp('googlepay')">Google Pay</button>
+                            <button class="upi-app-btn" onclick="openUPIApp('phonepe')">PhonePe</button>
+                            <button class="upi-app-btn" onclick="openUPIApp('paytm')">Paytm</button>
+                            <button class="upi-app-btn" onclick="openUPIApp('any')">Any UPI App</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="pay-button" id="payButton" onclick="startPayment()">
+                <span>Pay ₹{{ "%.2f"|format(amount) }}</span>
+                <span class="loading" style="display:none;" id="loadingSpinner"></span>
+            </button>
+            
+            <div class="security-note">
+                <span>🔒</span>
+                <span>Your payment is secure and encrypted</span>
+            </div>
+            
+            <a href="/order_history" class="back-link">← Back to Orders</a>
+        </div>
+    </div>
+    
+    <script>
+        const orderId = {{ order_id }};
+        const amount = {{ amount }};
+        const razorpayKeyId = "{{ razorpay_key_id }}";
+        
+        let isProcessing = false;
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            errorText.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        function startPayment() {
+            if (isProcessing) return;
+            
+            isProcessing = true;
+            const payButton = document.getElementById('payButton');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            
+            payButton.disabled = true;
+            loadingSpinner.style.display = 'inline-block';
+            payButton.innerHTML = '<span>Processing...</span>' + payButton.innerHTML;
+            
+            // Create Razorpay order
+            fetch('/create_razorpay_order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    amount: amount,
+                    order_id: orderId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Open Razorpay checkout
+                    const options = {
+                        "key": razorpayKeyId,
+                        "amount": data.amount,
+                        "currency": data.currency,
+                        "name": "Bite Me Buddy",
+                        "description": `Payment for Order #${orderId}`,
+                        "image": "/static/logo.png",
+                        "order_id": data.order_id,
+                        "handler": function (response) {
+                            // Payment successful, verify payment
+                            verifyPayment(response);
+                        },
+                        "prefill": {
+                            "name": "{{ session.get('full_name', '') }}",
+                            "email": "{{ session.get('email', '') }}",
+                            "contact": "{{ session.get('phone', '') }}"
+                        },
+                        "notes": {
+                            "order_id": orderId.toString(),
+                            "user_id": "{{ session.get('user_id', '') }}"
+                        },
+                        "theme": {
+                            "color": "#4f46e5"
+                        },
+                        "modal": {
+                            "ondismiss": function() {
+                                // User closed the checkout
+                                isProcessing = false;
+                                payButton.disabled = false;
+                                loadingSpinner.style.display = 'none';
+                                payButton.innerHTML = `<span>Pay ₹${amount.toFixed(2)}</span>` + 
+                                    '<span class="loading" style="display:none;" id="loadingSpinner"></span>';
+                            }
+                        }
+                    };
+                    
+                    const rzp = new Razorpay(options);
+                    rzp.open();
+                    
+                } else {
+                    throw new Error(data.message || 'Failed to create payment order');
+                }
+            })
+            .catch(error => {
+                console.error('Payment error:', error);
+                showError('Payment initialization failed: ' + error.message);
+                isProcessing = false;
+                payButton.disabled = false;
+                loadingSpinner.style.display = 'none';
+                payButton.innerHTML = `<span>Pay ₹${amount.toFixed(2)}</span>` + 
+                    '<span class="loading" style="display:none;" id="loadingSpinner"></span>';
+            });
+        }
+        
+        function verifyPayment(response) {
+            const payButton = document.getElementById('payButton');
+            payButton.innerHTML = '<span>Verifying Payment...</span>' + 
+                '<span class="loading" id="loadingSpinner"></span>';
+            
+            fetch('/verify_razorpay_payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_signature: response.razorpay_signature,
+                    order_id: orderId
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Payment verified successfully
+                    window.location.href = `/payment_success?payment_id=${response.razorpay_payment_id}&order_id=${orderId}`;
+                } else {
+                    throw new Error(data.message || 'Payment verification failed');
+                }
+            })
+            .catch(error => {
+                console.error('Verification error:', error);
+                showError('Payment verification failed: ' + error.message);
+                window.location.href = `/payment_failed?order_id=${orderId}&reason=${encodeURIComponent(error.message)}`;
+            });
+        }
+        
+        function openUPIApp(appName) {
+            // Direct UPI link for quick access
+            let upiLink = '';
+            const upiId = "yourbusiness@axisbank"; // Replace with your actual UPI ID
+            
+            switch(appName) {
+                case 'googlepay':
+                    upiLink = `tez://upi/pay?pa=${upiId}&pn=BiteMeBuddy&am=${amount}&tn=Order${orderId}`;
+                    break;
+                case 'phonepe':
+                    upiLink = `phonepe://pay?pa=${upiId}&pn=BiteMeBuddy&am=${amount}&tn=Order${orderId}`;
+                    break;
+                case 'paytm':
+                    upiLink = `paytmmp://pay?pa=${upiId}&pn=BiteMeBuddy&am=${amount}&tn=Order${orderId}`;
+                    break;
+                default:
+                    upiLink = `upi://pay?pa=${upiId}&pn=BiteMeBuddy&am=${amount}&cu=INR&tn=Order${orderId}`;
+            }
+            
+            window.open(upiLink, '_blank');
+            
+            // After 2 seconds, show reminder
+            setTimeout(() => {
+                if(!document.hidden) {
+                    showError('UPI app not opened. Please use the main payment button above.');
+                }
+            }, 2000);
+        }
+        
+        // Set current date
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-IN', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        });
+        
+        // Auto-start payment after 3 seconds (optional)
+        // setTimeout(startPayment, 3000);
+    </script>
+</body>
+</html>
