@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Payment | Bite Me Buddy</title>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: white;
+            color: #333;
+        }
+        
+        .payment-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px 16px;
+            text-align: center;
+            flex-shrink: 0;
+            border-bottom: 1px solid #f0f0f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .header h1 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #222;
+        }
+        
+        .header p {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 16px;
+        }
+        
+        .order-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid #e8e8e8;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            font-size: 15px;
+        }
+        
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .label {
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .value {
+            color: #222;
+            font-weight: 600;
+        }
+        
+        .order-number {
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            background: #f5f5f5;
+            padding: 8px 14px;
+            border-radius: 12px;
+            display: inline-block;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: #4f46e5;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .amount-section {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 20px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            position: relative;
+        }
+        
+        .amount-label {
+            font-size: 15px;
+            color: #64748b;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .amount {
+            font-size: 42px;
+            color: #0ea5e9;
+            font-weight: 700;
+            margin-bottom: 20px;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Pay Button inside amount section */
+        .pay-button-container {
+            margin-top: 10px;
+        }
+        
+        .pay-button {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.2);
+        }
+        
+        .pay-button:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.15);
+        }
+        
+        .pay-button:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .loading {
+            width: 22px;
+            height: 22px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .method-card {
+            background: white;
+            border-radius: 16px;
+            padding: 18px;
+            margin-top: 16px;
+            border: 2px solid #e8e8e8;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        
+        .method-card.active {
+            border-color: #4f46e5;
+            background: #f8f7ff;
+        }
+        
+        .method-content {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .method-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .method-info {
+            flex: 1;
+        }
+        
+        .method-name {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #222;
+        }
+        
+        .method-desc {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .security-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+            padding: 14px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .error-alert {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #dc2626;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            text-align: center;
+            display: none;
+        }
+        
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #4f46e5;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            padding: 14px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+        
+        .back-link:active {
+            background: #f1f5f9;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #fef3c7;
+            color: #92400e;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-left: 10px;
+            border: 1px solid #fde68a;
+        }
+        
+        /* Hide scrollbar but keep functionality */
+        .content::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 2px;
+        }
+        
+        .content::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 2px;
+        }
+        
+        /* iOS safe areas */
+        @supports (padding: max(0px)) {
+            .header {
+                padding-top: max(20px, env(safe-area-inset-top));
+                padding-left: max(16px, env(safe-area-inset-left));
+                padding-right: max(16px, env(safe-area-inset-right));
+            }
+        }
+        
+        @media (max-height: 700px) {
+            .header {
+                padding: 16px;
+            }
+            
+            .amount {
+                font-size: 36px;
+            }
+            
+            .pay-button {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-container">
+        <div class="header">
+            <h1>Secure Payment</h1>
+            <p>Complete your transaction</p>
+        </div>
+        
+        <div class="content">
+            <div class="error-alert" id="errorAlert">
+                <span id="errorText"></span>
+            </div>
+            
+            <div class="order-card">
+                <div class="info-row">
+                    <span class="label">Order Number:</span>
+                    <div>
+                        <span class="order-number">#{{ order_id }}</span>
+                        <span class="status-badge">⏳ Pending</span>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <span class="label">Date:</span>
+                    <span class="value" id="currentDate">{{ format_ist_time(ist_now(), "%d %b %Y") }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Customer:</span>
+                    <span class="value">{{ session.get('full_name', 'Guest') }}</span>
+                </div>
+                
+                <div class="amount-section">
+                    <div class="amount-label">Total Amount to Pay</div>
+                    <div class="amount">₹{{ "%.2f"|format(amount) }}</div>
+                    
+                    <!-- Pay Button directly below amount -->
+                    <div class="pay-button-container">
+                        <button class="pay-button" id="payButton" onclick="startPayment()">
+                            <span>Pay Now ₹{{ "%.2f"|format(amount) }}</span>
+                            <div class="loading" id="loadingSpinner" style="display:none;"></div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="method-card active">
+                <div class="method-content">
+                    <div class="method-icon">💳</div>
+                    <div class="method-info">
+                        <div class="method-name">Secure Payment Gateway</div>
+                        <div class="method-desc">Cards • UPI • NetBanking • Wallets</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="security-note">
+                <span>🔒</span>
+                <span>Your payment is 100% secure and encrypted</span>
+            </div>
+            
+            <a href="/order_history" class="back-link">
+                ← Return to My Orders
+            </a>
+        </div>
+    </div>
+    
+    <script>
+        const orderNumber = {{ order_id }};
+        const amount = {{ amount }};
+        const razorpayKey = "{{ razorpay_key_id }}";
+        
+        let isProcessing = false;
+        
+        function showError(message) {
+            const alert = document.getElementById('errorAlert');
+            const text = document.getElementById('errorText');
+            text.textContent = message;
+            alert.style.display = 'block';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 4000);
+        }
+        
+        function setButtonState(loading) {
+            isProcessing = loading;
+            const button = document.getElementById('payButton');
+            const spinner = document.getElementById('loadingSpinner');
+            
+            button.disabled = loading;
+            spinner.style.display = loading ? 'block' : 'none';
+            
+            if (loading) {
+                button.innerHTML = 'Processing...<div class="loading" id="loadingSpinner"></div>';
+            } else {
+                button.innerHTML = `Pay Now ₹${amount.toFixed(2)}<div class="loading" id="loadingSpinner" style="display:none;"></div>`;
+            }
+        }
+        
+        function startPayment() {
+            if (isProcessing) return;
+            
+            setButtonState(true);
+            
+            fetch('/create_razorpay_order', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    amount: amount * 100,
+                    order_id: orderNumber
+                })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network error');
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    const options = {
+                        key: razorpayKey,
+                        amount: data.amount,
+                        currency: 'INR',
+                        name: "Bite Me Buddy",
+                        description: `Order #${orderNumber}`,
+                        image: "/static/logo.png",
+                        order_id: data.order_id,
+                        handler: verifyPayment,
+                        prefill: {
+                            name: "{{ session.get('full_name', '') }}",
+                            email: "{{ session.get('email', '') }}",
+                            contact: "{{ session.get('phone', '') }}"
+                        },
+                        theme: { color: "#4f46e5" },
+                        modal: {
+                            ondismiss: function() {
+                                setButtonState(false);
+                            },
+                            backdropclose: false
+                        }
+                    };
+                    
+                    const rzp = new Razorpay(options);
+                    rzp.open();
+                    
+                } else {
+                    throw new Error(data.message || 'Payment failed');
+                }
+            })
+            .catch(error => {
+                console.error('Payment error:', error);
+                showError('Payment setup failed. Please try again.');
+                setButtonState(false);
+            });
+        }
+        
+        function verifyPayment(response) {
+            setButtonState(true);
+            
+            fetch('/verify_razorpay_payment', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_signature: response.razorpay_signature,
+                    order_id: orderNumber
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = `/payment_success?payment_id=${response.razorpay_payment_id}&order_id=${orderNumber}`;
+                } else {
+                    throw new Error('Verification failed');
+                }
+            })
+            .catch(error => {
+                showError('Payment verification failed');
+                setTimeout(() => {
+                    window.location.href = `/payment_failed?order_id=${orderNumber}`;
+                }, 1500);
+            });
+        }
+        
+        // Set current date
+        document.getElementById('currentDate').textContent = 
+            new Date().toLocaleDateString('en-IN', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+            });
+        
+        // Auto-scroll to top on load
+        window.scrollTo(0, 0);
+    </script>
+</body>
+</html>
