@@ -1,0 +1,2845 @@
+{% extends "base.html" %}
+
+{% block title %}Order #{{ order.order_no }} Details{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Top Header - Order.html की तरह -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1>Order Details</h1>
+            <p class="welcome-text">Order #{{ order.order_no }} - {{ order.status|title }}</p>
+        </div>
+        <div class="header-right">
+            <img src="{{ session.get('profile_pic', '') }}" 
+                 alt="Profile" class="profile-pic"
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+    </header>
+
+    <!-- Orders Content - Order.html की तरह स्ट्रक्चर -->
+    <main class="main-content">
+        <!-- ✅ Back Button -->
+        <div style="padding: 0 20px; margin-top: 10px; margin-bottom: 20px;">
+            <a href="{{ url_for('order_history') }}" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Back to Orders
+            </a>
+        </div>
+
+        <!-- Order Details Container -->
+        <div class="orders-square-container">
+            <!-- Order Header Card -->
+            <div class="order-square-card">
+                <div class="order-square-header">
+                    <div class="order-square-title">
+                        <h3>Order #{{ order.order_no }}</h3>
+                        <div class="order-square-meta">
+                            <span class="order-square-date">
+                                <i class="far fa-calendar"></i>
+                                {{ order.order_date_formatted or order.order_date or 'Date not available' }}
+                            </span>
+                            <span class="order-square-status status-{{ order.status|lower if order.status else 'pending' }}">
+                                {{ order.status|title if order.status else 'Pending' }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="order-square-total">
+                        <div class="order-rupee-display">
+                            <span class="order-rupee-symbol">₹</span>
+                            <span class="order-total-amount">{{ "%.2f"|format(order.total_amount|default(0)|float) }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if order.delivery_date_formatted %}
+                <div class="order-square-summary" style="border-top: none; padding-top: 0;">
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="summary-label">
+                                <i class="fas fa-truck"></i> Expected Delivery:
+                            </div>
+                            <div class="summary-value">
+                                {{ order.delivery_date_formatted }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Order Summary with delivery below payment - Order.html की तरह -->
+                <div class="order-square-summary">
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="summary-label">
+                                <i class="fas fa-credit-card"></i> Payment Mode:
+                            </div>
+                            <div class="summary-value payment-mode">
+                                {{ order.payment_mode|default('COD') }}
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">
+                                <i class="fas fa-map-marker-alt"></i> Delivery:
+                            </div>
+                            <div class="summary-value delivery-location">
+                                {{ order.delivery_location|default('Location not specified')|truncate(30) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Customer Information -->
+                <div class="order-square-summary" style="background: #f8fafc; border-top: 1px solid var(--border-color);">
+                    <h4 class="square-section-title">
+                        <i class="fas fa-user"></i> Customer Information
+                    </h4>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="summary-label">
+                                <i class="fas fa-user-circle"></i> Name:
+                            </div>
+                            <div class="summary-value">
+                                {{ order.user_name or session.get('full_name', '') }}
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">
+                                <i class="fas fa-envelope"></i> Email:
+                            </div>
+                            <div class="summary-value">
+                                {{ order.user_email or session.get('email', '') }}
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">
+                                <i class="fas fa-phone"></i> Phone:
+                            </div>
+                            <div class="summary-value">
+                                {{ order.user_phone or session.get('phone', '') }}
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">
+                                <i class="fas fa-home"></i> Address:
+                            </div>
+                            <div class="summary-value">
+                                {{ order.user_address or session.get('location', '') }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Payment Information -->
+                <div class="order-square-summary">
+                    <h4 class="square-section-title">
+                        <i class="fas fa-receipt"></i> Payment Information
+                    </h4>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="summary-label">
+                                <i class="fas fa-wallet"></i> Payment Status:
+                            </div>
+                            <div class="summary-value payment-status">
+                                {{ order.payment_status|default('Pending')|title }}
+                            </div>
+                        </div>
+                        {% if order.transaction_id %}
+                        <div class="summary-item">
+                            <div class="summary-label">
+                                <i class="fas fa-hashtag"></i> Transaction ID:
+                            </div>
+                            <div class="summary-value transaction-id">
+                                {{ order.transaction_id }}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if order.notes %}
+                        <div class="summary-item">
+                            <div class="summary-label">
+                                <i class="fas fa-sticky-note"></i> Notes:
+                            </div>
+                            <div class="summary-value">
+                                {{ order.notes }}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Order Items Section - Order.html की तरह SQUARE LAYOUT -->
+                <div class="order-square-items">
+                    <h4 class="square-section-title">
+                        <i class="fas fa-box"></i>
+                        Order Items ({{ items|length if items else 0 }})
+                    </h4>
+                    
+                    {% if items and items|length > 0 %}
+                        <div class="order-square-items-list">
+                            {% for item in items %}
+                                <!-- ✅ Two-column square system - Order.html की तरह -->
+                                <div class="order-item-square-row">
+                                    <!-- Left Square: Photo -->
+                                    <div class="order-item-square-photo">
+                                        {% if item.photo %}
+                                            <img
+                                                src="{{ item.photo }}"
+                                                alt="{{ item.name|default(item.item_name) }}"
+                                                class="item-square-photo"
+                                                loading="lazy"
+                                                onerror="this.src='https://res.cloudinary.com/YOUR_CLOUD_NAME/image/upload/v1/placeholder.png'"
+                                            >
+                                        {% elif item.item_photo %}
+                                            <img
+                                                src="{{ item.item_photo }}"
+                                                alt="{{ item.name|default(item.item_name) }}"
+                                                class="item-square-photo"
+                                                loading="lazy"
+                                                onerror="this.src='https://res.cloudinary.com/YOUR_CLOUD_NAME/image/upload/v1/placeholder.png'"
+                                            >
+                                        {% else %}
+                                            <div class="item-square-photo placeholder {{ item.type|default(item.item_type)|default('unknown')|lower }}">
+                                                <i class="fas fa-{{ 'concierge-bell' if item.type|default(item.item_type) == 'service' else 'utensils' if item.type|default(item.item_type) == 'menu' else 'box' }}"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Right Square: Details -->
+                                    <div class="order-item-square-details">
+                                        <div class="square-item-header">
+                                            <h4 class="square-item-name">{{ item.name|default(item.item_name|default('Unknown Item'))|truncate(25) }}</h4>
+                                            <div class="square-item-type {{ item.type|default(item.item_type)|default('unknown')|lower }}">
+                                                <i class="fas fa-{{ 'concierge-bell' if item.type|default(item.item_type) == 'service' else 'utensils' if item.type|default(item.item_type) == 'menu' else 'box' }}"></i>
+                                                <span>{{ item.type|default(item.item_type)|default('item')|title }}</span>
+                                            </div>
+                                        </div>
+                                        
+                                        {% if item.description or item.item_description %}
+                                        <p class="square-item-description">
+                                            {{ item.description|default(item.item_description|default(''))|truncate(60) }}
+                                        </p>
+                                        {% endif %}
+                                        
+                                        <div class="square-item-meta">
+                                            <div class="square-item-quantity">
+                                                <span class="square-meta-label">Quantity:</span>
+                                                <span class="square-meta-value">{{ item.quantity|default(1) }}</span>
+                                            </div>
+                                            <div class="square-item-price">
+                                                <span class="square-meta-label">Price:</span>
+                                                <div class="square-rupee-price">
+                                                    <span class="square-rupee-symbol">₹</span>
+                                                    <span class="square-price-value">{{ "%.2f"|format(item.price|default(0)|float) }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="square-item-total">
+                                            <span class="square-total-label">Item Total:</span>
+                                            <div class="square-rupee-total">
+                                                <span class="square-rupee-symbol">₹</span>
+                                                <span class="square-total-value">{{ "%.2f"|format((item.price|default(0)|float) * (item.quantity|default(1))) }}</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Reorder Button -->
+                                        <div class="square-item-actions">
+                                            <button class="btn-reorder" 
+                                                    data-item-type="{{ item.type|default(item.item_type) }}"
+                                                    data-item-id="{{ item.item_id if item.item_id else 0 }}">
+                                                <i class="fas fa-redo"></i> Reorder
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="no-items-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <p>No items found for this order</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Payment Summary -->
+                <div class="order-square-summary">
+                    <h4 class="square-section-title">
+                        <i class="fas fa-calculator"></i> Payment Summary
+                    </h4>
+                    <div class="payment-summary-grid">
+                        <div class="payment-row">
+                            <span class="payment-label">Subtotal:</span>
+                            <span class="payment-value">₹{{ "%.2f"|format(order.total_amount|float) }}</span>
+                        </div>
+                        <div class="payment-row">
+                            <span class="payment-label">Delivery Charge:</span>
+                            <span class="payment-value">₹0.00</span>
+                        </div>
+                        <div class="payment-row">
+                            <span class="payment-label">Taxes:</span>
+                            <span class="payment-value">₹0.00</span>
+                        </div>
+                        <div class="payment-row total-row">
+                            <span class="payment-label">Total Amount:</span>
+                            <span class="payment-value total-amount">₹{{ "%.2f"|format(order.total_amount|float) }}</span>
+                        </div>
+                        {% if order.payment_date_formatted %}
+                        <div class="payment-row">
+                            <span class="payment-label">Payment Date:</span>
+                            <span class="payment-value">
+                                {{ order.payment_date_formatted }}
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Order Timeline -->
+                <div class="order-square-summary" style="background: var(--primary-bg);">
+                    <h4 class="square-section-title">
+                        <i class="fas fa-history"></i> Order Timeline
+                    </h4>
+                    <div class="timeline">
+                        <div class="timeline-item {% if order.status %}completed{% endif %}">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <span class="timeline-title">Order Placed</span>
+                                <span class="timeline-time">{{ order.order_date_formatted or order.order_date or 'N/A' }}</span>
+                            </div>
+                        </div>
+                        <div class="timeline-item {% if order.status|lower in ['processing', 'completed', 'delivered'] %}completed{% endif %}">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <span class="timeline-title">Order Confirmed</span>
+                                <span class="timeline-time">
+                                    {% if order.status|lower in ['processing', 'completed', 'delivered'] %}
+                                        {{ order.order_date_formatted or order.order_date or 'N/A' }}
+                                    {% else %}
+                                        Pending
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="timeline-item {% if order.status|lower in ['completed', 'delivered'] %}completed{% endif %}">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <span class="timeline-title">Out for Delivery</span>
+                                <span class="timeline-time">
+                                    {% if order.status|lower in ['completed', 'delivered'] %}
+                                        {{ order.delivery_date_formatted or 'Recently' }}
+                                    {% else %}
+                                        Pending
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="timeline-item {% if order.status|lower == 'completed' %}completed{% endif %}">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <span class="timeline-title">Delivered</span>
+                                <span class="timeline-time">
+                                    {% if order.status|lower == 'completed' %}
+                                        {{ order.delivery_date_formatted or 'Completed' }}
+                                    {% else %}
+                                        Pending
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Actions - Order.html की तरह -->
+                <div class="order-square-actions">
+                    <button class="btn-view-details" onclick="generateGovernmentInvoice()">
+                        <i class="fas fa-file-invoice"></i> Download Official Invoice
+                    </button>
+                    
+                    {% if order.status|lower == 'pending' %}
+                    <button class="btn-cancel" data-order-id="{{ order.order_id }}">
+                        <i class="fas fa-times-circle"></i> Cancel Order
+                    </button>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('order_history') }}" class="btn-back">
+                        <i class="fas fa-arrow-left"></i> Back to Orders
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation - Order.html की तरह -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item">
+            <i class="fas fa-concierge-bell"></i>
+            <span>Services</span>
+        </a>
+        <a href="{{ url_for('menu') }}" class="nav-item">
+            <i class="fas fa-utensils"></i>
+            <span>Menu</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item active">
+            <i class="fas fa-history"></i>
+            <span>Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+</div>
+
+<!-- ✅ BLUE THEME VARIABLES - Order.html की तरह -->
+<style>
+:root {
+    --primary-color: #3b82f6;  /* BLUE 500 - Main blue color */
+    --primary-dark: #1d4ed8;   /* BLUE 700 - Darker blue */
+    --primary-light: #60a5fa;  /* BLUE 400 - Lighter blue */
+    --primary-bg: #eff6ff;     /* BLUE 50 - Light blue background */
+    --secondary-color: #6b7280;
+    --success-color: #10b981;
+    --danger-color: #ef4444;
+    --danger-light: #fee2e2;
+    --danger-dark: #b91c1c;
+    --warning-color: #f59e0b;
+    --light-bg: #f9fafb;
+    --border-color: #e5e7eb;
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --card-shadow: 0 1px 3px 0 rgba(0,0,0,0.1);
+    --rupee-color: #059669;    /* Green for rupee symbol */
+    --rupee-bg: #d1fae5;
+}
+
+/* ✅ Back Button Styles */
+.btn-back {
+    background: none;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: all 0.3s;
+    margin-bottom: 10px;
+}
+
+.btn-back:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+/* ✅ NEW: Square Container for Orders - Order.html की तरह */
+.orders-square-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px 70px;
+}
+
+.order-square-card {
+    background: white;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+}
+
+/* Order Header - BLUE THEME - Order.html की तरह */
+.order-square-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, var(--primary-bg), #dbeafe);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.order-square-title {
+    flex: 1;
+    min-width: 0;
+}
+
+.order-square-title h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.order-square-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.order-square-date {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.order-square-status {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 80px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fbbf24;
+}
+
+.status-completed {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #10b981;
+}
+
+.status-processing {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #3b82f6;
+}
+
+.status-cancelled {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #9ca3af;
+}
+
+.order-square-total {
+    flex-shrink: 0;
+    margin-left: 10px;
+}
+
+.order-rupee-display {
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+    flex-wrap: nowrap;
+}
+
+.order-rupee-symbol {
+    color: var(--rupee-color);
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-right: 3px;
+    flex-shrink: 0;
+}
+
+.order-total-amount {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--rupee-color);
+    background: var(--rupee-bg);
+    padding: 4px 10px;
+    border-radius: 8px;
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* ✅ Order Items Section - SQUARE LAYOUT - Order.html की तरह */
+.order-square-items {
+    padding: 12px;
+}
+
+.square-section-title {
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 600;
+}
+
+.square-section-title i {
+    color: var(--primary-color);
+}
+
+.order-square-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* ✅ FIXED: Two-column square system */
+.order-item-square-row {
+    display: flex;
+    gap: 12px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    align-items: stretch;
+    min-height: 130px;
+    background: #f8fafc;
+    transition: all 0.3s;
+}
+
+.order-item-square-row:hover {
+    background: var(--primary-bg);
+    border-color: var(--primary-light);
+}
+
+/* Left Square: Photo */
+.order-item-square-photo {
+    flex: 0 0 130px;
+    width: 130px;
+    height: 130px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    border: 1px solid var(--border-color);
+    background: white;
+}
+
+.item-square-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.item-square-photo.placeholder {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+}
+
+.item-square-photo.placeholder.service {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: #1d4ed8;
+}
+
+.item-square-photo.placeholder.menu {
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+    color: #166534;
+}
+
+.item-square-photo.placeholder.unknown {
+    background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+    color: #6b7280;
+}
+
+/* Right Square: Details */
+.order-item-square-details {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 2px 0;
+}
+
+/* Header */
+.square-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    width: 100%;
+    gap: 8px;
+}
+
+.square-item-name {
+    margin: 0;
+    font-size: 0.95rem !important;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.2;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.square-item-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.65rem !important;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+    background: var(--primary-bg);
+    color: var(--primary-dark);
+    border: 1px solid var(--primary-light);
+}
+
+.square-item-type i {
+    font-size: 0.6rem !important;
+}
+
+.square-item-type.service {
+    background: #e0f2fe;
+    color: #0369a1;
+    border-color: #7dd3fc;
+}
+
+.square-item-type.menu {
+    background: #dcfce7;
+    color: #166534;
+    border-color: #86efac;
+}
+
+.square-item-type.unknown {
+    background: #f3f4f6;
+    color: #6b7280;
+    border-color: #d1d5db;
+}
+
+/* Description */
+.square-item-description {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    margin: 4px 0 8px 0;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Meta Information */
+.square-item-meta {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 8px;
+}
+
+.square-item-quantity,
+.square-item-price {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.square-meta-label {
+    font-size: 0.75rem !important;
+    color: var(--text-secondary);
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.square-meta-value {
+    font-size: 0.85rem !important;
+    font-weight: 600;
+    color: var(--text-primary);
+    flex-shrink: 0;
+}
+
+.square-rupee-price {
+    display: flex;
+    align-items: baseline;
+    gap: 1px;
+    flex-shrink: 0;
+}
+
+.square-rupee-symbol {
+    color: var(--rupee-color);
+    font-size: 0.8rem !important;
+    font-weight: 600;
+    margin-right: 1px;
+    flex-shrink: 0;
+}
+
+.square-price-value {
+    font-weight: 700;
+    color: var(--rupee-color);
+    font-size: 0.85rem !important;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Item Total */
+.square-item-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 8px;
+    border-top: 1px dashed #e5e7eb;
+    margin-top: auto;
+}
+
+.square-total-label {
+    font-size: 0.8rem !important;
+    color: var(--text-secondary);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.square-rupee-total {
+    display: flex;
+    align-items: baseline;
+    gap: 1px;
+}
+
+.square-total-value {
+    font-weight: 800;
+    color: var(--rupee-color);
+    font-size: 1rem !important;
+    white-space: nowrap;
+}
+
+/* Reorder Button */
+.square-item-actions {
+    margin-top: 10px;
+}
+
+.btn-reorder {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    cursor: pointer;
+}
+
+.btn-reorder:hover {
+    background: linear-gradient(135deg, var(--primary-dark), #1e40af);
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
+    transform: translateY(-1px) scale(1.02);
+}
+
+/* ✅ Order Summary with grid layout - Order.html की तरह */
+.order-square-summary {
+    padding: 12px 16px;
+    background: white;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.summary-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.summary-label i {
+    color: var(--primary-color);
+    font-size: 0.85rem;
+    width: 16px;
+}
+
+.summary-value {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    padding-left: 22px;
+}
+
+.payment-mode {
+    color: var(--primary-dark);
+    font-weight: 600;
+}
+
+.payment-status {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.transaction-id {
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    word-break: break-all;
+}
+
+.delivery-location {
+    color: var(--text-primary);
+    font-weight: 500;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Payment Summary */
+.payment-summary-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.payment-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px dashed #e5e7eb;
+}
+
+.payment-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.payment-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.payment-row.total-row {
+    border-bottom: 2px solid var(--primary-color);
+    padding: 8px 0;
+    margin-top: 5px;
+}
+
+.payment-row.total-row .payment-label {
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.payment-row.total-row .payment-value {
+    font-size: 1.2rem;
+    color: var(--rupee-color);
+    font-weight: 800;
+}
+
+/* Timeline Styles */
+.timeline {
+    position: relative;
+    padding-left: 30px;
+    margin-top: 15px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e5e7eb;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 15px;
+}
+
+.timeline-dot {
+    position: absolute;
+    left: -15px;
+    top: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #d1d5db;
+    border: 2px solid white;
+    box-shadow: 0 0 0 3px #f3f4f6;
+}
+
+.timeline-item.completed .timeline-dot {
+    background: var(--success-color);
+    box-shadow: 0 0 0 3px #d1fae5;
+}
+
+.timeline-content {
+    padding: 10px 0;
+}
+
+.timeline-title {
+    display: block;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    margin-bottom: 3px;
+}
+
+.timeline-time {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+/* Order Actions */
+.order-square-actions {
+    padding: 16px;
+    text-align: center;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-view-details {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 3px 10px rgba(59, 130, 246, 0.25);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.btn-view-details:hover {
+    background: linear-gradient(135deg, var(--primary-dark), #1e40af);
+    box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4);
+    transform: translateY(-2px) scale(1.02);
+}
+
+.btn-cancel {
+    background: linear-gradient(135deg, var(--danger-color), var(--danger-dark));
+    color: white;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 3px 10px rgba(239, 68, 68, 0.25);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.btn-cancel:hover {
+    background: linear-gradient(135deg, var(--danger-dark), #b91c1c);
+    box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4);
+    transform: translateY(-2px) scale(1.02);
+}
+
+/* No Items Message */
+.no-items-message {
+    text-align: center;
+    padding: 25px;
+    color: var(--text-secondary);
+    background: var(--primary-bg);
+    border-radius: 8px;
+    border: 2px dashed var(--primary-light);
+}
+
+.no-items-message i {
+    color: var(--primary-color);
+    margin-bottom: 10px;
+    font-size: 1.5rem;
+}
+
+/* ✅ FIXED: MOBILE RESPONSIVE - Order.html की तरह */
+@media (max-width: 768px) {
+    .orders-square-container {
+        padding: 0 10px 60px;
+    }
+    
+    .order-square-header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+        padding: 12px;
+    }
+    
+    .order-square-total {
+        align-self: flex-start;
+        margin-left: 0;
+    }
+    
+    .order-rupee-display {
+        justify-content: flex-start;
+    }
+    
+    .order-total-amount {
+        font-size: 1.35rem;
+        padding: 3px 8px;
+    }
+    
+    .order-rupee-symbol {
+        font-size: 1.05rem;
+    }
+    
+    /* ✅ Two-column square system */
+    .order-item-square-row {
+        display: flex;
+        gap: 10px;
+        min-height: 110px;
+        padding: 8px;
+    }
+    
+    .order-item-square-photo {
+        flex: 0 0 100px;
+        width: 100px;
+        height: 100px;
+    }
+    
+    .item-square-photo {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .item-square-photo.placeholder {
+        font-size: 28px;
+    }
+    
+    .square-item-name {
+        font-size: 0.85rem !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .square-item-type {
+        font-size: 0.6rem !important;
+        padding: 1px 4px;
+    }
+    
+    .square-item-description {
+        font-size: 0.75rem;
+        -webkit-line-clamp: 1;
+    }
+    
+    .square-item-meta {
+        flex-direction: row;
+        gap: 10px;
+    }
+    
+    .square-meta-label {
+        font-size: 0.7rem !important;
+    }
+    
+    .square-meta-value,
+    .square-price-value {
+        font-size: 0.75rem !important;
+    }
+    
+    .square-total-value {
+        font-size: 0.85rem !important;
+    }
+    
+    .order-square-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .btn-view-details,
+    .btn-cancel,
+    .btn-back {
+        width: 100%;
+        justify-content: center;
+        padding: 12px 16px;
+        font-size: 0.9rem;
+    }
+    
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .timeline {
+        padding-left: 25px;
+    }
+    
+    .timeline::before {
+        left: 8px;
+    }
+    
+    .timeline-dot {
+        left: -12px;
+        width: 8px;
+        height: 8px;
+    }
+}
+
+/* ✅ FIXED: SMALL MOBILE (375px - 480px) */
+@media (max-width: 480px) {
+    .order-item-square-row {
+        min-height: 100px;
+        gap: 8px;
+        padding: 6px;
+    }
+    
+    .order-item-square-photo {
+        flex: 0 0 90px;
+        width: 90px;
+        height: 90px;
+    }
+    
+    .item-square-photo {
+        width: 90px;
+        height: 90px;
+    }
+    
+    .item-square-photo.placeholder {
+        font-size: 24px;
+    }
+    
+    .square-item-name {
+        font-size: 0.8rem !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 120px;
+    }
+    
+    .square-item-type {
+        font-size: 0.55rem !important;
+        padding: 1px 3px;
+    }
+    
+    .square-item-description {
+        font-size: 0.7rem;
+        -webkit-line-clamp: 1;
+        margin: 2px 0 4px 0;
+    }
+    
+    .square-item-meta {
+        gap: 8px;
+    }
+    
+    .square-meta-label {
+        font-size: 0.65rem !important;
+    }
+    
+    .square-meta-value,
+    .square-price-value {
+        font-size: 0.7rem !important;
+    }
+    
+    .square-total-label {
+        font-size: 0.7rem !important;
+    }
+    
+    .square-total-value {
+        font-size: 0.8rem !important;
+    }
+    
+    .order-total-amount {
+        font-size: 1.4rem;
+    }
+    
+    .payment-row.total-row .payment-label {
+        font-size: 0.9rem;
+    }
+    
+    .payment-row.total-row .payment-value {
+        font-size: 1rem;
+    }
+}
+
+/* ✅ FIXED: VERY SMALL MOBILE (below 375px) */
+@media (max-width: 374px) {
+    .order-item-square-row {
+        min-height: 95px;
+        gap: 6px;
+        padding: 5px;
+    }
+    
+    .order-item-square-photo {
+        flex: 0 0 80px;
+        width: 80px;
+        height: 80px;
+    }
+    
+    .item-square-photo {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .item-square-photo.placeholder {
+        font-size: 20px;
+    }
+    
+    .square-item-name {
+        font-size: 0.75rem !important;
+        max-width: 100px;
+    }
+    
+    .square-item-type {
+        font-size: 0.5rem !important;
+        padding: 1px 3px;
+    }
+    
+    .square-item-description {
+        font-size: 0.65rem;
+        margin: 2px 0 3px 0;
+    }
+    
+    .square-item-meta {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .square-meta-label {
+        font-size: 0.6rem !important;
+    }
+    
+    .square-meta-value,
+    .square-price-value {
+        font-size: 0.65rem !important;
+    }
+    
+    .square-total-label {
+        font-size: 0.65rem !important;
+    }
+    
+    .square-total-value {
+        font-size: 0.75rem !important;
+    }
+    
+    .order-total-amount {
+        font-size: 1.3rem;
+        padding: 2px 6px;
+    }
+}
+
+/* Tablet (768px - 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .orders-square-container {
+        max-width: 95%;
+    }
+    
+    .order-item-square-photo {
+        flex: 0 0 120px;
+        width: 120px;
+        height: 120px;
+    }
+    
+    .summary-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+}
+
+/* Desktop (1025px और ऊपर) */
+@media (min-width: 1025px) {
+    .orders-square-container {
+        max-width: 900px;
+    }
+    
+    .btn-view-details:hover,
+    .btn-cancel:hover,
+    .btn-back:hover {
+        transform: translateY(-2px) scale(1.03);
+    }
+    
+    .summary-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .dashboard-header,
+    .bottom-nav,
+    .order-square-actions,
+    .btn-reorder,
+    .btn-back,
+    .square-item-actions {
+        display: none !important;
+    }
+    
+    .order-details-container {
+        padding: 0;
+        margin: 0;
+        max-width: none;
+    }
+    
+    .order-square-card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+        border-radius: 0;
+        margin-bottom: 15px;
+        page-break-inside: avoid;
+    }
+    
+    body {
+        font-size: 12pt;
+        line-height: 1.4;
+    }
+}
+</style>
+
+<!-- JavaScript for Order Details -->
+<script>
+// Government Style Invoice Function - COMPLETE VERSION
+function generateGovernmentInvoice() {
+    const orderId = '{{ order.order_id }}';
+    const orderNo = '{{ order.order_no }}';
+    const userId = '{{ session.get("user_id", "000") }}';
+    const sessionId = '{{ session.get("session_id", "") }}';
+    const ipAddress = '{{ request.remote_addr|default("0.0.0.0") }}';
+    
+    // Show loading
+    const printBtn = document.querySelector('.btn-view-details');
+    const originalHTML = printBtn.innerHTML;
+    printBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating Official Invoice...';
+    printBtn.disabled = true;
+    
+    // Get current date and time
+    const now = new Date();
+    
+    // Function to convert any date string to Indian format
+    function convertToIndianDate(dateStr) {
+        if (!dateStr) return 'Not available';
+        
+        try {
+            let date;
+            
+            // Case 1: Already formatted
+            if (dateStr.includes(',') && (dateStr.includes('AM') || dateStr.includes('PM'))) {
+                return dateStr;
+            }
+            
+            // Case 2: PostgreSQL format
+            if (dateStr.includes(' ') && dateStr.includes('-') && dateStr.includes(':')) {
+                const cleanedDateStr = dateStr.split('.')[0];
+                date = new Date(cleanedDateStr + 'Z');
+            }
+            // Case 3: ISO string
+            else if (dateStr.includes('T')) {
+                date = new Date(dateStr);
+            }
+            // Case 4: Try direct parsing
+            else {
+                date = new Date(dateStr);
+            }
+            
+            if (isNaN(date.getTime())) {
+                console.error('Invalid date:', dateStr);
+                return dateStr;
+            }
+            
+            // Format in Indian style
+            return date.toLocaleString('en-IN', {
+                timeZone: 'Asia/Kolkata',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+        } catch (error) {
+            console.error('Date conversion error:', error);
+            return dateStr;
+        }
+    }
+    
+    // Convert order dates to Indian format
+    const orderDateIndian = '{{ order.order_date_formatted or "" }}' || convertToIndianDate('{{ order.order_date or "" }}');
+    const deliveryDateIndian = '{{ order.delivery_date_formatted or "" }}' || convertToIndianDate('{{ order.delivery_date_formatted or "" }}');
+    const paymentDateIndian = '{{ order.payment_date_formatted or "" }}' || convertToIndianDate('{{ order.payment_date or "" }}');
+    
+    // Get current date in Indian format
+    const indianDate = now.toLocaleDateString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+    
+    const indianTime = now.toLocaleTimeString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    });
+    
+    const formattedCurrentDateTime = `${indianDate} at ${indianTime}`;
+    
+    // Calculate taxes
+    const subtotal = parseFloat('{{ order.total_amount|float }}');
+    const serviceTax = subtotal * 0.05;
+    const gst = subtotal * 0.12;
+    const grandTotal = subtotal + serviceTax + gst;
+    
+    // Format currency
+    const formatCurrency = (amount) => {
+        return '₹' + amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    };
+    
+    // Create timestamp
+    const timestamp = now.getTime();
+    const dateStr = now.toISOString().slice(0,19).replace(/[-:]/g, '');
+    
+    // Get order date for serial number
+    const orderDateStr = '{{ order.order_date or order.order_date_formatted or "20250113" }}';
+    const orderDateFirst8 = orderDateStr.replace(/-/g, '').slice(0,8) || '20250113';
+    
+    // INDIAN TIMEZONE SESSION DATA
+    const indianOptions = {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+    };
+    
+    const sessionTimestamp = now.toLocaleTimeString('en-IN', indianOptions);
+    
+    // Create Government Style Invoice HTML
+    const invoiceHTML = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Official Invoice #${orderNo}</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&family=Source+Code+Pro&display=swap" rel="stylesheet">
+        <style>
+            /* A4 Paper Dimensions: 210mm × 297mm */
+            @page {
+                size: A4;
+                margin: 10mm;
+            }
+            
+            body {
+                font-family: 'Inter', sans-serif;
+                margin: 0;
+                padding: 0;
+                color: #1a1a1a;
+                line-height: 1.4;
+                background: #fff;
+                width: 210mm;
+                min-height: 297mm;
+                position: relative;
+                box-sizing: border-box;
+                font-size: 11px !important;
+            }
+            
+            .a4-container {
+                width: 100%;
+                min-height: 277mm;
+                padding: 5mm;
+                box-sizing: border-box;
+                position: relative;
+            }
+            
+            .watermark {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(-45deg);
+                font-size: 80px;
+                color: rgba(0, 0, 0, 0.03);
+                font-weight: 900;
+                z-index: -1;
+                letter-spacing: 15px;
+                text-transform: uppercase;
+                font-family: 'Playfair Display', serif;
+                white-space: nowrap;
+            }
+            
+            .security-border {
+                border: 2px double #8b0000;
+                padding: 2px;
+                position: relative;
+                margin: 0;
+                min-height: 275mm;
+            }
+            
+            .security-border::before {
+                content: "█ █ █ GOVERNMENT DOCUMENT █ █ █";
+                position: absolute;
+                top: -10px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #fff;
+                padding: 2px 15px;
+                color: #8b0000;
+                font-size: 8px;
+                letter-spacing: 2px;
+                font-weight: 900;
+                font-family: 'Source Code Pro', monospace;
+                border: 1px solid #8b0000;
+                border-radius: 2px;
+            }
+            
+            .holographic-strip {
+                height: 3px;
+                background: linear-gradient(90deg, 
+                    #ff0000 0%, #ff9900 20%, #ffff00 40%, 
+                    #00ff00 60%, #0099ff 80%, #6600ff 100%);
+                margin: 10px 0;
+                border-radius: 2px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            }
+            
+            .serial-number {
+                font-family: 'Courier New', monospace;
+                letter-spacing: 2px;
+                background: linear-gradient(45deg, #000 0%, #333 100%);
+                color: #ffd700;
+                padding: 5px 15px;
+                display: inline-block;
+                margin: 10px 0;
+                border: 1px solid #8b0000;
+                border-radius: 3px;
+                font-weight: bold;
+                font-size: 11px;
+                text-shadow: 0 1px 1px rgba(0,0,0,0.5);
+            }
+            
+            .government-header {
+                text-align: center;
+                border: 2px double #000;
+                padding: 10px;
+                margin: 15px 10px;
+                position: relative;
+                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                border-radius: 5px;
+            }
+            
+            .government-header h1 {
+                margin: 0 0 5px 0;
+                color: #1a237e;
+                font-size: 18px;
+                font-family: 'Playfair Display', serif;
+            }
+            
+            .government-header h2 {
+                margin: 0 0 10px 0;
+                color: #8b0000;
+                font-size: 16px;
+                font-weight: 700;
+            }
+            
+            .government-header p {
+                margin: 3px 0;
+                font-size: 10px;
+            }
+            
+            .invoice-container {
+                padding: 0 15px;
+                box-sizing: border-box;
+            }
+            
+            .section-title {
+                font-family: 'Playfair Display', serif;
+                color: #1a237e;
+                border-bottom: 2px solid #1a237e;
+                padding-bottom: 5px;
+                margin: 15px 0 10px 0;
+                font-size: 14px;
+                position: relative;
+            }
+            
+            .section-title::after {
+                content: "";
+                position: absolute;
+                bottom: -2px;
+                left: 0;
+                width: 60px;
+                height: 2px;
+                background: #8b0000;
+            }
+            
+            .info-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+                margin-bottom: 15px;
+            }
+            
+            .info-card {
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 5px;
+                padding: 12px;
+                position: relative;
+                overflow: hidden;
+                font-size: 10px;
+            }
+            
+            .info-card::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 4px;
+                height: 100%;
+                background: linear-gradient(to bottom, #1a237e, #8b0000);
+            }
+            
+            .info-row {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 6px;
+                padding-bottom: 5px;
+                border-bottom: 1px dashed #cbd5e1;
+                font-size: 10px;
+                line-height: 1.2;
+            }
+            
+            .info-label {
+                color: #475569;
+                font-weight: 600;
+                min-width: 110px;
+                font-size: 9.5px;
+            }
+            
+            .info-value {
+                color: #1e293b;
+                font-weight: 500;
+                text-align: right;
+                flex: 1;
+                font-size: 9.5px;
+            }
+            
+            .session-data-card {
+                background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+                border: 1px solid #0ea5e9;
+                border-radius: 5px;
+                padding: 12px;
+                margin: 15px 0;
+                position: relative;
+                font-size: 10px;
+            }
+            
+            .session-data-card::before {
+                content: "🔐 SESSION DATA";
+                position: absolute;
+                top: -8px;
+                left: 15px;
+                background: #0ea5e9;
+                color: white;
+                padding: 2px 12px;
+                border-radius: 3px;
+                font-size: 9px;
+                font-weight: bold;
+                letter-spacing: 1px;
+            }
+            
+            .session-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+                margin-top: 10px;
+            }
+            
+            .session-item {
+                display: flex;
+                flex-direction: column;
+                padding: 6px;
+                background: rgba(255, 255, 255, 0.7);
+                border-radius: 4px;
+                border-left: 3px solid #0ea5e9;
+                font-size: 9px;
+            }
+            
+            .session-label {
+                font-size: 8.5px;
+                color: #475569;
+                font-weight: 600;
+                margin-bottom: 2px;
+            }
+            
+            .session-value {
+                font-size: 9px;
+                color: #1e293b;
+                font-weight: 500;
+                word-break: break-all;
+                font-family: 'Courier New', monospace;
+            }
+            
+            .additional-session-info {
+                margin-top: 10px;
+                padding: 8px;
+                background: rgba(14, 165, 233, 0.05);
+                border-radius: 4px;
+                border: 1px dashed #0ea5e9;
+            }
+            
+            .encrypted-note {
+                text-align: center;
+                margin-top: 10px;
+                padding: 8px;
+                background: rgba(14, 165, 233, 0.1);
+                border-radius: 3px;
+                font-size: 8.5px;
+                color: #0369a1;
+                font-weight: 600;
+            }
+            
+            .items-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 15px 0;
+                font-size: 9.5px;
+                table-layout: fixed;
+            }
+            
+            .items-table th {
+                background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+                color: white;
+                padding: 8px 10px;
+                text-align: left;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                border: none;
+                position: relative;
+                font-size: 9px;
+            }
+            
+            .items-table th::after {
+                content: "";
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 2px;
+                background: linear-gradient(90deg, #ffd700, #ff6b6b);
+            }
+            
+            .items-table td {
+                padding: 6px 8px;
+                border-bottom: 1px solid #e2e8f0;
+                vertical-align: top;
+                font-size: 9.5px;
+                word-wrap: break-word;
+            }
+            
+            .items-table th:nth-child(1),
+            .items-table td:nth-child(1) {
+                width: 35%;
+            }
+            
+            .items-table th:nth-child(2),
+            .items-table td:nth-child(2) {
+                width: 12%;
+                text-align: center;
+            }
+            
+            .items-table th:nth-child(3),
+            .items-table td:nth-child(3) {
+                width: 12%;
+                text-align: center;
+            }
+            
+            .items-table th:nth-child(4),
+            .items-table td:nth-child(4) {
+                width: 18%;
+                text-align: right;
+            }
+            
+            .items-table th:nth-child(5),
+            .items-table td:nth-child(5) {
+                width: 23%;
+                text-align: right;
+            }
+            
+            .items-table tr:nth-child(even) {
+                background: #f8fafc;
+            }
+            
+            .total-section {
+                text-align: right;
+                margin: 20px 0;
+                padding: 15px;
+                background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+                border-radius: 6px;
+                border: 1px solid #cbd5e1;
+                font-size: 10px;
+            }
+            
+            .total-row {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 8px;
+                padding: 5px 0;
+                border-bottom: 1px dashed #cbd5e1;
+                font-size: 10px;
+            }
+            
+            .total-label {
+                color: #475569;
+                font-weight: 600;
+                font-size: 10px;
+            }
+            
+            .total-value {
+                color: #1e293b;
+                font-weight: 600;
+                min-width: 100px;
+                text-align: right;
+                font-size: 10px;
+            }
+            
+            .grand-total {
+                font-size: 16px;
+                color: #059669;
+                font-weight: 700;
+                padding-top: 10px;
+                border-top: 2px solid #059669;
+                margin-top: 10px;
+            }
+            
+            .uv-pattern {
+                background: repeating-linear-gradient(
+                    45deg,
+                    rgba(255, 0, 0, 0.05),
+                    rgba(255, 0, 0, 0.05) 10px,
+                    rgba(0, 255, 0, 0.05) 10px,
+                    rgba(0, 255, 0, 0.05) 20px,
+                    rgba(0, 0, 255, 0.05) 20px,
+                    rgba(0, 0, 255, 0.05) 30px
+                );
+                height: 20px;
+                margin: 10px 0;
+                border-radius: 3px;
+            }
+            
+            .government-seal-section {
+                text-align: center;
+                margin: 20px 0;
+                padding: 15px 0;
+                border-top: 2px dashed #cbd5e1;
+                border-bottom: 2px dashed #cbd5e1;
+            }
+            
+            .seal-container {
+                display: inline-block;
+                position: relative;
+                padding: 10px;
+            }
+            
+            .seal-outer {
+                width: 120px;
+                height: 120px;
+                border: 3px solid #8b0000;
+                border-radius: 50%;
+                position: relative;
+                background: radial-gradient(circle, #fff 0%, #f8f9fa 100%);
+                box-shadow: 0 0 10px rgba(139, 0, 0, 0.2);
+            }
+            
+            .seal-inner {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                text-align: center;
+                width: 100px;
+            }
+            
+            .seal-text {
+                font-family: 'Playfair Display', serif;
+                font-weight: 700;
+                color: #8b0000;
+                font-size: 11px;
+                line-height: 1.2;
+                text-transform: uppercase;
+            }
+            
+            .seal-text-small {
+                font-size: 8px;
+                margin-top: 3px;
+                color: #475569;
+            }
+            
+            .official-stamp {
+                margin-top: 15px;
+                padding: 10px;
+                border: 2px solid #8b0000;
+                border-radius: 5px;
+                display: inline-block;
+                background: white;
+                transform: rotate(2deg);
+            }
+            
+            .stamp-title {
+                font-weight: 700;
+                color: #8b0000;
+                font-size: 12px;
+                text-align: center;
+            }
+            
+            .stamp-subtitle {
+                font-size: 8px;
+                color: #475569;
+                text-align: center;
+                margin-top: 2px;
+            }
+            
+            .security-features {
+                font-size: 7px;
+                color: #64748b;
+                text-align: center;
+                margin: 15px 0;
+                padding: 10px;
+                background: #f8fafc;
+                border-radius: 4px;
+                border: 1px solid #e2e8f0;
+                font-family: 'Source Code Pro', monospace;
+                line-height: 1.2;
+            }
+            
+            .micro-text {
+                font-size: 5.5px;
+                color: #475569;
+                text-align: justify;
+                line-height: 1.1;
+                margin: 10px 0;
+                padding: 8px;
+                background: #f1f5f9;
+                border-radius: 3px;
+                border: 1px solid #cbd5e1;
+                font-family: 'Courier New', monospace;
+            }
+            
+            .qr-code-box {
+                text-align: center;
+                padding: 15px;
+                border: 1px solid #cbd5e1;
+                border-radius: 5px;
+                margin: 15px auto;
+                width: 150px;
+                background: white;
+            }
+            
+            .qr-code-box div {
+                font-family: monospace;
+                font-size: 8px;
+                margin-bottom: 8px;
+                line-height: 1.1;
+            }
+            
+            .qr-info {
+                font-size: 7px;
+                color: #64748b;
+                margin-top: 5px;
+            }
+            
+            .verification-badge {
+                display: inline-block;
+                padding: 4px 8px;
+                background: linear-gradient(135deg, #059669, #10b981);
+                color: white;
+                border-radius: 12px;
+                font-size: 8px;
+                font-weight: 600;
+                margin-top: 5px;
+            }
+            
+            .signature-section {
+                display: flex;
+                justify-content: space-between;
+                margin: 25px 0;
+                padding-top: 15px;
+                border-top: 2px solid #1a237e;
+            }
+            
+            .signature-box {
+                text-align: center;
+                padding: 10px;
+                min-width: 150px;
+            }
+            
+            .signature-line {
+                width: 120px;
+                height: 1px;
+                background: #000;
+                margin: 25px auto 8px;
+            }
+            
+            .signature-text {
+                font-weight: 600;
+                color: #1a237e;
+                margin-top: 3px;
+                font-size: 11px;
+            }
+            
+            .stamp-container {
+                border: 2px solid #8b0000;
+                padding: 8px;
+                display: inline-block;
+                transform: rotate(5deg);
+                background: white;
+                box-shadow: 0 0 8px rgba(0,0,0,0.1);
+            }
+            
+            .stamp-text {
+                font-weight: 700;
+                color: #8b0000;
+                font-size: 14px;
+                text-align: center;
+            }
+            
+            .digital-signature {
+                border: 1px solid #1a237e;
+                padding: 10px;
+                border-radius: 5px;
+                background: #f8fafc;
+                margin-top: 10px;
+            }
+            
+            .digital-sig-text {
+                font-family: 'Courier New', monospace;
+                font-size: 8px;
+                color: #475569;
+                word-break: break-all;
+            }
+            
+            .invoice-footer {
+                text-align: center;
+                margin-top: 25px;
+                padding-top: 15px;
+                border-top: 1px solid #cbd5e1;
+                font-size: 9px;
+                color: #64748b;
+                line-height: 1.3;
+            }
+            
+            .footer-note {
+                font-style: italic;
+                color: #94a3b8;
+                margin-top: 10px;
+                font-size: 8.5px;
+            }
+            
+            .contact-info {
+                margin-top: 15px;
+                padding: 10px;
+                background: #f1f5f9;
+                border-radius: 5px;
+                border: 1px solid #e2e8f0;
+            }
+            
+            .contact-row {
+                display: flex;
+                justify-content: space-between;
+                font-size: 8.5px;
+                padding: 3px 0;
+            }
+            
+            @media print {
+                body {
+                    width: 210mm;
+                    height: 297mm;
+                    margin: 0;
+                    padding: 0;
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                }
+                
+                .a4-container {
+                    width: 100%;
+                    min-height: 100%;
+                    padding: 5mm;
+                }
+                
+                .security-border {
+                    border: 2px double #8b0000;
+                    margin: 0;
+                    padding: 2px;
+                    min-height: 285mm;
+                }
+                
+                .watermark {
+                    opacity: 0.02;
+                }
+                
+                .info-grid,
+                .session-data-card,
+                .total-section,
+                .government-seal-section,
+                .signature-section {
+                    page-break-inside: avoid;
+                }
+                
+                .items-table {
+                    page-break-inside: auto;
+                }
+                
+                .items-table tr {
+                    page-break-inside: avoid;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Security Watermark -->
+        <div class="watermark">OFFICIAL INVOICE</div>
+        
+        <!-- A4 Container -->
+        <div class="a4-container">
+            <!-- Security Border -->
+            <div class="security-border">
+                <!-- Holographic Strip -->
+                <div class="holographic-strip"></div>
+                
+                <!-- Unique Serial Number -->
+                <div style="text-align: center;">
+                    <div class="serial-number">
+                        INVOICE-${orderNo}-${userId}-${subtotal.toFixed(6)}
+                    </div>
+                </div>
+                
+                <!-- Government Header -->
+                <div class="government-header">
+                    <h1>GOVERNMENT OF INDIA RECOGNIZED</h1>
+                    <h2>BITE ME BUDDY FOOD SERVICES</h2>
+                    <p>
+                        <strong>FSSAI License No:</strong> 12345678901234 | 
+                        <strong>GSTIN:</strong> 09AABCU9603R1ZX | 
+                        <strong>PAN:</strong> AABCU9603R
+                    </p>
+                    <p style="color: #475569;">
+                        Varanasi Ghats, Uttar Pradesh, India | Phone: +91 7275726604 | Email: info@bitemebuddy.com
+                    </p>
+                </div>
+                
+                <!-- Main Invoice Container -->
+                <div class="invoice-container">
+                    
+                    <!-- Order Information Section -->
+                    <div class="section-title">ORDER INFORMATION</div>
+                    
+                    <div class="info-grid">
+                        <!-- Order Details Card -->
+                        <div class="info-card">
+                            <div class="info-row">
+                                <span class="info-label">Invoice Number:</span>
+                                <span class="info-value" style="color: #1a237e; font-weight: 700;">${orderNo}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Order Date (IST):</span>
+                                <span class="info-value">${orderDateIndian}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Delivery Date (IST):</span>
+                                <span class="info-value">${deliveryDateIndian}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Order Status:</span>
+                                <span class="info-value">
+                                    <span class="status-badge" style="background: #d1fae5; color: #065f46;">
+                                        ${'{{ order.status|title if order.status else "Pending" }}'}
+                                    </span>
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Payment Mode:</span>
+                                <span class="info-value">${'{{ order.payment_mode|default("Cash on Delivery")|title }}'}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Payment Status:</span>
+                                <span class="info-value">
+                                    <span class="status-badge" style="background: #fef3c7; color: #92400e;">
+                                        ${'{{ order.payment_status|default("Pending")|title }}'}
+                                    </span>
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Payment Date (IST):</span>
+                                <span class="info-value">${paymentDateIndian}</span>
+                            </div>
+                            ${'{% if order.transaction_id %}'}
+                            <div class="info-row">
+                                <span class="info-label">Transaction ID:</span>
+                                <span class="info-value" style="font-family: \'Courier New\', monospace;">${'{{ order.transaction_id }}'}</span>
+                            </div>
+                            ${'{% endif %}'}
+                            <div class="info-row">
+                                <span class="info-label">Delivery Location:</span>
+                                <span class="info-value">${'{{ order.delivery_location|default("Not specified") }}'}</span>
+                            </div>
+                            ${'{% if order.notes %}'}
+                            <div class="info-row">
+                                <span class="info-label">Order Notes:</span>
+                                <span class="info-value">${'{{ order.notes }}'}</span>
+                            </div>
+                            ${'{% endif %}'}
+                        </div>
+                        
+                        <!-- Customer Information Card -->
+                        <div class="info-card">
+                            <div class="info-row">
+                                <span class="info-label">Customer Name:</span>
+                                <span class="info-value" style="font-weight: 600;">${'{{ session.get("full_name", order.user_name or "Customer")|e }}'}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Customer ID:</span>
+                                <span class="info-value" style="font-family: \'Courier New\', monospace;">UID-${'{{ session.get("user_id", "000") }}'}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Email Address:</span>
+                                <span class="info-value">${'{{ session.get("email", order.user_email or "N/A")|e }}'}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Phone Number:</span>
+                                <span class="info-value">${'{{ session.get("phone", order.user_phone or "N/A")|e }}'}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Delivery Address:</span>
+                                <span class="info-value">${'{{ session.get("location", order.user_address or "Address not specified")|e }}'}</span>
+                            </div>
+                            ${'{% if order.notes %}'}
+                            <div class="info-row">
+                                <span class="info-label">Order Notes:</span>
+                                <span class="info-value">${'{{ order.notes }}'}</span>
+                            </div>
+                            ${'{% endif %}'}
+                        </div>
+                    </div>
+                    
+                    <!-- Secure Session Data Section -->
+                    <div class="section-title">SECURE SESSION VERIFICATION</div>
+                    
+                    <div class="session-data-card">
+                        <div class="session-grid">
+                            <!-- User Session Info -->
+                            <div class="session-item">
+                                <span class="session-label">Session ID:</span>
+                                <span class="session-value">${sessionId.substring(0, 12)}***</span>
+                            </div>
+                            
+                            <div class="session-item">
+                                <span class="session-label">User ID:</span>
+                                <span class="session-value">${userId}</span>
+                            </div>
+                            
+                            <div class="session-item">
+                                <span class="session-label">Account Type:</span>
+                                <span class="session-value">${'{{ session.get("account_type", "Customer")|e|title }}'}</span>
+                            </div>
+                            
+                            <!-- Device & Browser Info -->
+                            <div class="session-item">
+                                <span class="session-label">IP Address:</span>
+                                <span class="session-value">${ipAddress}</span>
+                            </div>
+                            
+                            <div class="session-item">
+                                <span class="session-label">Device Type:</span>
+                                <span class="session-value">
+                                    ${'{% if request.user_agent %}'}
+                                        ${'{% if "Mobile" in request.user_agent.string %}'}📱 Mobile
+                                        ${'{% elif "Tablet" in request.user_agent.string %}'}📱 Tablet
+                                        ${'{% else %}'}💻 Desktop${'{% endif %}'}
+                                    ${'{% else %}'}N/A${'{% endif %}'}
+                                </span>
+                            </div>
+                            
+                            <div class="session-item">
+                                <span class="session-label">Browser:</span>
+                                <span class="session-value">
+                                    ${'{{ request.user_agent.browser|default("N/A")|e }}'} ${'{{ request.user_agent.version|default("")|e }}'}
+                                </span>
+                            </div>
+                            
+                            <!-- Additional Session Data -->
+                            <div class="session-item">
+                                <span class="session-label">Platform:</span>
+                                <span class="session-value">${'{{ request.user_agent.platform|default("N/A")|e }}'}</span>
+                            </div>
+                            
+                            <div class="session-item">
+                                <span class="session-label">Language:</span>
+                                <span class="session-value">${'{{ request.accept_languages.best|default("en-IN")|e }}'}</span>
+                            </div>
+                            
+                            <div class="session-item">
+                                <span class="session-label">Session Status:</span>
+                                <span class="session-value">
+                                    ${'{% if session.get("is_active") %}'}
+                                        <span style="color: #059669;">● Active</span>
+                                    ${'{% else %}'}
+                                        <span style="color: #dc2626;">● Inactive</span>
+                                    ${'{% endif %}'}
+                                </span>
+                            </div>
+                            
+                            <!-- User Stats -->
+                            <div class="session-item">
+                                <span class="session-label">Account Created:</span>
+                                <span class="session-value">${'{{ session.get("created_at", "N/A")|e }}'}</span>
+                            </div>
+                            
+                            <div class="session-item">
+                                <span class="session-label">Total Orders:</span>
+                                <span class="session-value">${'{{ session.get("order_count", "1")|e }}'}</span>
+                            </div>
+                            
+                            <div class="session-item">
+                                <span class="session-label">Loyalty Points:</span>
+                                <span class="session-value">${'{{ session.get("loyalty_points", "0")|e }}'}</span>
+                            </div>
+                            
+                            <!-- Indian Timezone Info -->
+                            <div class="session-item">
+                                <span class="session-label">Session Time (IST):</span>
+                                <span class="session-value">${sessionTimestamp}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Additional Session Info -->
+                        <div class="additional-session-info">
+                            <div class="info-row">
+                                <span class="info-label">Document Version:</span>
+                                <span class="info-value">v2.1.0</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Encryption Level:</span>
+                                <span class="info-value">AES-256-GCM</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Hash Algorithm:</span>
+                                <span class="info-value">SHA-384</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Encrypted Note -->
+                        <div class="encrypted-note">
+                            🔐 This session data is securely encrypted and transmitted over HTTPS. 
+                            Used for verification purposes only.
+                        </div>
+                    </div>
+                    
+                    <!-- Order Items Section -->
+                    <div class="section-title">ORDER ITEMS DETAIL</div>
+                    
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th>Item Description</th>
+                                <th>Type</th>
+                                <th>Quantity</th>
+                                <th>Unit Price (₹)</th>
+                                <th>Total (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${'{% if items and items|length > 0 %}'}
+                                ${'{% for item in items %}'}
+                                <tr>
+                                    <td>
+                                        <strong>${'{{ item.name }}'}</strong>
+                                        ${'{% if item.description %}'}
+                                        <br><small>${'{{ item.description }}'}</small>
+                                        ${'{% endif %}'}
+                                    </td>
+                                    <td>
+                                        <span style="padding: 2px 5px; background: ${'{% if item.type|lower == "service" %}'}#dbeafe${'{% else %}'}#dcfce7${'{% endif %}'}; 
+                                              color: ${'{% if item.type|lower == "service" %}'}#1e40af${'{% else %}'}#166534${'{% endif %}'}; 
+                                              border-radius: 8px; font-size: 8px; font-weight: 600;">
+                                            ${'{{ item.type|default("Menu")|title }}'}
+                                        </span>
+                                    </td>
+                                    <td>${'{{ item.quantity }}'}</td>
+                                    <td>₹${'{{ "%.2f"|format(item.price|float) }}'}</td>
+                                    <td><strong>₹${'{{ "%.2f"|format(item.price|float * item.quantity) }}'}</strong></td>
+                                </tr>
+                                ${'{% endfor %}'}
+                            ${'{% else %}'}
+                                <tr>
+                                    <td colspan="5" style="text-align: center; padding: 20px; color: #64748b;">
+                                        No items found for this order
+                                    </td>
+                                </tr>
+                            ${'{% endif %}'}
+                        </tbody>
+                    </table>
+                    
+                    <!-- Payment Summary -->
+                    <div class="total-section">
+                        <div class="total-row">
+                            <span class="total-label">Subtotal:</span>
+                            <span class="total-value">${formatCurrency(subtotal)}</span>
+                        </div>
+                        <div class="total-row">
+                            <span class="total-label">Delivery Charges:</span>
+                            <span class="total-value">₹0.00</span>
+                        </div>
+                        <div class="total-row">
+                            <span class="total-label">Service Tax (5%):</span>
+                            <span class="total-value">${formatCurrency(serviceTax)}</span>
+                        </div>
+                        <div class="total-row">
+                            <span class="total-label">GST (12%):</span>
+                            <span class="total-value">${formatCurrency(gst)}</span>
+                        </div>
+                        <div class="total-row grand-total">
+                            <span class="total-label">Grand Total:</span>
+                            <span class="total-value">${formatCurrency(grandTotal)}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- UV Reactive Pattern -->
+                    <div class="uv-pattern"></div>
+                    
+                    <!-- Government Seal -->
+                    <div class="government-seal-section">
+                        <div class="seal-container">
+                            <div class="seal-outer">
+                                <div class="seal-inner">
+                                    <div class="seal-text">OFFICIAL RECEIPT</div>
+                                    <div class="seal-text">BITE ME BUDDY</div>
+                                    <div class="seal-text-small">Invoice No: ${orderNo}</div>
+                                    <div class="seal-text-small">Date: ${orderDateIndian}</div>
+                                    <div class="seal-text-small">Amount: ₹${grandTotal.toFixed(2)}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Official Stamp -->
+                        <div class="official-stamp">
+                            <div class="stamp-title">VERIFIED</div>
+                            <div class="stamp-subtitle">Bite Me Buddy</div>
+                            <div class="stamp-subtitle">${indianDate}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Security Features -->
+                    <div class="security-features">
+                        <strong>DOCUMENT SECURITY FEATURES:</strong> 
+                        UNIQUE SERIAL NUMBER | HOLOGRAPHIC STRIP | MICRO-TEXT | 
+                        UV REACTIVE INK | ANTI-COPY PATTERN | DIGITAL SIGNATURE
+                    </div>
+                    
+                    <!-- Micro Text -->
+                    <div class="micro-text">
+                        OFFICIAL DOCUMENT ISSUED BY BITE ME BUDDY FOOD SERVICES UNDER GOVERNMENT OF INDIA RECOGNITION. FSSAI LICENSE: 12345678901234. GSTIN: 09AABCU9603R1ZX. THIS DOCUMENT CONTAINS SECURITY FEATURES THAT ARE VISIBLE UNDER UV LIGHT AND WILL NOT REPRODUCE CLEARLY WHEN COPIED. ANY UNAUTHORIZED REPRODUCTION, ALTERATION, OR FORGERY OF THIS DOCUMENT IS PUNISHABLE UNDER SECTIONS 463, 464, AND 465 OF THE INDIAN PENAL CODE, 1860. DOCUMENT SERIAL: ${orderNo}${userId}${orderDateFirst8} SECURITY CODE: BMBSEC${subtotal.toFixed(0).padStart(6, '0')} SESSION: ${sessionId.substring(0, 8).toUpperCase()} IP HASH: ${ipAddress.replace(/\./g, '').substring(0, 12)} VERIFICATION TIMESTAMP (IST): ${indianTime} ${indianDate}
+                    </div>
+                    
+                    <!-- QR Code -->
+                    <div class="qr-code-box">
+                        <div>
+                            ░░░░░░░░░░░░░░░░░░░░<br>
+                            ░░ ░░░░ ░ ░░░ ░░ ░░░<br>
+                            ░░ ░░░░░░░░░░░░░ ░░░<br>
+                            ░░ ░ ░░░░ ░ ░░░░ ░░░<br>
+                            ░░ ░░░░░░░░░░░░░ ░░░<br>
+                            ░░ ░░░░ ░ ░░░ ░░ ░░░<br>
+                            ░░░░░░░░░░░░░░░░░░░░
+                        </div>
+                        <p style="margin: 3px 0; color: #475569;">
+                            <strong>VERIFICATION QR CODE</strong><br>
+                            Scan to verify authenticity
+                        </p>
+                        <p class="qr-info">
+                            verify.bmb.gov.in/${orderNo}
+                        </p>
+                        <div class="verification-badge">
+                            ✓ VERIFIED DIGITAL
+                        </div>
+                    </div>
+                    
+                    <!-- Signature Section -->
+                    <div class="signature-section">
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <div class="signature-text">Customer Signature/Stamp</div>
+                            <p style="font-size: 8.5px; color: #64748b; margin-top: 3px;">
+                                ${'{{ session.get("full_name", "Customer")|e }}'}<br>
+                                UID: ${'{{ session.get("user_id", "000") }}'}
+                            </p>
+                        </div>
+                        
+                        <div class="signature-box">
+                            <div class="stamp-container">
+                                <div class="stamp-text">PAID</div>
+                                <div style="font-size: 8.5px; color: #8b0000; margin-top: 3px;">
+                                    ${orderDateIndian.split('at')[0].trim()}
+                                </div>
+                            </div>
+                            <div class="signature-text">Official Receipt Stamp</div>
+                            <p style="font-size: 8.5px; color: #64748b; margin-top: 3px;">
+                                Bite Me Buddy Food Services
+                            </p>
+                        </div>
+                        
+                        <div class="signature-box">
+                            <div style="font-family: 'Brush Script MT', cursive; font-size: 18px; color: #1a237e; margin: 20px 0 5px;">
+                                Signature
+                            </div>
+                            <div class="signature-text">Authorized Signatory</div>
+                            <div class="digital-signature">
+                                <div class="digital-sig-text">
+                                    SHA-384: ${userId}${orderNo}${timestamp}${subtotal.toFixed(2)}
+                                </div>
+                            </div>
+                            <p style="font-size: 8.5px; color: #64748b; margin-top: 3px;">
+                                Digital Signature under IT Act, 2000<br>
+                                FSSAI Certified
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Contact Information -->
+                    <div class="contact-info">
+                        <div class="contact-row">
+                            <span>Customer Support:</span>
+                            <span>+91 7275726604</span>
+                        </div>
+                        <div class="contact-row">
+                            <span>Email Support:</span>
+                            <span>support@bitemebuddy.com</span>
+                        </div>
+                        <div class="contact-row">
+                            <span>Website:</span>
+                            <span>https://bitemebuddy.com</span>
+                        </div>
+                        <div class="contact-row">
+                            <span>Office Hours:</span>
+                            <span>9:00 AM - 9:00 PM (IST)</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Invoice Footer -->
+                    <div class="invoice-footer">
+                        <p>
+                            <strong>BITE ME BUDDY FOOD SERVICES</strong><br>
+                            Varanasi Ghats, Uttar Pradesh, India | Phone: +91 7275726604 | Email: info@bitemebuddy.com<br>
+                            Website: https://bitemebuddy.com | FSSAI License No: 12345678901234 | GSTIN: 09AABCU9603R1ZX
+                        </p>
+                        <p style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0;">
+                            This is a computer generated invoice and does not require physical signature. Valid as per the Information Technology Act, 2000.<br>
+                            Invoice generated on (IST): ${formattedCurrentDateTime} | 
+                            Session: ${sessionId.substring(0, 12)} | 
+                            Document ID: INV-${orderNo}-${userId}-${dateStr}
+                        </p>
+                        <div class="footer-note">
+                            Thank you for choosing Bite Me Buddy! For any queries, please contact our customer support.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    `;
+    
+    // Create a Blob and download
+    const blob = new Blob([invoiceHTML], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Official_Invoice_${orderNo}_${now.toISOString().split('T')[0]}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    // Restore button
+    setTimeout(() => {
+        printBtn.innerHTML = originalHTML;
+        printBtn.disabled = false;
+        
+        // Show success message
+        showNotification('Official invoice downloaded successfully!', 'success');
+    }, 2000);
+}
+
+// Show notification function
+function showNotification(message, type = 'success') {
+    // Remove existing notification
+    const existingNotification = document.querySelector('.invoice-notification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `invoice-notification notification-${type}`;
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+        <span>${message}</span>
+    `;
+    
+    // Add styles
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#10b981' : '#ef4444'};
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    // Add animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 5000);
+}
+
+// Cancel Order Function
+function cancelOrder(orderId) {
+    if(confirm('Are you sure you want to cancel this order?')) {
+        fetch(`/cancel-order/${orderId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ reason: 'User requested cancellation' })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                showNotification('Order cancelled successfully!', 'success');
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showNotification('Error: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Error cancelling order: ' + error, 'error');
+        });
+    }
+}
+
+// Reorder Item Function
+function reorderItem(itemType, itemId) {
+    if(confirm('Add this item to cart?')) {
+        fetch('/add_to_cart', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `item_type=${itemType}&item_id=${itemId}&quantity=1`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                showNotification('Item added to cart!', 'success');
+                setTimeout(() => {
+                    window.location.href = '/cart';
+                }, 1500);
+            } else {
+                showNotification('Error: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Error: ' + error, 'error');
+        });
+    }
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Order details page loaded');
+    console.log('Order ID: {{ order.order_id }}');
+    console.log('Order No: {{ order.order_no }}');
+    console.log('Items count: {{ items|length }}');
+    console.log('Order date formatted: {{ order.order_date_formatted }}');
+    
+    // Add event listeners for buttons
+    document.querySelectorAll('.btn-cancel').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const orderId = this.getAttribute('data-order-id');
+            cancelOrder(orderId);
+        });
+    });
+    
+    document.querySelectorAll('.btn-reorder').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const itemType = this.getAttribute('data-item-type');
+            const itemId = this.getAttribute('data-item-id');
+            reorderItem(itemType, itemId);
+        });
+    });
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl + P to download PDF
+        if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+            e.preventDefault();
+            generateGovernmentInvoice();
+        }
+        // Escape to go back
+        if (e.key === 'Escape') {
+            window.history.back();
+        }
+        // Ctrl + D to download invoice
+        if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+            e.preventDefault();
+            generateGovernmentInvoice();
+        }
+    });
+});
+</script>
+
+<!-- Add Font Awesome -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+{% endblock %}
