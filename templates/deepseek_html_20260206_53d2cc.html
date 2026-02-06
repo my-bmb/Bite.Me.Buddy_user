@@ -1,0 +1,1492 @@
+{% extends "base.html" %}
+
+{% block title %}Cart{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Top Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1>Cart</h1>
+            <p class="welcome-text">Review your items</p>
+        </div>
+        <div class="header-right">
+            <img src="{{ session.profile_pic }}" 
+                 alt="Profile" class="profile-pic"
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+    </header>
+
+    <!-- Cart Content -->
+    <main class="main-content">
+        {% if cart_items %}
+            <!-- SQUARE LAYOUT SECTION - CHECKOUT की तरह -->
+            <div class="cart-square-container">
+                <div class="details-summary-card">
+                    <!-- CURVED TOP HEADER -->
+                    <div class="card-header-curved">
+                        <div class="curve-background">
+                            <svg class="curve-svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                                <path d="M0,0 C400,100 800,100 1200,0 L1200,120 L0,120 Z" fill="currentColor"></path>
+                            </svg>
+                        </div>
+                        <div class="header-content">
+                            <div class="header-title">
+                                <i class="fas fa-shopping-cart"></i>
+                                <h3>Cart Items ({{ cart_items|length }})</h3>
+                            </div>
+                            <div class="header-total">
+                                <div class="rupee-display">
+                                    <span class="rupee-symbol">₹</span>
+                                    <span class="total-amount">{{ "%.2f"|format(total_amount) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-content">
+                        <div class="order-items-list">
+                            {% for item in cart_items %}
+                            <div class="order-item-square-row">
+                                <!-- Left Square: Photo - BADA KAR DIYA -->
+                                <div class="order-item-square-photo">
+                                    {% if item.details.photo and item.details.photo.startswith('http') %}
+                                    <img src="{{ item.details.photo }}" 
+                                         alt="{{ item.details.name }}"
+                                         class="item-square-photo"
+                                         onerror="this.onerror=null; this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg';">
+                                    {% else %}
+                                    <div class="item-square-photo placeholder {{ item.type }}">
+                                        <i class="fas fa-{{ 'concierge-bell' if item.type == 'service' else 'utensils' }}"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Right Square: Details - Isi mein quantity edit + delete section -->
+                                <div class="order-item-square-details">
+                                    <div class="square-item-header">
+                                        <h4 class="square-item-name">{{ item.details.name|truncate(25) }}</h4>
+                                        <div class="square-item-type {{ item.type }}">
+                                            <i class="fas fa-{{ 'concierge-bell' if item.type == 'service' else 'utensils' }}"></i>
+                                            <span>{{ item.type|title }}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="square-item-actions-row">
+                                        <!-- Quantity Controls - Left Side -->
+                                        <div class="quantity-section">
+                                            <span class="square-meta-label">Quantity:</span>
+                                            <div class="compact-quantity-controls">
+                                                <button class="qty-btn-compact" onclick="updateQuantity({{ item.id }}, 'decrease')">
+                                                    <i class="fas fa-minus"></i>
+                                                </button>
+                                                <span class="quantity-compact">{{ item.quantity }}</span>
+                                                <button class="qty-btn-compact" onclick="updateQuantity({{ item.id }}, 'increase')">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Remove Button - Right Side - 5% COMPACT -->
+                                        <div class="remove-section">
+                                            <form method="POST" action="{{ url_for('remove_from_cart', cart_id=item.id) }}" 
+                                                  class="remove-form-inline" onsubmit="return confirm('Remove this item from cart?')">
+                                                <button type="submit" class="remove-btn-inline">
+                                                    <i class="fas fa-trash"></i> Remove
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="square-item-pricing">
+                                        <div class="square-unit-price">
+                                            <span class="square-price-label">Price:</span>
+                                            <div class="square-rupee-price">
+                                                <span class="square-rupee-symbol">₹</span>
+                                                <span class="square-price-value">{{ "%.2f"|format(item.details.price) }}</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="square-total-price">
+                                            <span class="square-total-label">Total:</span>
+                                            <div class="square-rupee-total">
+                                                <span class="square-rupee-symbol">₹</span>
+                                                <span class="square-total-value">{{ "%.2f"|format(item.item_total) }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Checkout Button - STYLISH & COMPACT -->
+                        <div class="checkout-action-section">
+                            <div class="compact-checkout-wrapper">
+                                <div class="total-display-mini">
+                                    <span class="total-label-mini">Total:</span>
+                                    <div class="total-value-mini">
+                                        <span class="rupee-symbol-mini">₹</span>
+                                        <span class="amount-mini">{{ "%.2f"|format(total_amount) }}</span>
+                                    </div>
+                                </div>
+                                
+                                <a href="{{ url_for('checkout') }}" class="btn-checkout-compact">
+                                    <div class="checkout-icon">
+                                        <i class="fas fa-bag-shopping"></i>
+                                    </div>
+                                    <div class="checkout-text">
+                                        <span class="checkout-main">Checkout</span>
+                                        <span class="checkout-arrow">→</span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        {% else %}
+            <!-- EMPTY STATE -->
+            <div class="empty-state-container">
+                <div class="empty-state-card">
+                    <div class="empty-state-icon">
+                        <div class="cart-icon-wrapper">
+                            <svg class="cart-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9 22C9.55228 22 10 21.5523 10 21C10 20.4477 9.55228 20 9 20C8.44772 20 8 20.4477 8 21C8 21.5523 8.44772 22 9 22Z" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M20 22C20.5523 22 21 21.5523 21 21C21 20.4477 20.5523 20 20 20C19.4477 20 19 20.4477 19 21C19 21.5523 19.4477 22 20 22Z" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M1 1H5L7.68 14.39C7.77144 14.8504 8.02191 15.264 8.38755 15.5583C8.75318 15.8526 9.2107 16.009 9.68 16H19.4C19.8693 16.009 20.3268 15.8526 20.6925 15.5583C21.0581 15.264 21.3086 14.8504 21.4 14.39L23 6H6" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <div class="empty-indicator">0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="empty-state-content">
+                        <h3 class="empty-state-title">Your Cart is Empty</h3>
+                        <p class="empty-state-subtitle">
+                            Looks like you haven't added any items yet. Start exploring our services 
+                            and menu to find something you'll love.
+                        </p>
+                        
+                        <div class="empty-state-actions">
+                            <a href="{{ url_for('services') }}" class="empty-state-btn btn-blue">
+                                <span class="btn-icon">
+                                    <i class="fas fa-concierge-bell"></i>
+                                </span>
+                                <span class="btn-text">Browse Services</span>
+                                <span class="btn-arrow">→</span>
+                            </a>
+                            
+                            <a href="{{ url_for('menu') }}" class="empty-state-btn btn-blue-outline">
+                                <span class="btn-icon">
+                                    <i class="fas fa-utensils"></i>
+                                </span>
+                                <span class="btn-text">Explore Menu</span>
+                                <span class="btn-arrow">→</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item">
+            <i class="fas fa-concierge-bell"></i>
+            <span>Services</span>
+        </a>
+        <a href="{{ url_for('menu') }}" class="nav-item">
+            <i class="fas fa-utensils"></i>
+            <span>Menu</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item active">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item">
+            <i class="fas fa-history"></i>
+            <span>Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+</div>
+
+<style>
+:root {
+    --primary-color: #3b82f6;  /* BLUE 500 - Main blue color */
+    --primary-dark: #1d4ed8;   /* BLUE 700 - Darker blue */
+    --primary-light: #60a5fa;  /* BLUE 400 - Lighter blue */
+    --primary-bg: #eff6ff;     /* BLUE 50 - Light blue background */
+    --secondary-color: #6b7280;
+    --success-color: #10b981;
+    --danger-color: #ef4444;
+    --danger-light: #fee2e2;
+    --danger-dark: #b91c1c;
+    --warning-color: #f59e0b;
+    --light-bg: #f9fafb;
+    --border-color: #e5e7eb;
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --card-shadow: 0 1px 3px 0 rgba(0,0,0,0.1);
+    --rupee-color: #059669;    /* Green for rupee symbol */
+    --rupee-bg: #d1fae5;
+}
+
+.cart-square-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding-bottom: 70px;
+}
+
+/* DETAILS SUMMARY CARD WITH CURVED TOP */
+.details-summary-card {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    position: relative;
+}
+
+/* CURVED TOP HEADER - NEW DESIGN */
+.card-header-curved {
+    position: relative;
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+    color: white;
+    padding: 0;
+    margin: 0;
+    height: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    overflow: hidden;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+}
+
+.curve-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.curve-svg {
+    width: 100%;
+    height: 100%;
+    color: inherit;
+    fill: currentColor;
+}
+
+.header-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 16px 20px 20px;
+    width: 100%;
+}
+
+/* Header Title - Bigger */
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+}
+
+.header-title i {
+    color: white;
+    font-size: 1.3rem !important; /* Bigger icon */
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));
+}
+
+.header-title h3 {
+    margin: 0;
+    font-size: 1.1rem !important; /* Bigger text */
+    color: white;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    letter-spacing: 0.3px;
+}
+
+/* Total Amount Display - Bigger & Prominent */
+.header-total {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    flex-shrink: 0;
+    margin-left: 15px;
+    padding-bottom: 2px;
+}
+
+.rupee-display {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    flex-wrap: nowrap;
+}
+
+.rupee-symbol {
+    color: #fbbf24; /* Amber color for contrast */
+    font-size: 1.8rem !important; /* Bigger */
+    font-weight: 800;
+    margin-right: 4px;
+    flex-shrink: 0;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.total-amount {
+    font-size: 2.2rem !important; /* Bigger */
+    font-weight: 900;
+    color: white;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    padding: 6px 14px !important;
+    border-radius: 12px !important;
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* SQUARE LAYOUT - CHECKOUT की तरह */
+.order-items-list {
+    padding: 12px;
+}
+
+.order-item-square-row {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px dashed #e5e7eb;
+    align-items: stretch;
+    min-height: 130px;
+    position: relative;
+}
+
+.order-item-square-row:last-child {
+    border-bottom: none;
+}
+
+/* Left Square: Photo - BADA KAR DIYA */
+.order-item-square-photo {
+    flex: 0 0 130px;
+    width: 130px;
+    height: 130px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    border: 1px solid var(--border-color);
+    background: #f8fafc;
+}
+
+.item-square-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.item-square-photo.placeholder {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+}
+
+.item-square-photo.placeholder.service {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: #1d4ed8;
+}
+
+.item-square-photo.placeholder.menu {
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+    color: #166534;
+}
+
+/* Right Square: Details - Isi mein quantity edit + delete section - FIXED */
+.order-item-square-details {
+    flex: 1;
+    min-width: 0;
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 130px;
+    position: relative;
+    overflow: hidden; /* Changed to hidden to contain everything */
+}
+
+/* Header - BLUE THEME - FIXED for overflow */
+.square-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 6px;
+    width: 100%;
+    gap: 8px;
+}
+
+.square-item-name {
+    margin: 0;
+    font-size: 0.9rem !important;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.2;
+    flex: 1;
+    min-width: 0; /* Important for text truncation */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.square-item-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.65rem !important;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0; /* Prevent shrinking */
+    background: var(--primary-bg);
+    color: var(--primary-dark);
+    border: 1px solid var(--primary-light);
+}
+
+.square-item-type i {
+    font-size: 0.6rem !important;
+}
+
+/* Quantity and Remove Actions Row - SIDE BY SIDE - FIXED ALIGNMENT */
+.square-item-actions-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    width: 100%;
+    gap: 5px;
+}
+
+.quantity-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    height: 32px; /* FIX: Fixed height for proper alignment */
+}
+
+.square-meta-label {
+    font-size: 0.75rem !important;
+    color: var(--text-secondary);
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+    line-height: 32px; /* FIX: Same as height for vertical center */
+}
+
+/* Compact Quantity Controls - Inline with quantity label */
+.compact-quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: white;
+    padding: 2px 4px;
+    border-radius: 5px;
+    border: 1px solid var(--border-color);
+    flex-shrink: 0;
+    height: 28px; /* FIX: Fixed height */
+}
+
+.qty-btn-compact {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    border: 1px solid var(--primary-light);
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.7rem !important;
+    color: var(--primary-dark);
+    transition: all 0.2s;
+    padding: 0;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.qty-btn-compact:hover {
+    background: var(--primary-bg);
+    border-color: var(--primary-color);
+}
+
+.quantity-compact {
+    font-size: 0.8rem !important;
+    font-weight: 600;
+    min-width: 24px;
+    text-align: center;
+    color: var(--text-primary);
+    flex-shrink: 0;
+    line-height: 24px; /* FIX: Center text vertically */
+}
+
+/* Remove Section - Now beside quantity - 5% COMPACT - FIXED ALIGNMENT */
+.remove-section {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center; /* FIX: Center align */
+    height: 32px; /* FIX: Same height as quantity-section */
+}
+
+.remove-form-inline {
+    margin: 0;
+    padding: 0;
+    height: 100%; /* FIX: Full height */
+    display: flex;
+    align-items: center; /* FIX: Center align */
+}
+
+.remove-btn-inline {
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 1px solid var(--danger-light);
+    background: var(--danger-light);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.71rem !important;
+    color: var(--danger-color);
+    transition: all 0.2s;
+    gap: 3px;
+    font-weight: 500;
+    white-space: nowrap;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    height: 28px; /* FIX: Same height as quantity controls */
+    line-height: 1; /* FIX: Proper line height */
+}
+
+.remove-btn-inline:hover {
+    background: #fecaca;
+    border-color: #f87171;
+    color: var(--danger-dark);
+}
+
+/* Pricing - BLUE THEME - FIXED for overflow */
+.square-item-pricing {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px; /* Reduced gap */
+    margin-bottom: 0;
+    padding: 6px 0;
+    border-top: 1px dashed #e5e7eb;
+    width: 100%;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+}
+
+.square-unit-price,
+.square-total-price {
+    display: flex;
+    align-items: center;
+    gap: 4px; /* Reduced gap */
+    flex: 1;
+    min-width: 0; /* Allow shrinking */
+}
+
+.square-price-label,
+.square-total-label {
+    font-size: 0.75rem !important;
+    color: var(--text-secondary);
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.square-rupee-price,
+.square-rupee-total {
+    display: flex;
+    align-items: baseline;
+    gap: 1px;
+    flex-shrink: 0;
+}
+
+.square-rupee-symbol {
+    color: var(--rupee-color);
+    font-size: 0.8rem !important;
+    font-weight: 600;
+    margin-right: 1px;
+    flex-shrink: 0;
+}
+
+.square-price-value,
+.square-total-value {
+    font-weight: 700;
+    color: var(--rupee-color);
+    font-size: 0.85rem !important;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Make total price slightly larger */
+.square-total-price .square-rupee-symbol {
+    font-size: 0.9rem !important;
+}
+
+.square-total-price .square-total-value {
+    font-size: 1rem !important;
+}
+
+/* Card Content */
+.card-content {
+    padding: 0;
+}
+
+/* Checkout Button - STYLISH & COMPACT */
+.checkout-action-section {
+    padding: 16px;
+    background: white;
+    border-top: 1px solid var(--border-color);
+}
+
+.compact-checkout-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.total-display-mini {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f8fafc;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.total-label-mini {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.total-value-mini {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+}
+
+.rupee-symbol-mini {
+    color: var(--rupee-color);
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.amount-mini {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--rupee-color);
+}
+
+.btn-checkout-compact {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 3px 10px rgba(59, 130, 246, 0.25);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    cursor: pointer;
+    flex: 1;
+    max-width: 200px;
+    justify-content: center;
+}
+
+.btn-checkout-compact:hover {
+    background: linear-gradient(135deg, var(--primary-dark), #1e40af);
+    box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4);
+    transform: translateY(-2px) scale(1.02);
+}
+
+.checkout-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.checkout-text {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.checkout-main {
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.checkout-arrow {
+    font-size: 1.1rem;
+    font-weight: 400;
+    transition: transform 0.3s ease;
+}
+
+.btn-checkout-compact:hover .checkout-arrow {
+    transform: translateX(3px);
+}
+
+/* EMPTY STATE - BLUE THEME */
+.empty-state-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+    padding: 2rem 1rem;
+}
+
+.empty-state-card {
+    background: white;
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    text-align: center;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--border-color);
+}
+
+.empty-state-icon {
+    margin-bottom: 2rem;
+}
+
+.cart-icon-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.cart-icon {
+    width: 100px;
+    height: 100px;
+    color: var(--primary-color);
+    opacity: 0.7;
+}
+
+.empty-indicator {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: var(--primary-color);
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border: 3px solid white;
+}
+
+.empty-state-content {
+    color: var(--text-primary);
+}
+
+.empty-state-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    letter-spacing: -0.3px;
+}
+
+.empty-state-subtitle {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    margin-bottom: 2.5rem;
+    opacity: 0.9;
+}
+
+.empty-state-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.empty-state-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem 1.5rem;
+    background: var(--primary-bg);
+    border: 2px solid var(--primary-light);
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--primary-dark);
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.empty-state-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
+    border-color: var(--primary-color);
+    background: white;
+}
+
+.btn-blue-outline {
+    background: white;
+    border: 2px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.btn-blue-outline:hover {
+    background: var(--primary-bg);
+    border-color: var(--primary-light);
+}
+
+.btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    color: var(--primary-color);
+}
+
+.btn-text {
+    flex: 1;
+    text-align: left;
+    margin-left: 1rem;
+}
+
+.btn-arrow {
+    color: var(--primary-color);
+    font-weight: 400;
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+}
+
+.empty-state-btn:hover .btn-arrow {
+    transform: translateX(4px);
+}
+
+/* MOBILE RESPONSIVE */
+@media (max-width: 768px) {
+    .cart-square-container {
+        padding: 0 6px 60px;
+    }
+    
+    /* Curved Header Mobile */
+    .card-header-curved {
+        height: 90px; /* Slightly smaller on mobile */
+    }
+    
+    .header-content {
+        padding: 14px 16px 16px;
+    }
+    
+    .header-title i {
+        font-size: 1.1rem !important;
+    }
+    
+    .header-title h3 {
+        font-size: 1rem !important;
+    }
+    
+    .rupee-symbol {
+        font-size: 1.5rem !important;
+    }
+    
+    .total-amount {
+        font-size: 1.9rem !important;
+        padding: 5px 12px !important;
+    }
+    
+    /* MOBILE SQUARE LAYOUT - MORE COMPACT */
+    .order-items-list {
+        padding: 8px !important; /* Reduced from 10px */
+    }
+    
+    .order-item-square-row {
+        gap: 8px !important; /* Reduced from 10px */
+        padding: 6px 0 !important; /* Reduced */
+        min-height: 110px !important; /* Reduced from 120px */
+    }
+    
+    /* Mobile Photo Size - Reduced */
+    .order-item-square-photo {
+        flex: 0 0 110px !important; /* Reduced from 120px */
+        width: 110px !important;
+        height: 110px !important;
+    }
+    
+    .order-item-square-details {
+        height: 110px !important; /* Reduced */
+        padding: 6px 8px !important; /* Reduced */
+    }
+    
+    /* Mobile adjustments */
+    .square-item-name {
+        font-size: 0.85rem !important;
+    }
+    
+    .square-item-type {
+        font-size: 0.6rem !important;
+        padding: 1px 4px;
+    }
+    
+    .square-meta-label {
+        font-size: 0.7rem !important;
+        line-height: 28px; /* Mobile adjustment */
+    }
+    
+    .quantity-section {
+        height: 28px; /* Mobile adjustment */
+    }
+    
+    .compact-quantity-controls {
+        padding: 1px 3px;
+        height: 26px; /* Mobile adjustment */
+    }
+    
+    .qty-btn-compact {
+        width: 22px;
+        height: 22px;
+        font-size: 0.65rem !important;
+    }
+    
+    .quantity-compact {
+        font-size: 0.75rem !important;
+        min-width: 22px;
+        line-height: 22px; /* Mobile adjustment */
+    }
+    
+    .remove-section {
+        height: 28px; /* Mobile adjustment */
+    }
+    
+    .remove-btn-inline {
+        padding: 4px 8px; /* Mobile pe भी compact */
+        font-size: 0.68rem !important;
+        gap: 2px;
+        height: 26px; /* Mobile adjustment */
+    }
+    
+    .square-price-label,
+    .square-total-label {
+        font-size: 0.7rem !important;
+    }
+    
+    .square-price-value,
+    .square-total-value {
+        font-size: 0.75rem !important;
+    }
+    
+    .checkout-action-section {
+        padding: 12px;
+    }
+    
+    .compact-checkout-wrapper {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .total-display-mini {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .btn-checkout-compact {
+        width: 100%;
+        max-width: 100%;
+        padding: 12px 16px;
+    }
+    
+    /* Empty state mobile */
+    .empty-state-card {
+        padding: 2.5rem 1.5rem;
+        max-width: 420px;
+    }
+    
+    .cart-icon {
+        width: 90px;
+        height: 90px;
+    }
+    
+    .empty-state-title {
+        font-size: 1.6rem;
+    }
+    
+    .empty-state-subtitle {
+        font-size: 1rem;
+    }
+    
+    .empty-state-btn {
+        padding: 1rem 1.2rem;
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Curved Header Small Mobile */
+    .card-header-curved {
+        height: 85px;
+    }
+    
+    .header-content {
+        padding: 12px 14px 14px;
+    }
+    
+    .header-title i {
+        font-size: 1rem !important;
+    }
+    
+    .header-title h3 {
+        font-size: 0.9rem !important;
+    }
+    
+    .rupee-symbol {
+        font-size: 1.3rem !important;
+    }
+    
+    .total-amount {
+        font-size: 1.7rem !important;
+        padding: 4px 10px !important;
+    }
+    
+    /* SMALL MOBILE - EXTRA COMPACT */
+    .order-item-square-row {
+        min-height: 100px !important;
+        gap: 6px !important;
+    }
+    
+    .order-item-square-photo {
+        flex: 0 0 100px !important;
+        width: 100px !important;
+        height: 100px !important;
+    }
+    
+    .order-item-square-details {
+        height: 100px !important;
+        padding: 5px 6px !important;
+    }
+    
+    .item-square-photo.placeholder {
+        font-size: 32px;
+    }
+    
+    .square-item-name {
+        font-size: 0.75rem !important;
+        line-height: 1.1;
+    }
+    
+    .square-item-type {
+        font-size: 0.55rem !important;
+        padding: 1px 3px !important;
+    }
+    
+    .square-meta-label {
+        font-size: 0.65rem !important;
+        line-height: 26px; /* Small mobile adjustment */
+    }
+    
+    .quantity-section {
+        height: 26px; /* Small mobile adjustment */
+    }
+    
+    .compact-quantity-controls {
+        height: 24px; /* Small mobile adjustment */
+    }
+    
+    .qty-btn-compact {
+        width: 20px;
+        height: 20px;
+        font-size: 0.6rem !important;
+    }
+    
+    .quantity-compact {
+        font-size: 0.7rem !important;
+        min-width: 20px;
+        line-height: 20px; /* Small mobile adjustment */
+    }
+    
+    .remove-section {
+        height: 26px; /* Small mobile adjustment */
+    }
+    
+    .remove-btn-inline {
+        padding: 3px 6px;
+        font-size: 0.65rem !important;
+        gap: 2px;
+        height: 24px; /* Small mobile adjustment */
+    }
+    
+    .square-item-actions-row {
+        gap: 4px; /* Mobile pe थोड़ा कम */
+        margin-bottom: 5px !important;
+    }
+    
+    .square-price-label,
+    .square-total-label {
+        font-size: 0.65rem !important;
+    }
+    
+    .square-price-value,
+    .square-total-value {
+        font-size: 0.75rem !important;
+    }
+    
+    .square-total-price .square-total-value {
+        font-size: 0.85rem !important;
+    }
+    
+    .square-item-pricing {
+        padding: 4px 0 !important;
+    }
+    
+    .total-display-mini {
+        padding: 6px 10px;
+    }
+    
+    .total-label-mini {
+        font-size: 0.85rem;
+    }
+    
+    .rupee-symbol-mini {
+        font-size: 0.9rem;
+    }
+    
+    .amount-mini {
+        font-size: 1.1rem;
+    }
+    
+    .btn-checkout-compact {
+        padding: 10px 14px;
+    }
+    
+    .checkout-main {
+        font-size: 0.9rem;
+    }
+    
+    /* Empty state small mobile */
+    .empty-state-container {
+        min-height: 50vh;
+        padding: 1rem;
+    }
+    
+    .empty-state-card {
+        padding: 2rem 1rem;
+        border-radius: 16px;
+    }
+    
+    .cart-icon {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .empty-state-title {
+        font-size: 1.5rem;
+    }
+    
+    .empty-state-subtitle {
+        font-size: 0.95rem;
+        margin-bottom: 2rem;
+    }
+    
+    .empty-state-btn {
+        padding: 0.9rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 374px) {
+    /* Curved Header Very Small Mobile */
+    .card-header-curved {
+        height: 80px;
+    }
+    
+    .header-content {
+        padding: 10px 12px 12px;
+    }
+    
+    .header-title i {
+        font-size: 0.9rem !important;
+    }
+    
+    .header-title h3 {
+        font-size: 0.8rem !important;
+    }
+    
+    .rupee-symbol {
+        font-size: 1.1rem !important;
+    }
+    
+    .total-amount {
+        font-size: 1.5rem !important;
+        padding: 3px 8px !important;
+    }
+    
+    /* VERY SMALL MOBILE - ULTRA COMPACT */
+    .order-item-square-row {
+        min-height: 90px !important;
+        gap: 4px !important;
+    }
+    
+    .order-item-square-photo {
+        flex: 0 0 90px !important;
+        width: 90px !important;
+        height: 90px !important;
+    }
+    
+    .order-item-square-details {
+        height: 90px !important;
+        padding: 4px 5px !important;
+    }
+    
+    .square-item-name {
+        font-size: 0.7rem !important;
+    }
+    
+    .square-item-type {
+        font-size: 0.5rem !important;
+        padding: 1px 3px !important;
+    }
+    
+    .square-meta-label,
+    .square-price-label,
+    .square-total-label {
+        font-size: 0.6rem !important;
+    }
+    
+    .square-meta-label {
+        line-height: 24px; /* Very small mobile adjustment */
+    }
+    
+    .quantity-section {
+        height: 24px; /* Very small mobile adjustment */
+    }
+    
+    .compact-quantity-controls {
+        height: 22px; /* Very small mobile adjustment */
+    }
+    
+    .qty-btn-compact {
+        width: 18px;
+        height: 18px;
+        font-size: 0.55rem !important;
+    }
+    
+    .quantity-compact {
+        font-size: 0.65rem !important;
+        min-width: 18px;
+        line-height: 18px; /* Very small mobile adjustment */
+    }
+    
+    .remove-section {
+        height: 24px; /* Very small mobile adjustment */
+    }
+    
+    .remove-btn-inline {
+        padding: 2px 5px;
+        font-size: 0.6rem !important;
+        gap: 1px;
+        height: 22px; /* Very small mobile adjustment */
+    }
+    
+    .square-item-actions-row {
+        gap: 3px; /* Very small mobile pe और कम */
+    }
+    
+    .square-price-value,
+    .square-total-value {
+        font-size: 0.7rem !important;
+    }
+    
+    .total-display-mini {
+        padding: 5px 8px;
+    }
+    
+    .total-label-mini {
+        font-size: 0.8rem;
+    }
+    
+    .rupee-symbol-mini {
+        font-size: 0.85rem;
+    }
+    
+    .amount-mini {
+        font-size: 1rem;
+    }
+    
+    .btn-checkout-compact {
+        padding: 8px 12px;
+    }
+    
+    .checkout-main {
+        font-size: 0.85rem;
+    }
+    
+    /* Empty state very small mobile */
+    .empty-state-card {
+        padding: 1.5rem 0.8rem;
+    }
+    
+    .cart-icon {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .empty-state-title {
+        font-size: 1.3rem;
+    }
+    
+    .empty-state-subtitle {
+        font-size: 0.85rem;
+    }
+    
+    .empty-state-btn {
+        padding: 0.8rem;
+        font-size: 0.85rem;
+    }
+    
+    .btn-text {
+        margin-left: 0.8rem;
+    }
+}
+
+/* Tablet (768px - 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .cart-square-container {
+        max-width: 95%;
+    }
+    
+    .order-item-square-photo {
+        flex: 0 0 120px;
+        width: 120px;
+        height: 120px;
+    }
+    
+    .order-item-square-details {
+        height: 120px;
+    }
+    
+    .order-item-square-row {
+        min-height: 120px;
+    }
+}
+
+/* Desktop (1025px और ऊपर) */
+@media (min-width: 1025px) {
+    .cart-square-container {
+        max-width: 900px;
+    }
+    
+    .btn-checkout-compact:hover {
+        transform: translateY(-2px) scale(1.03);
+    }
+    
+    /* Desktop पर curved header और बड़ा */
+    .card-header-curved {
+        height: 110px;
+    }
+    
+    .header-content {
+        padding: 18px 24px 22px;
+    }
+    
+    .header-title i {
+        font-size: 1.4rem !important;
+    }
+    
+    .header-title h3 {
+        font-size: 1.2rem !important;
+    }
+    
+    .rupee-symbol {
+        font-size: 2rem !important;
+    }
+    
+    .total-amount {
+        font-size: 2.4rem !important;
+        padding: 8px 16px !important;
+    }
+}
+</style>
+
+<script>
+function updateQuantity(cartId, action) {
+    fetch('/update_cart', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `cart_id=${cartId}&action=${action}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error updating quantity: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to update quantity');
+    });
+}
+
+// Ensure proper button positioning on load
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if any remove buttons are overflowing
+    const removeButtons = document.querySelectorAll('.remove-btn-inline');
+    removeButtons.forEach(button => {
+        const parent = button.closest('.square-item-actions-row');
+        const buttonRect = button.getBoundingClientRect();
+        const parentRect = parent.getBoundingClientRect();
+        
+        if (buttonRect.right > parentRect.right) {
+            button.style.padding = '4px 6px';
+            button.style.fontSize = '0.65rem !important';
+        }
+    });
+});
+</script>
+{% endblock %}
