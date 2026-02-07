@@ -1,0 +1,1049 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    /* Main container */
+    .login-wrapper {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        position: relative;
+        overflow-x: hidden;
+    }
+
+    /* Animated background */
+    .login-wrapper::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 20%),
+            radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 20%),
+            radial-gradient(circle at 50% 30%, rgba(34, 197, 94, 0.05) 0%, transparent 30%);
+        z-index: 0;
+        animation: float 20s ease-in-out infinite;
+    }
+
+    /* Floating animation */
+    @keyframes float {
+        0%, 100% { transform: translate(0, 0) rotate(0deg); }
+        33% { transform: translate(-10px, -10px) rotate(1deg); }
+        66% { transform: translate(10px, 10px) rotate(-1deg); }
+    }
+
+    /* Login card - Responsive */
+    .login-box {
+        width: 100%;
+        max-width: 420px;
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(12px);
+        border-radius: 20px;
+        /* PREMIUM LOW OPACITY SHADOW */
+        box-shadow: 
+            0 15px 50px rgba(0, 0, 0, 0.08), /* Main shadow - very subtle */
+            0 8px 25px rgba(59, 130, 246, 0.06), /* Blue tint shadow */
+            0 4px 12px rgba(139, 92, 246, 0.04), /* Purple tint shadow */
+            inset 0 1px 0 rgba(255, 255, 255, 0.9); /* Inner highlight */
+        padding: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        position: relative;
+        z-index: 1;
+        animation: slideUp 0.5s ease-out;
+    }
+
+    /* Card animation */
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Decorative corner */
+    .login-box::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, transparent 50%, rgba(59, 130, 246, 0.05) 50%);
+        border-radius: 0 20px 0 0;
+        z-index: -1;
+    }
+
+    /* ==================================== */
+    /* UPDATED HEADER WITH BIGGER SIZE */
+    /* ==================================== */
+    .login-heading {
+        text-align: center;
+        color: #1e293b;
+        margin-bottom: 20px; /* Reduced for subtitle */
+        font-size: 42px; /* Increased from 28px */
+        font-weight: 800; /* Increased from 700 */
+        letter-spacing: -1px;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+        position: relative;
+        padding-bottom: 20px;
+        animation: titleGlow 3s ease-in-out infinite alternate;
+    }
+
+    /* Title glow animation */
+    @keyframes titleGlow {
+        0% {
+            text-shadow: 0 4px 20px rgba(59, 130, 246, 0.1),
+                        0 0 30px rgba(139, 92, 246, 0.05);
+        }
+        100% {
+            text-shadow: 0 4px 25px rgba(59, 130, 246, 0.2),
+                        0 0 40px rgba(139, 92, 246, 0.1),
+                        0 0 60px rgba(236, 72, 153, 0.05);
+        }
+    }
+
+    /* Decorative underline for header */
+    .login-heading::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        border-radius: 2px;
+        animation: underlinePulse 2s ease-in-out infinite;
+    }
+
+    /* Underline pulse animation */
+    @keyframes underlinePulse {
+        0%, 100% {
+            width: 80px;
+            opacity: 1;
+        }
+        50% {
+            width: 100px;
+            opacity: 0.8;
+        }
+    }
+
+    /* ==================================== */
+    /* ANIMATED SUBTITLE WITH EFFECTS */
+    /* ==================================== */
+    .login-subtitle {
+        text-align: center;
+        color: #64748b;
+        font-size: 16px;
+        margin-bottom: 32px; /* Adjusted from 40px */
+        font-weight: 400;
+        letter-spacing: 0.5px;
+        position: relative;
+        padding: 12px 20px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, 
+            rgba(59, 130, 246, 0.03) 0%, 
+            rgba(139, 92, 246, 0.03) 50%,
+            rgba(236, 72, 153, 0.03) 100%);
+        border: 1px solid rgba(59, 130, 246, 0.08);
+        overflow: hidden;
+        animation: subtitleEntrance 1s ease-out;
+        /* SUBTLE SHADOW */
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.04);
+    }
+
+    /* Subtitle entrance animation */
+    @keyframes subtitleEntrance {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Subtle moving gradient overlay */
+    .login-subtitle::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, 
+            transparent, 
+            rgba(255, 255, 255, 0.2), 
+            transparent);
+        animation: shimmer 3s infinite;
+        z-index: 1;
+    }
+
+    /* Shimmer effect */
+    @keyframes shimmer {
+        0% {
+            left: -100%;
+        }
+        100% {
+            left: 100%;
+        }
+    }
+
+    /* Subtle pulse animation */
+    .login-subtitle {
+        animation: subtitlePulse 4s ease-in-out infinite;
+    }
+
+    @keyframes subtitlePulse {
+        0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.04);
+        }
+        50% {
+            transform: scale(1.01);
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.06);
+        }
+    }
+
+    /* Gradient text effect for subtitle */
+    .login-subtitle span {
+        background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        font-weight: 500;
+        position: relative;
+        z-index: 2;
+        display: inline-block;
+        animation: textGradientShift 5s ease-in-out infinite;
+        background-size: 200% 200%;
+    }
+
+    /* Text gradient shift animation */
+    @keyframes textGradientShift {
+        0% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+
+    /* Subtle floating effect */
+    .login-subtitle {
+        animation: floatSubtitle 6s ease-in-out infinite, subtitlePulse 4s ease-in-out infinite;
+    }
+
+    @keyframes floatSubtitle {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-3px);
+        }
+    }
+
+    /* Hover effects for subtitle */
+    .login-subtitle:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.08);
+        transition: all 0.3s ease;
+    }
+
+    /* Form groups */
+    .input-group {
+        margin-bottom: 24px;
+        position: relative;
+    }
+
+    .input-label {
+        display: block;
+        margin-bottom: 8px;
+        color: #475569;
+        font-weight: 600;
+        font-size: 14px;
+        letter-spacing: 0.3px;
+    }
+
+    /* ==================================== */
+    /* SIMPLE BLUE BORDER INPUT FIELDS */
+    /* ==================================== */
+    .form-input {
+        width: 100%;
+        padding: 14px 16px;
+        border: 1px solid #3b82f6; /* Simple blue border */
+        border-radius: 10px;
+        font-size: 16px;
+        transition: all 0.2s ease;
+        background: white;
+        color: #1e293b;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Focus state - simple blue border */
+    .form-input:focus {
+        outline: none;
+        border-color: #2563eb; /* Slightly darker blue on focus */
+        border-width: 1.5px; /* Slightly thicker on focus */
+        /* SUBTLE FOCUS SHADOW */
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.05);
+    }
+
+    .form-input::placeholder {
+        color: #94a3b8;
+        font-size: 15px;
+    }
+
+    /* Validation states - simple borders */
+    .form-input.validation-valid {
+        border-color: #10b981 !important;
+        border-width: 1.5px;
+    }
+
+    .form-input.validation-invalid {
+        border-color: #ef4444 !important;
+        border-width: 1.5px;
+    }
+
+    /* Input wrapper for extra effects */
+    .input-group::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+        border-radius: 0 0 10px 10px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 0;
+    }
+
+    .input-group:focus-within::after {
+        opacity: 0.3;
+    }
+
+    /* Login button */
+    .submit-btn {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        letter-spacing: 0.5px;
+        margin-top: 8px;
+        /* SUBTLE BUTTON SHADOW */
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+    }
+
+    .submit-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: 0.5s;
+    }
+
+    .submit-btn:hover::before {
+        left: 100%;
+    }
+
+    .submit-btn:hover {
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        transform: translateY(-2px);
+        /* HOVER SHADOW */
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
+    }
+
+    .submit-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+    }
+
+    /* Button glow effect */
+    .submit-btn::after {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6);
+        border-radius: 12px;
+        z-index: -1;
+        opacity: 0;
+        filter: blur(8px);
+        transition: opacity 0.3s ease;
+    }
+
+    .submit-btn:hover::after {
+        opacity: 0.3;
+    }
+
+    /* Forgot password section */
+    .forgot-section {
+        text-align: center;
+        margin: 24px 0;
+        padding: 16px;
+        background: rgba(248, 250, 252, 0.8);
+        border-radius: 10px;
+        border: 1px solid rgba(226, 232, 240, 0.5);
+        /* SUBTLE SHADOW */
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    }
+
+    .forgot-text {
+        color: #64748b;
+        font-size: 14px;
+        margin-right: 8px;
+    }
+
+    .forgot-link {
+        color: #3b82f6;
+        font-weight: 600;
+        text-decoration: none;
+        font-size: 14px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        background: rgba(59, 130, 246, 0.08);
+        transition: all 0.2s ease;
+        display: inline-block;
+        /* SUBTLE SHADOW */
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    .forgot-link:hover {
+        background: rgba(59, 130, 246, 0.12);
+        color: #1d4ed8;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 6px rgba(59, 130, 246, 0.08);
+    }
+
+    /* Footer */
+    .login-footer {
+        text-align: center;
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid rgba(226, 232, 240, 0.5);
+        color: #64748b;
+        font-size: 15px;
+        position: relative;
+    }
+
+    .login-footer::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+    }
+
+    .register-link {
+        color: #3b82f6;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        margin-left: 6px;
+        position: relative;
+        padding: 2px 4px;
+        border-radius: 4px;
+    }
+
+    .register-link:hover {
+        color: #1d4ed8;
+        text-decoration: underline;
+        background: rgba(59, 130, 246, 0.08);
+    }
+
+    /* ====================== */
+    /* RESPONSIVE DESIGN */
+    /* ====================== */
+
+    /* Tablet & Small Desktop (768px and below) */
+    @media (max-width: 768px) {
+        .login-wrapper {
+            padding: 11px;
+        }
+        
+        .login-box {
+            padding: 29px;
+            /* 0.90:1.25 RATIO FOR MOBILE */
+            max-width: 90vw; /* Viewport width ka 90% */
+            width: 90vw;
+            border-radius: 17px;
+            /* Height ko width se 1.25 times rakhne ke liye */
+            min-height: calc(90vw * 1.25); /* Width × 1.25 */
+            /* MOBILE SHADOW */
+            box-shadow: 
+                0 12px 40px rgba(0, 0, 0, 0.06),
+                0 6px 20px rgba(59, 130, 246, 0.05),
+                0 3px 10px rgba(139, 92, 246, 0.03),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+        
+        .login-heading {
+            font-size: 36px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+        }
+        
+        .login-subtitle {
+            font-size: 14px;
+            margin-bottom: 26px;
+            padding: 10px 15px;
+        }
+        
+        .login-box::before {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, transparent 50%, rgba(59, 130, 246, 0.04) 50%);
+        }
+        
+        .input-group {
+            margin-bottom: 22px;
+        }
+        
+        .form-input {
+            padding: 13px 15px;
+        }
+        
+        .form-input:focus {
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.04);
+        }
+        
+        .submit-btn {
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.08);
+        }
+        
+        .submit-btn:hover {
+            box-shadow: 0 8px 18px rgba(59, 130, 246, 0.12);
+        }
+    }
+
+    /* Mobile (480px and below) - 0.90:1.25 RATIO MAINTAIN */
+    @media (max-width: 480px) {
+        .login-wrapper {
+            padding: 7px;
+            background: linear-gradient(135deg, #f0f9ff 0%, #dbeafe 100%);
+        }
+        
+        .login-box {
+            padding: 22px;
+            border-radius: 15px;
+            border: none;
+            /* MOBILE SHADOW */
+            box-shadow: 
+                0 10px 30px rgba(0, 0, 0, 0.05),
+                0 5px 15px rgba(59, 130, 246, 0.04),
+                0 2px 8px rgba(139, 92, 246, 0.02),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            /* 0.90:1.25 RATIO MAINTAINED */
+            max-width: 90vw;
+            width: 90vw;
+            min-height: calc(90vw * 1.25); /* Width × 1.25 */
+        }
+        
+        .login-heading {
+            font-size: 32px;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+        }
+        
+        .login-subtitle {
+            font-size: 13px;
+            margin-bottom: 22px;
+            padding: 8px 12px;
+            box-shadow: 0 2px 6px rgba(59, 130, 246, 0.03);
+        }
+        
+        .input-group {
+            margin-bottom: 18px;
+        }
+        
+        .input-label {
+            margin-bottom: 7px;
+            font-size: 13px;
+        }
+        
+        .form-input {
+            padding: 12px 14px;
+            font-size: 15px;
+            border-radius: 11px;
+        }
+        
+        .submit-btn {
+            padding: 17px;
+            font-size: 15px;
+            border-radius: 11px;
+            margin-top: 7px;
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.08);
+        }
+        
+        .submit-btn:hover {
+            box-shadow: 0 8px 16px rgba(59, 130, 246, 0.12);
+        }
+        
+        .forgot-section {
+            margin: 18px 0;
+            padding: 13px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+        }
+        
+        .forgot-text {
+            font-size: 13px;
+        }
+        
+        .forgot-link {
+            font-size: 13px;
+            padding: 5px 11px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+        }
+        
+        .forgot-link:hover {
+            box-shadow: 0 3px 5px rgba(59, 130, 246, 0.06);
+        }
+        
+        .login-footer {
+            margin-top: 22px;
+            padding-top: 18px;
+            font-size: 14px;
+        }
+        
+        .login-box::before {
+            width: 47px;
+            height: 47px;
+            background: linear-gradient(135deg, transparent 50%, rgba(59, 130, 246, 0.03) 50%);
+        }
+    }
+
+    /* Small Mobile (360px and below) - RATIO MAINTAINED */
+    @media (max-width: 360px) {
+        .login-box {
+            padding: 18px;
+            /* 0.90:1.25 RATIO FOR SMALL MOBILE */
+            max-width: 90vw;
+            width: 90vw;
+            min-height: calc(90vw * 1.25); /* Width × 1.25 */
+            /* SMALL MOBILE SHADOW */
+            box-shadow: 
+                0 8px 25px rgba(0, 0, 0, 0.04),
+                0 4px 12px rgba(59, 130, 246, 0.03),
+                0 2px 6px rgba(139, 92, 246, 0.02),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+        
+        .login-heading {
+            font-size: 28px;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+        }
+        
+        .login-subtitle {
+            font-size: 12px;
+            margin-bottom: 20px;
+            padding: 6px 10px;
+            box-shadow: 0 1px 4px rgba(59, 130, 246, 0.02);
+        }
+        
+        .form-input {
+            padding: 11px 12px;
+            font-size: 14px;
+        }
+        
+        .submit-btn {
+            padding: 15px;
+            font-size: 14px;
+            box-shadow: 0 3px 6px rgba(59, 130, 246, 0.06);
+        }
+        
+        .forgot-section {
+            margin: 16px 0;
+            padding: 12px;
+        }
+        
+        .login-footer {
+            margin-top: 20px;
+            padding-top: 16px;
+            font-size: 13px;
+        }
+    }
+
+    /* Landscape Mode - RATIO ADJUSTED */
+    @media (max-height: 600px) and (orientation: landscape) {
+        .login-wrapper {
+            align-items: flex-start;
+            padding-top: 18px;
+            padding-bottom: 18px;
+        }
+        
+        .login-box {
+            margin: 9px 0;
+            padding: 22px;
+            /* Landscape me height thoda adjust */
+            min-height: auto; /* Auto height for landscape */
+            max-height: 90vh; /* Viewport height ka 90% */
+        }
+        
+        .login-heading {
+            margin-bottom: 15px;
+            font-size: 32px;
+            padding-bottom: 15px;
+        }
+        
+        .login-subtitle {
+            margin-bottom: 15px;
+            font-size: 14px;
+            padding: 8px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+    }
+
+    /* Large Desktop (1200px and above) - ORIGINAL RATIO */
+    @media (min-width: 1200px) {
+        .login-box {
+            max-width: 440px;
+            padding: 48px;
+            /* Desktop pe original ratio */
+            min-height: auto;
+            /* PREMIUM DESKTOP SHADOW */
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.1),
+                0 10px 30px rgba(59, 130, 246, 0.08),
+                0 5px 15px rgba(139, 92, 246, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+        
+        .login-heading {
+            font-size: 44px;
+        }
+        
+        .login-subtitle {
+            font-size: 17px;
+            margin-bottom: 36px;
+            padding: 14px 24px;
+        }
+        
+        .form-input {
+            padding: 16px 18px;
+            font-size: 16px;
+        }
+        
+        .submit-btn {
+            padding: 18px;
+            font-size: 17px;
+        }
+    }
+
+    /* Touch device optimizations */
+    @media (hover: none) and (pointer: coarse) {
+        .submit-btn:hover {
+            transform: none;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+        }
+        
+        .submit-btn:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+        }
+        
+        .login-subtitle:hover {
+            transform: none;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.04);
+        }
+        
+        .forgot-link:hover {
+            transform: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+    }
+</style>
+
+<div class="login-wrapper">
+    <div class="login-box">
+        <h1 class="login-heading">LOGIN</h1>
+        <div class="login-subtitle">
+            <span>Sign in to your account</span>
+        </div>
+
+        <form method="POST" class="login-form">
+            <div class="input-group">
+                <label for="phone" class="input-label">Mobile Number</label>
+                <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    class="form-input"
+                    placeholder="Enter 10-digit mobile number"
+                    required
+                    pattern="[0-9]{10}"
+                    inputmode="numeric"
+                    maxlength="10">
+            </div>
+
+            <div class="input-group">
+                <label for="password" class="input-label">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    class="form-input"
+                    placeholder="Enter your password"
+                    required
+                    minlength="6">
+            </div>
+
+            <button type="submit" class="submit-btn">
+                SIGN IN
+            </button>
+
+            <!-- Forgot Password -->
+            <div class="forgot-section">
+                <span class="forgot-text">Forgot your password?</span>
+                <a href="https://bite-me-buddy-user.onrender.com" target="_blank" class="forgot-link">
+                    Reset Here
+                </a>
+            </div>
+
+            <!-- Register Link -->
+            <div class="login-footer">
+                Don't have an account?
+                <a href="{{ url_for('register') }}" class="register-link">Create Account</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Phone number validation
+document.addEventListener('DOMContentLoaded', function() {
+    const phoneInput = document.getElementById('phone');
+    const passwordInput = document.getElementById('password');
+    const form = document.querySelector('.login-form');
+    const subtitle = document.querySelector('.login-subtitle');
+    const inputs = document.querySelectorAll('.form-input');
+    
+    // Interactive effects for subtitle
+    if (subtitle) {
+        subtitle.addEventListener('mouseenter', function() {
+            if (window.matchMedia('(hover: hover)').matches) {
+                this.style.transform = 'scale(1.05)';
+                this.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.08)';
+            }
+        });
+        
+        subtitle.addEventListener('mouseleave', function() {
+            if (window.matchMedia('(hover: hover)').matches) {
+                this.style.transform = '';
+                this.style.boxShadow = '';
+            }
+        });
+        
+        subtitle.addEventListener('touchstart', function() {
+            this.style.transform = 'scale(1.02)';
+            this.style.boxShadow = '0 4px 16px rgba(59, 130, 246, 0.06)';
+        });
+        
+        subtitle.addEventListener('touchend', function() {
+            setTimeout(() => {
+                this.style.transform = '';
+                this.style.boxShadow = '';
+            }, 300);
+        });
+    }
+    
+    // Track if user has interacted with inputs
+    let phoneInteracted = false;
+    let passwordInteracted = false;
+    
+    // Format phone number input
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 10) {
+                value = value.substring(0, 10);
+            }
+            e.target.value = value;
+            
+            // Don't validate while typing
+            phoneInteracted = true;
+        });
+        
+        // Show number pad on mobile
+        phoneInput.addEventListener('focus', function() {
+            if ('virtualKeyboard' in navigator) {
+                navigator.virtualKeyboard.show();
+            }
+        });
+    }
+    
+    if (passwordInput) {
+        passwordInput.addEventListener('input', function() {
+            // Don't validate while typing
+            passwordInteracted = true;
+        });
+    }
+    
+    // Add focus/blur effects for inputs
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.parentElement.classList.add('focused');
+            // Reset to blue border on focus
+            this.classList.remove('validation-valid', 'validation-invalid');
+            this.style.border = '1.5px solid #2563eb';
+            this.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.05)';
+        });
+        
+        input.addEventListener('blur', function() {
+            this.parentElement.classList.remove('focused');
+            this.style.boxShadow = 'none';
+            // Apply validation on blur ONLY
+            validateInputOnBlur(this);
+        });
+    });
+    
+    // Validation function - ONLY on blur
+    function validateInputOnBlur(input) {
+        // Remove existing validation classes
+        input.classList.remove('validation-valid', 'validation-invalid');
+        
+        // Check if input has value
+        if (input.value.trim() === '') {
+            // Reset to default blue border
+            input.style.border = '1px solid #3b82f6';
+            return;
+        }
+        
+        // Phone number validation (exactly 10 digits)
+        if (input.id === 'phone') {
+            if (input.value.length === 10 && /^\d{10}$/.test(input.value)) {
+                input.classList.add('validation-valid');
+                input.style.border = '1.5px solid #10b981'; // Green border for valid
+            } else {
+                input.classList.add('validation-invalid');
+                input.style.border = '1.5px solid #ef4444'; // Red border for invalid
+            }
+        }
+        
+        // Password validation (minimum 6 characters)
+        if (input.id === 'password') {
+            if (input.value.length >= 6) {
+                input.classList.add('validation-valid');
+                input.style.border = '1.5px solid #10b981'; // Green border for valid
+            } else {
+                input.classList.add('validation-invalid');
+                input.style.border = '1.5px solid #ef4444'; // Red border for invalid
+            }
+        }
+    }
+    
+    // Form submission validation
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            let isValid = true;
+            
+            // Validate phone number
+            if (phoneInput) {
+                if (phoneInput.value.length !== 10 || !/^\d{10}$/.test(phoneInput.value)) {
+                    isValid = false;
+                    phoneInput.classList.add('validation-invalid');
+                    phoneInput.style.border = '1.5px solid #ef4444';
+                } else {
+                    phoneInput.classList.add('validation-valid');
+                    phoneInput.style.border = '1.5px solid #10b981';
+                }
+            }
+            
+            // Validate password length
+            if (passwordInput) {
+                if (passwordInput.value.length < 6) {
+                    isValid = false;
+                    passwordInput.classList.add('validation-invalid');
+                    passwordInput.style.border = '1.5px solid #ef4444';
+                } else {
+                    passwordInput.classList.add('validation-valid');
+                    passwordInput.style.border = '1.5px solid #10b981';
+                }
+            }
+            
+            // Show alert if invalid
+            if (!isValid) {
+                e.preventDefault();
+                
+                // Check which field is invalid
+                if (phoneInput && phoneInput.value.length !== 10) {
+                    alert('Please enter a valid 10-digit mobile number');
+                    phoneInput.focus();
+                } else if (passwordInput && passwordInput.value.length < 6) {
+                    alert('Password must be at least 6 characters long');
+                    passwordInput.focus();
+                }
+                
+                return false;
+            }
+            
+            // All validations passed
+            return true;
+        });
+    }
+    
+    // Auto-focus on phone input for better UX
+    setTimeout(() => {
+        if (phoneInput && window.innerWidth <= 768) {
+            phoneInput.focus();
+        }
+    }, 300);
+    
+    // Prevent zoom on input focus (iOS)
+    document.addEventListener('touchstart', function(e) {
+        if (e.target.type === 'text' || e.target.type === 'tel' || e.target.type === 'password') {
+            e.target.style.fontSize = '16px';
+        }
+    });
+});
+</script>
+{% endblock %}
