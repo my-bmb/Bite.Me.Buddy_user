@@ -1,0 +1,913 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    /* Main container */
+    .login-wrapper {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        position: relative;
+        overflow-x: hidden;
+    }
+
+    /* Animated background */
+    .login-wrapper::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 20%),
+            radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 20%),
+            radial-gradient(circle at 50% 30%, rgba(34, 197, 94, 0.05) 0%, transparent 30%);
+        z-index: 0;
+        animation: float 20s ease-in-out infinite;
+    }
+
+    /* Floating animation */
+    @keyframes float {
+        0%, 100% { transform: translate(0, 0) rotate(0deg); }
+        33% { transform: translate(-10px, -10px) rotate(1deg); }
+        66% { transform: translate(10px, 10px) rotate(-1deg); }
+    }
+
+    /* Login card - Responsive */
+    .login-box {
+        width: 100%;
+        max-width: 420px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 
+            0 10px 40px rgba(0, 0, 0, 0.1),
+            0 4px 12px rgba(59, 130, 246, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        padding: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        position: relative;
+        z-index: 1;
+        animation: slideUp 0.5s ease-out;
+    }
+
+    /* Card animation */
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Decorative corner */
+    .login-box::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, transparent 50%, rgba(59, 130, 246, 0.1) 50%);
+        border-radius: 0 20px 0 0;
+        z-index: -1;
+    }
+
+    /* ==================================== */
+    /* UPDATED HEADER WITH BIGGER SIZE */
+    /* ==================================== */
+    .login-heading {
+        text-align: center;
+        color: #1e293b;
+        margin-bottom: 20px; /* Reduced for subtitle */
+        font-size: 42px; /* Increased from 28px */
+        font-weight: 800; /* Increased from 700 */
+        letter-spacing: -1px;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 4px 20px rgba(59, 130, 246, 0.2);
+        position: relative;
+        padding-bottom: 20px;
+        animation: titleGlow 3s ease-in-out infinite alternate;
+    }
+
+    /* Title glow animation */
+    @keyframes titleGlow {
+        0% {
+            text-shadow: 0 4px 20px rgba(59, 130, 246, 0.2),
+                        0 0 30px rgba(139, 92, 246, 0.1);
+        }
+        100% {
+            text-shadow: 0 4px 25px rgba(59, 130, 246, 0.4),
+                        0 0 40px rgba(139, 92, 246, 0.2),
+                        0 0 60px rgba(236, 72, 153, 0.1);
+        }
+    }
+
+    /* Decorative underline for header */
+    .login-heading::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        border-radius: 2px;
+        animation: underlinePulse 2s ease-in-out infinite;
+    }
+
+    /* Underline pulse animation */
+    @keyframes underlinePulse {
+        0%, 100% {
+            width: 80px;
+            opacity: 1;
+        }
+        50% {
+            width: 100px;
+            opacity: 0.8;
+        }
+    }
+
+    /* ==================================== */
+    /* ANIMATED SUBTITLE WITH EFFECTS */
+    /* ==================================== */
+    .login-subtitle {
+        text-align: center;
+        color: #64748b;
+        font-size: 16px;
+        margin-bottom: 32px; /* Adjusted from 40px */
+        font-weight: 400;
+        letter-spacing: 0.5px;
+        position: relative;
+        padding: 12px 20px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, 
+            rgba(59, 130, 246, 0.05) 0%, 
+            rgba(139, 92, 246, 0.05) 50%,
+            rgba(236, 72, 153, 0.05) 100%);
+        border: 1px solid rgba(59, 130, 246, 0.1);
+        overflow: hidden;
+        animation: subtitleEntrance 1s ease-out;
+    }
+
+    /* Subtitle entrance animation */
+    @keyframes subtitleEntrance {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Subtle moving gradient overlay */
+    .login-subtitle::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, 
+            transparent, 
+            rgba(255, 255, 255, 0.3), 
+            transparent);
+        animation: shimmer 3s infinite;
+        z-index: 1;
+    }
+
+    /* Shimmer effect */
+    @keyframes shimmer {
+        0% {
+            left: -100%;
+        }
+        100% {
+            left: 100%;
+        }
+    }
+
+    /* Subtle pulse animation */
+    .login-subtitle {
+        animation: subtitlePulse 4s ease-in-out infinite;
+    }
+
+    @keyframes subtitlePulse {
+        0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 2px 10px rgba(59, 130, 246, 0.1);
+        }
+        50% {
+            transform: scale(1.01);
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+        }
+    }
+
+    /* Gradient text effect for subtitle */
+    .login-subtitle span {
+        background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        font-weight: 500;
+        position: relative;
+        z-index: 2;
+        display: inline-block;
+        animation: textGradientShift 5s ease-in-out infinite;
+        background-size: 200% 200%;
+    }
+
+    /* Text gradient shift animation */
+    @keyframes textGradientShift {
+        0% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+
+    /* Subtle floating effect */
+    .login-subtitle {
+        animation: floatSubtitle 6s ease-in-out infinite, subtitlePulse 4s ease-in-out infinite;
+    }
+
+    @keyframes floatSubtitle {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-3px);
+        }
+    }
+
+    /* Hover effects for subtitle */
+    .login-subtitle:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 25px rgba(59, 130, 246, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    /* Form groups */
+    .input-group {
+        margin-bottom: 24px;
+    }
+
+    .input-label {
+        display: block;
+        margin-bottom: 8px;
+        color: #475569;
+        font-weight: 600;
+        font-size: 14px;
+        letter-spacing: 0.3px;
+    }
+
+    /* ==================================== */
+    /* INPUT FIELDS WITH MICRO THICK BLUE BORDERS */
+    /* ==================================== */
+    .form-input {
+        width: 100%;
+        padding: 14px 16px;
+        border: 1px solid #3b82f6; /* MICRO THICK - Changed from 2px to 1px */
+        border-radius: 10px;
+        font-size: 16px;
+        transition: all 0.2s ease;
+        background: white;
+        color: #1e293b;
+    }
+
+    /* THICKER BLUE SHADOW ON FOCUS */
+    .form-input:focus {
+        outline: none;
+        border-color: #2563eb; /* Slightly darker blue on focus */
+        border-width: 1.5px; /* Slightly thicker on focus */
+        box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.25); /* THICKER Blue shadow - Changed from 3px to 5px */
+    }
+
+    .form-input::placeholder {
+        color: #94a3b8;
+        font-size: 15px;
+    }
+
+    /* Specific styling for phone input */
+    #phone {
+        border-color: #3b82f6; /* Blue color */
+        border-width: 1px; /* Micro thick */
+    }
+
+    /* Specific styling for password input */
+    #password {
+        border-color: #3b82f6; /* Blue color */
+        border-width: 1px; /* Micro thick */
+    }
+
+    /* Input validation - THICKER SHADOWS */
+    .form-input:invalid:not(:focus):not(:placeholder-shown) {
+        border-color: #ef4444;
+        border-width: 1px;
+        box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.2); /* THICKER Red shadow - Changed from 3px to 5px */
+    }
+
+    .form-input:valid:not(:focus):not(:placeholder-shown) {
+        border-color: #10b981;
+        border-width: 1px;
+        box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.2); /* THICKER Green shadow - Changed from 3px to 5px */
+    }
+
+    /* Login button */
+    .submit-btn {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        letter-spacing: 0.5px;
+        margin-top: 8px;
+    }
+
+    .submit-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: 0.5s;
+    }
+
+    .submit-btn:hover::before {
+        left: 100%;
+    }
+
+    .submit-btn:hover {
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+    }
+
+    .submit-btn:active {
+        transform: translateY(0);
+    }
+
+    /* Forgot password section */
+    .forgot-section {
+        text-align: center;
+        margin: 24px 0;
+        padding: 16px;
+        background: rgba(248, 250, 252, 0.8);
+        border-radius: 10px;
+        border: 1px solid rgba(226, 232, 240, 0.5);
+    }
+
+    .forgot-text {
+        color: #64748b;
+        font-size: 14px;
+        margin-right: 8px;
+    }
+
+    .forgot-link {
+        color: #3b82f6;
+        font-weight: 600;
+        text-decoration: none;
+        font-size: 14px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        background: rgba(59, 130, 246, 0.1);
+        transition: all 0.2s ease;
+        display: inline-block;
+    }
+
+    .forgot-link:hover {
+        background: rgba(59, 130, 246, 0.2);
+        color: #1d4ed8;
+        text-decoration: none;
+    }
+
+    /* Footer */
+    .login-footer {
+        text-align: center;
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid rgba(226, 232, 240, 0.5);
+        color: #64748b;
+        font-size: 15px;
+    }
+
+    .register-link {
+        color: #3b82f6;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        margin-left: 6px;
+    }
+
+    .register-link:hover {
+        color: #1d4ed8;
+        text-decoration: underline;
+    }
+
+    /* ====================== */
+    /* RESPONSIVE DESIGN - 7% MORE COMPACT FOR MOBILE */
+    /* ====================== */
+
+    /* Tablet & Small Desktop (768px and below) */
+    @media (max-width: 768px) {
+        .login-wrapper {
+            padding: 11px; /* Reduced 7% from 12px */
+        }
+        
+        .login-box {
+            padding: 29px; /* Reduced 7% from 32px */
+            max-width: 372px; /* Reduced 7% from 400px */
+            border-radius: 17px; /* Slightly reduced */
+        }
+        
+        .login-heading {
+            font-size: 36px; /* Adjusted for mobile */
+            margin-bottom: 15px; /* Adjusted for subtitle */
+            padding-bottom: 15px;
+        }
+        
+        .login-subtitle {
+            font-size: 14px;
+            margin-bottom: 26px; /* Reduced 7% from 28px */
+            padding: 10px 15px;
+        }
+        
+        .login-box::before {
+            width: 56px; /* Reduced 7% from 60px */
+            height: 56px;
+        }
+        
+        .input-group {
+            margin-bottom: 22px; /* Reduced 7% from 24px */
+        }
+        
+        /* Mobile input border */
+        .form-input {
+            border-width: 1px; /* Maintain micro thick on mobile */
+            padding: 13px 15px; /* Slightly adjusted */
+        }
+        
+        /* Mobile shadow adjustments */
+        .form-input:focus {
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25); /* Slightly smaller on mobile */
+        }
+        
+        .form-input:invalid:not(:focus):not(:placeholder-shown) {
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
+        }
+        
+        .form-input:valid:not(:focus):not(:placeholder-shown) {
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+        }
+    }
+
+    /* Mobile (480px and below) */
+    @media (max-width: 480px) {
+        .login-wrapper {
+            padding: 7px; /* Reduced 7% from 8px */
+            background: linear-gradient(135deg, #f0f9ff 0%, #dbeafe 100%);
+        }
+        
+        .login-box {
+            padding: 22px; /* Reduced 7% from 24px */
+            border-radius: 15px; /* Reduced 7% from 16px */
+            border: none;
+            box-shadow: 
+                0 7px 30px rgba(0, 0, 0, 0.07), /* Reduced 7% */
+                0 2px 7px rgba(59, 130, 246, 0.07); /* Reduced 7% */
+        }
+        
+        .login-heading {
+            font-size: 32px; /* Adjusted for mobile */
+            margin-bottom: 12px; /* Adjusted for subtitle */
+            padding-bottom: 12px;
+        }
+        
+        .login-subtitle {
+            font-size: 13px;
+            margin-bottom: 22px; /* Reduced 7% from 24px */
+            padding: 8px 12px;
+        }
+        
+        .input-group {
+            margin-bottom: 18px; /* Reduced 7% from 20px */
+        }
+        
+        .input-label {
+            margin-bottom: 7px; /* Reduced 7% from 8px */
+            font-size: 13px; /* Reduced 7% */
+        }
+        
+        .form-input {
+            padding: 12px 14px; /* Reduced 7% from 16px */
+            font-size: 15px; /* Reduced 7% from 16px */
+            border-radius: 11px; /* Reduced 7% from 12px */
+            border-width: 1px; /* Maintain micro thick */
+        }
+        
+        /* Mobile shadow adjustments */
+        .form-input:focus {
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25);
+        }
+        
+        .submit-btn {
+            padding: 17px; /* Reduced 7% from 18px */
+            font-size: 15px; /* Reduced 7% from 16px */
+            border-radius: 11px; /* Reduced 7% from 12px */
+            margin-top: 7px; /* Reduced 7% from 8px */
+        }
+        
+        .forgot-section {
+            margin: 18px 0; /* Reduced 7% from 20px */
+            padding: 13px; /* Reduced 7% from 14px */
+        }
+        
+        .forgot-text {
+            font-size: 13px; /* Reduced 7% */
+        }
+        
+        .forgot-link {
+            font-size: 13px; /* Reduced 7% */
+            padding: 5px 11px; /* Reduced 7% */
+        }
+        
+        .login-footer {
+            margin-top: 22px; /* Reduced 7% from 24px */
+            padding-top: 18px; /* Reduced 7% from 20px */
+            font-size: 14px; /* Reduced 7% */
+        }
+        
+        .login-box::before {
+            width: 47px; /* Reduced 7% from 50px */
+            height: 47px;
+        }
+    }
+
+    /* Small Mobile (360px and below) */
+    @media (max-width: 360px) {
+        .login-box {
+            padding: 18px; /* Reduced 7% from 20px */
+        }
+        
+        .login-heading {
+            font-size: 28px; /* Adjusted for small mobile */
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+        }
+        
+        .login-subtitle {
+            font-size: 12px;
+            margin-bottom: 20px; /* Reduced 7% */
+            padding: 6px 10px;
+        }
+        
+        .form-input {
+            padding: 11px 12px; /* Reduced 7% from 14px */
+            font-size: 14px; /* Reduced 7% */
+            border-width: 1px; /* Maintain micro thick */
+        }
+        
+        /* Mobile shadow adjustments */
+        .form-input:focus {
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+        }
+        
+        .submit-btn {
+            padding: 15px; /* Reduced 7% from 16px */
+            font-size: 14px; /* Reduced 7% */
+        }
+        
+        .forgot-section {
+            margin: 16px 0; /* Reduced 7% */
+            padding: 12px; /* Reduced 7% */
+        }
+        
+        .login-footer {
+            margin-top: 20px; /* Reduced 7% */
+            padding-top: 16px; /* Reduced 7% */
+            font-size: 13px; /* Reduced 7% */
+        }
+    }
+
+    /* Landscape Mode */
+    @media (max-height: 600px) and (orientation: landscape) {
+        .login-wrapper {
+            align-items: flex-start;
+            padding-top: 18px; /* Reduced 7% from 20px */
+            padding-bottom: 18px;
+        }
+        
+        .login-box {
+            margin: 9px 0; /* Reduced 7% from 10px */
+            padding: 22px; /* Reduced 7% from 24px */
+        }
+        
+        .login-heading {
+            margin-bottom: 15px; /* Reduced 7% from 20px */
+            font-size: 32px; /* Adjusted for landscape */
+            padding-bottom: 15px;
+        }
+        
+        .login-subtitle {
+            margin-bottom: 15px; /* Reduced 7% from 16px */
+            font-size: 14px;
+            padding: 8px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px; /* Reduced 7% from 16px */
+        }
+        
+        .form-input {
+            border-width: 1px; /* Maintain micro thick */
+        }
+        
+        .form-input:focus {
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25);
+        }
+    }
+
+    /* Large Desktop (1200px and above) - Original */
+    @media (min-width: 1200px) {
+        .login-box {
+            max-width: 440px;
+            padding: 48px;
+        }
+        
+        .login-heading {
+            font-size: 44px; /* Adjusted for large screens */
+        }
+        
+        .login-subtitle {
+            font-size: 17px;
+            margin-bottom: 36px;
+            padding: 14px 24px;
+        }
+        
+        .form-input {
+            padding: 16px 18px;
+            font-size: 16px;
+            border-width: 1px; /* Maintain micro thick */
+        }
+        
+        /* Larger shadow on big screens */
+        .form-input:focus {
+            box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.25); /* Even thicker on large screens */
+        }
+        
+        .submit-btn {
+            padding: 18px;
+            font-size: 17px;
+        }
+    }
+
+    /* Touch device optimizations */
+    @media (hover: none) and (pointer: coarse) {
+        .submit-btn:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .submit-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .form-input:focus {
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25);
+            border-width: 1.5px;
+        }
+        
+        .login-subtitle:hover {
+            transform: none;
+            box-shadow: 0 2px 10px rgba(59, 130, 246, 0.1);
+        }
+    }
+</style>
+
+<div class="login-wrapper">
+    <div class="login-box">
+        <h1 class="login-heading">LOGIN</h1>
+        <div class="login-subtitle">
+            <span>Sign in to your account</span>
+        </div>
+
+        <form method="POST" class="login-form">
+            <div class="input-group">
+                <label for="phone" class="input-label">Mobile Number</label>
+                <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    class="form-input"
+                    placeholder="Enter 10-digit mobile number"
+                    required
+                    pattern="[0-9]{10}"
+                    inputmode="numeric"
+                    maxlength="10">
+            </div>
+
+            <div class="input-group">
+                <label for="password" class="input-label">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    class="form-input"
+                    placeholder="Enter your password"
+                    required
+                    minlength="6">
+            </div>
+
+            <button type="submit" class="submit-btn">
+                SIGN IN
+            </button>
+
+            <!-- Forgot Password -->
+            <div class="forgot-section">
+                <span class="forgot-text">Forgot your password?</span>
+                <a href="https://bite-me-buddy-user.onrender.com" target="_blank" class="forgot-link">
+                    Reset Here
+                </a>
+            </div>
+
+            <!-- Register Link -->
+            <div class="login-footer">
+                Don't have an account?
+                <a href="{{ url_for('register') }}" class="register-link">Create Account</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Phone number validation
+document.addEventListener('DOMContentLoaded', function() {
+    const phoneInput = document.getElementById('phone');
+    const passwordInput = document.getElementById('password');
+    const form = document.querySelector('.login-form');
+    const subtitle = document.querySelector('.login-subtitle');
+    
+    // Interactive effects for subtitle
+    if (subtitle) {
+        subtitle.addEventListener('mouseenter', function() {
+            if (window.matchMedia('(hover: hover)').matches) {
+                this.style.transform = 'scale(1.05)';
+                this.style.boxShadow = '0 6px 25px rgba(59, 130, 246, 0.2)';
+            }
+        });
+        
+        subtitle.addEventListener('mouseleave', function() {
+            if (window.matchMedia('(hover: hover)').matches) {
+                this.style.transform = '';
+                this.style.boxShadow = '';
+            }
+        });
+        
+        subtitle.addEventListener('touchstart', function() {
+            this.style.transform = 'scale(1.02)';
+            this.style.boxShadow = '0 4px 20px rgba(59, 130, 246, 0.15)';
+        });
+        
+        subtitle.addEventListener('touchend', function() {
+            setTimeout(() => {
+                this.style.transform = '';
+                this.style.boxShadow = '';
+            }, 300);
+        });
+    }
+    
+    // Format phone number input
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 10) {
+                value = value.substring(0, 10);
+            }
+            e.target.value = value;
+        });
+        
+        // Show number pad on mobile
+        phoneInput.addEventListener('focus', function() {
+            if ('virtualKeyboard' in navigator) {
+                navigator.virtualKeyboard.show();
+            }
+        });
+    }
+    
+    // Form submission validation
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Validate phone number
+            if (phoneInput && phoneInput.value.length !== 10) {
+                e.preventDefault();
+                alert('Please enter a valid 10-digit mobile number');
+                phoneInput.focus();
+                phoneInput.style.borderColor = '#ef4444';
+                phoneInput.style.borderWidth = '1px';
+                phoneInput.style.boxShadow = '0 0 0 5px rgba(239, 68, 68, 0.2)';
+                return false;
+            }
+            
+            // Validate password length
+            if (passwordInput && passwordInput.value.length < 6) {
+                e.preventDefault();
+                alert('Password must be at least 6 characters long');
+                passwordInput.focus();
+                passwordInput.style.borderColor = '#ef4444';
+                passwordInput.style.borderWidth = '1px';
+                passwordInput.style.boxShadow = '0 0 0 5px rgba(239, 68, 68, 0.2)';
+                return false;
+            }
+            
+            // All validations passed
+            return true;
+        });
+    }
+    
+    // Real-time validation feedback
+    if (phoneInput) {
+        phoneInput.addEventListener('blur', function() {
+            if (this.value.length === 10) {
+                this.style.borderColor = '#10b981';
+                this.style.borderWidth = '1px';
+                this.style.boxShadow = '0 0 0 5px rgba(16, 185, 129, 0.2)';
+            } else if (this.value.length > 0) {
+                this.style.borderColor = '#ef4444';
+                this.style.borderWidth = '1px';
+                this.style.boxShadow = '0 0 0 5px rgba(239, 68, 68, 0.2)';
+            } else {
+                this.style.borderColor = '#3b82f6';
+                this.style.borderWidth = '1px';
+                this.style.boxShadow = 'none';
+            }
+        });
+    }
+    
+    if (passwordInput) {
+        passwordInput.addEventListener('blur', function() {
+            if (this.value.length >= 6) {
+                this.style.borderColor = '#10b981';
+                this.style.borderWidth = '1px';
+                this.style.boxShadow = '0 0 0 5px rgba(16, 185, 129, 0.2)';
+            } else if (this.value.length > 0) {
+                this.style.borderColor = '#ef4444';
+                this.style.borderWidth = '1px';
+                this.style.boxShadow = '0 0 0 5px rgba(239, 68, 68, 0.2)';
+            } else {
+                this.style.borderColor = '#3b82f6';
+                this.style.borderWidth = '1px';
+                this.style.boxShadow = 'none';
+            }
+        });
+    }
+    
+    // Auto-focus on phone input for better UX
+    setTimeout(() => {
+        if (phoneInput && window.innerWidth <= 768) {
+            phoneInput.focus();
+        }
+    }, 300);
+    
+    // Prevent zoom on input focus (iOS)
+    document.addEventListener('touchstart', function(e) {
+        if (e.target.type === 'text' || e.target.type === 'tel' || e.target.type === 'password') {
+            e.target.style.fontSize = '16px';
+        }
+    });
+});
+</script>
+{% endblock %}
