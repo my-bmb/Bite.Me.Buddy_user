@@ -1,0 +1,534 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<!-- FontAwesome CDN for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    /* Reset for login page only */
+    .login-page-wrapper {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    /* Enhanced background matching register page */
+    .login-page-wrapper {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 25%, #fae8ff 50%, #fefce8 75%, #f0fdf4 100%);
+        min-height: calc(100vh - 60px); /* Adjust for navbar */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        position: relative;
+        overflow-x: hidden;
+        width: 100%;
+    }
+
+    /* Animated background elements */
+    .login-page-wrapper::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 20%),
+            radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 20%),
+            radial-gradient(circle at 50% 30%, rgba(34, 197, 94, 0.05) 0%, transparent 30%);
+        z-index: 0;
+        animation: float 20s ease-in-out infinite;
+    }
+
+    /* Floating animation for background */
+    @keyframes float {
+        0%, 100% {
+            transform: translate(0, 0) rotate(0deg);
+        }
+        33% {
+            transform: translate(-10px, -10px) rotate(1deg);
+        }
+        66% {
+            transform: translate(10px, 10px) rotate(-1deg);
+        }
+    }
+
+    .auth-container {
+        width: 100%;
+        max-width: 450px; /* Slightly increased for better spacing */
+        margin: 0 auto;
+        animation: slideUp 0.5s ease-out;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Container animation */
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .auth-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.1),
+            0 2px 8px rgba(59, 130, 246, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        padding: 50px 40px; /* Increased top-bottom padding for bigger header */
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Decorative corner accent */
+    .auth-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, transparent 50%, rgba(59, 130, 246, 0.1) 50%);
+        border-radius: 0 20px 0 0;
+    }
+
+    /* BIGGER HEADER STYLES */
+    .auth-title {
+        text-align: center;
+        color: #1e293b;
+        margin-bottom: 40px; /* Increased margin for bigger header */
+        font-size: 32px; /* Increased from 24px to 32px */
+        font-weight: 800; /* Bolder font */
+        letter-spacing: -0.8px; /* Slightly more letter spacing */
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        position: relative;
+        padding-bottom: 15px; /* Added padding for underline effect */
+    }
+
+    /* Optional: Add underline effect to the header */
+    .auth-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 4px;
+        background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        border-radius: 2px;
+        opacity: 0.7;
+    }
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #475569;
+        font-weight: 500;
+        font-size: 14px;
+        letter-spacing: 0.3px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 15px;
+        transition: all 0.2s ease;
+        background: white;
+        color: #334155;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .form-control::placeholder {
+        color: #94a3b8;
+    }
+
+    /* Form Validation Styles */
+    .form-control:invalid:not(:focus):not(:placeholder-shown) {
+        border-color: #ef4444;
+    }
+
+    .form-control:valid:not(:focus):not(:placeholder-shown) {
+        border-color: #10b981;
+    }
+
+    /* Button Styles */
+    .btn {
+        display: inline-block;
+        font-weight: 600;
+        text-align: center;
+        vertical-align: middle;
+        cursor: pointer;
+        user-select: none;
+        border: none;
+        padding: 14px;
+        font-size: 15px;
+        line-height: 1.5;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        color: white;
+        width: 100%;
+        letter-spacing: 0.3px;
+    }
+
+    .btn-primary::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: 0.5s;
+    }
+
+    .btn-primary:hover::before {
+        left: 100%;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+    }
+
+    .w-100 {
+        width: 100%;
+    }
+
+    /* Auth Footer */
+    .auth-footer {
+        text-align: center;
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid rgba(226, 232, 240, 0.5);
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    .auth-footer a {
+        color: #3b82f6;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+        margin-left: 4px;
+    }
+
+    .auth-footer a:hover {
+        color: #1d4ed8;
+        text-decoration: underline;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    /* Mobile Responsive Fixes */
+    @media (max-width: 768px) {
+        .login-page-wrapper {
+            min-height: calc(100vh - 56px); /* Adjust for mobile navbar */
+            padding: 15px;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        }
+        
+        .auth-container {
+            max-width: 100%;
+            padding: 0 10px;
+        }
+        
+        .auth-card {
+            padding: 40px 25px; /* Adjusted for mobile */
+            box-shadow: 
+                0 4px 20px rgba(0, 0, 0, 0.08),
+                0 1px 4px rgba(59, 130, 246, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Mobile: Slightly smaller header but still bigger than before */
+        .auth-title {
+            font-size: 28px; /* Bigger than before on mobile */
+            margin-bottom: 35px;
+            font-weight: 700;
+        }
+        
+        .auth-title::after {
+            width: 50px;
+            height: 3px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-control {
+            padding: 14px 16px;
+            font-size: 16px; /* Better for mobile touch */
+        }
+        
+        .btn {
+            padding: 16px;
+            font-size: 16px;
+        }
+        
+        /* Fix for forgot password section on mobile */
+        .forgot-password-section {
+            margin: 18px 0;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .forgot-password-section a {
+            padding: 6px 12px;
+            font-size: 15px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .login-page-wrapper {
+            padding: 10px;
+            min-height: calc(100vh - 50px);
+        }
+        
+        .auth-card {
+            padding: 35px 20px; /* Adjusted for smaller screens */
+            border-radius: 16px;
+        }
+        
+        /* Small mobile screens */
+        .auth-title {
+            font-size: 26px; /* Still bigger */
+            margin-bottom: 30px;
+        }
+        
+        .auth-title::after {
+            width: 40px;
+            height: 3px;
+        }
+        
+        .form-group label {
+            font-size: 15px;
+        }
+        
+        .form-control {
+            padding: 12px 14px;
+        }
+        
+        .btn {
+            padding: 14px;
+        }
+        
+        .auth-footer {
+            margin-top: 24px;
+            padding-top: 20px;
+            font-size: 15px;
+        }
+    }
+
+    @media (max-width: 360px) {
+        .auth-card {
+            padding: 30px 16px;
+        }
+        
+        .auth-title {
+            font-size: 24px; /* Minimum size for very small screens */
+            margin-bottom: 25px;
+        }
+        
+        .auth-title::after {
+            width: 35px;
+            height: 2.5px;
+        }
+    }
+
+    /* Tablet Optimization */
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .auth-container {
+            max-width: 480px; /* Slightly wider for tablets */
+        }
+        
+        .auth-card {
+            padding: 50px 35px;
+        }
+        
+        .auth-title {
+            font-size: 34px; /* Bigger on tablets */
+            margin-bottom: 45px;
+        }
+        
+        .auth-title::after {
+            width: 70px;
+        }
+    }
+
+    /* Desktop large screens */
+    @media (min-width: 1200px) {
+        .auth-container {
+            max-width: 480px;
+        }
+        
+        .auth-card {
+            padding: 60px 45px; /* More padding for larger header */
+        }
+        
+        /* Largest header for big screens */
+        .auth-title {
+            font-size: 36px; /* Maximum size for large screens */
+            margin-bottom: 50px;
+            font-weight: 800;
+        }
+        
+        .auth-title::after {
+            width: 80px;
+            height: 5px;
+        }
+    }
+
+    /* Forgot password section styling */
+    .forgot-password-section {
+        text-align: center;
+        margin: 20px 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    
+    .forgot-password-section span {
+        color: #64748b;
+        font-size: 14px;
+    }
+    
+    .forgot-password-section a {
+        color: #3b82f6;
+        font-weight: 600;
+        text-decoration: none;
+        font-size: 14px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        background: rgba(59, 130, 246, 0.1);
+        transition: all 0.2s;
+    }
+    
+    .forgot-password-section a:hover {
+        background: rgba(59, 130, 246, 0.2);
+        color: #1d4ed8;
+    }
+</style>
+
+<div class="login-page-wrapper">
+    <div class="auth-container">
+        <div class="auth-card">
+            <!-- BIGGER LOGIN HEADER -->
+            <h1 class="auth-title">Login to Your Account</h1>
+
+            <form method="POST" class="auth-form">
+                <div class="form-group">
+                    <label for="phone">Mobile Number</label>
+                    <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        class="form-control"
+                        placeholder="Enter mobile number"
+                        required
+                        pattern="[0-9]{10,15}">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        class="form-control"
+                        placeholder="Enter password"
+                        required>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">
+                    Login
+                </button>
+
+                <!-- ✅ FORGOT PASSWORD SECTION WITH EXTERNAL LINK -->
+                <div class="forgot-password-section">
+                    <span>Forgot your password?</span>
+                    <a href="https://bite-me-buddy-user.onrender.com" target="_blank">
+                        Click here
+                    </a>
+                </div>
+                <!-- ✅ END -->
+
+                <div class="auth-footer text-center">
+                    Don't have an account?
+                    <a href="{{ url_for('register') }}">Register</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Simple phone number validation
+document.addEventListener('DOMContentLoaded', function() {
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, '');
+        });
+    }
+    
+    // Adjust wrapper height based on viewport
+    function adjustLoginHeight() {
+        const wrapper = document.querySelector('.login-page-wrapper');
+        if (wrapper) {
+            const navbarHeight = document.querySelector('nav') ? 
+                document.querySelector('nav').offsetHeight : 60;
+            wrapper.style.minHeight = `calc(100vh - ${navbarHeight}px)`;
+        }
+    }
+    
+    // Initial adjustment
+    adjustLoginHeight();
+    
+    // Adjust on resize
+    window.addEventListener('resize', adjustLoginHeight);
+});
+</script>
+{% endblock %}
