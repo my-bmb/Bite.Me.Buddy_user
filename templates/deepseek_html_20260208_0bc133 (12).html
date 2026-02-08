@@ -1,0 +1,921 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<style>
+    /* Welcome Popup Modal - MINIMALIST VERSION (index.html se liya gaya) */
+    .welcome-popup {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.92);
+        z-index: 5000;
+        animation: popupFadeIn 0.5s ease;
+        justify-content: center;
+        align-items: center;
+        padding: 15px;
+    }
+    
+    @keyframes popupFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .popup-content {
+        background: transparent;
+        width: 100%;
+        max-width: 340px;
+        position: relative;
+        animation: popupSlideIn 0.6s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    @keyframes popupSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(30px) scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+    
+    .popup-close {
+        position: absolute;
+        top: -40px;
+        right: 0;
+        width: 36px;
+        height: 36px;
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10;
+        font-weight: bold;
+        font-size: 20px;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(5px);
+    }
+    
+    .popup-close:hover {
+        background: rgba(255, 204, 0, 0.8);
+        color: #8b0000;
+        transform: scale(1.1);
+    }
+    
+    .customer-photo-container {
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        overflow: hidden;
+        margin: 0 auto 20px;
+        border: 5px solid rgba(255, 204, 0, 0.4);
+        /* ✅ PROFESSIONAL SHADOW - Updated */
+        box-shadow: 
+            0 0 0 10px rgba(139, 0, 0, 0.15),        /* Soft inner glow */
+            0 4px 20px rgba(0, 0, 0, 0.25),          /* Subtle drop shadow */
+            0 8px 40px rgba(0, 0, 0, 0.35),          /* Medium shadow */
+            0 15px 60px rgba(0, 0, 0, 0.45),         /* Outer shadow */
+            0 0 80px rgba(255, 204, 0, 0.1),         /* Golden ambient glow */
+            inset 0 0 30px rgba(255, 255, 255, 0.08); /* Soft inner highlight */
+        position: relative;
+        z-index: 1;
+        animation: professionalGlow 3s infinite alternate;
+    }
+    
+    /* ✅ PROFESSIONAL GLOW ANIMATION */
+    @keyframes professionalGlow {
+        0% {
+            box-shadow: 
+                0 0 0 10px rgba(139, 0, 0, 0.15),
+                0 4px 20px rgba(0, 0, 0, 0.25),
+                0 8px 40px rgba(0, 0, 0, 0.35),
+                0 15px 60px rgba(0, 0, 0, 0.45),
+                0 0 80px rgba(255, 204, 0, 0.1),
+                inset 0 0 30px rgba(255, 255, 255, 0.08);
+        }
+        50% {
+            box-shadow: 
+                0 0 0 12px rgba(139, 0, 0, 0.2),
+                0 6px 25px rgba(0, 0, 0, 0.3),
+                0 12px 50px rgba(0, 0, 0, 0.4),
+                0 20px 70px rgba(0, 0, 0, 0.5),
+                0 0 100px rgba(255, 204, 0, 0.15),
+                inset 0 0 35px rgba(255, 255, 255, 0.12);
+        }
+        100% {
+            box-shadow: 
+                0 0 0 8px rgba(139, 0, 0, 0.12),
+                0 3px 15px rgba(0, 0, 0, 0.2),
+                0 6px 30px rgba(0, 0, 0, 0.3),
+                0 12px 50px rgba(0, 0, 0, 0.4),
+                0 0 60px rgba(255, 204, 0, 0.08),
+                inset 0 0 25px rgba(255, 255, 255, 0.06);
+        }
+    }
+    
+    /* ✅ ADD RING EFFECT FOR MORE PROFESSIONAL LOOK */
+    .customer-photo-container::before {
+        content: '';
+        position: absolute;
+        top: -12px;
+        left: -12px;
+        right: -12px;
+        bottom: -12px;
+        border-radius: 50%;
+        background: radial-gradient(
+            circle at center,
+            rgba(255, 204, 0, 0.05) 0%,
+            rgba(255, 204, 0, 0.02) 30%,
+            transparent 70%
+        );
+        z-index: -1;
+        animation: ringPulse 4s infinite ease-in-out;
+    }
+    
+    @keyframes ringPulse {
+        0%, 100% {
+            transform: scale(1);
+            opacity: 0.6;
+        }
+        50% {
+            transform: scale(1.05);
+            opacity: 0.8;
+        }
+    }
+    
+    .customer-photo {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+        border-radius: 50%;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .popup-message-container {
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        width: 100%;
+        border: 1px solid rgba(255, 204, 0, 0.2);
+        margin-top: 15px;
+        box-shadow: 
+            0 5px 25px rgba(0, 0, 0, 0.4),
+            0 10px 40px rgba(0, 0, 0, 0.3),
+            inset 0 0 20px rgba(255, 255, 255, 0.05);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .popup-message {
+        color: white;
+        font-size: 14px;
+        line-height: 1.4;
+        margin-bottom: 12px;
+        font-weight: 400;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    }
+    
+    .customer-name {
+        color: #ffcc00;
+        font-weight: 700;
+        font-size: 16px;
+        margin-top: 8px;
+        letter-spacing: 1px;
+        text-shadow: 0 2px 5px rgba(0, 0, 0, 0.7);
+    }
+    
+    .customer-title {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 11px;
+        margin-top: 3px;
+        letter-spacing: 0.5px;
+    }
+    
+    .welcome-badge {
+        background: linear-gradient(135deg, #8b0000 0%, #5a0000 100%);
+        color: #ffcc00;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        margin-bottom: 10px;
+        border: 1px solid rgba(255, 204, 0, 0.3);
+        display: inline-block;
+        box-shadow: 0 4px 15px rgba(139, 0, 0, 0.3);
+    }
+    
+    /* ✅ SIMPLE BORDER CARD FOR NAME - NO BACKGROUND */
+    .simple-name-card {
+        border: 2px solid rgba(255, 204, 0, 0.8); /* ✅ 4px se 2px kiya (visually same) */
+        border-radius: 10px; /* ✅ Thoda bada border radius */
+        padding: 12px 20px; /* ✅ Padding badhaya */
+        margin-bottom: 15px;
+        max-width: 100%;
+        word-wrap: break-word;
+        box-sizing: border-box;
+        text-align: center;
+        background: transparent !important;
+        
+        /* Default font size */
+        font-size: 18px;
+        color: #ffcc00;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        font-family: 'Montserrat', sans-serif;
+        
+        /* ✅ Card size bada kiya */
+        min-width: 280px; /* ✅ Minimum width badhaya */
+        min-height: 50px; /* ✅ Minimum height badhaya */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* ✅ DYNAMIC FONT SIZE FOR LONG NAMES IN CARD */
+    .simple-name-card.name-length-25-30 { font-size: 16px; }
+    .simple-name-card.name-length-30-35 { font-size: 15px; }
+    .simple-name-card.name-length-35-40 { font-size: 14px; }
+    .simple-name-card.name-length-40-45 { font-size: 13px; }
+    .simple-name-card.name-length-45-50 { font-size: 12px; }
+    .simple-name-card.name-length-50-plus { font-size: 11px; }
+
+    /* ✅ Dashboard header styling */
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        margin-bottom: 20px;
+    }
+    
+    .dashboard-header .header-left {
+        width: 70%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    /* ✅ SIMPLE BORDER CARD FOR HEADER NAME - NO BACKGROUND */
+    .dashboard-header .header-left .header-name-card {
+        border: 2px solid rgba(255, 204, 0, 0.8); /* ✅ 4px se 2px kiya */
+        border-radius: 10px; /* ✅ Border radius badhaya */
+        padding: 10px 15px; /* ✅ Padding badhaya */
+        margin-bottom: 5px;
+        max-width: 100%;
+        overflow: hidden;
+        box-sizing: border-box;
+        background: transparent !important;
+        min-height: 45px; /* ✅ Height badhaya */
+        display: flex;
+        align-items: center;
+    }
+    
+    .dashboard-header .header-left .header-name-card h1 {
+        color: #8b0000 !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        font-weight: 700 !important;
+        line-height: 1.2 !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        max-width: 100% !important;
+        font-size: 20px !important;
+        width: 100%;
+    }
+    
+    /* ✅ "Hello, " text style */
+    .dashboard-header .header-left .header-name-card h1 .hello-text {
+        color: #333 !important;
+        font-weight: 600 !important;
+        font-size: 18px !important;
+        margin-right: 5px;
+    }
+    
+    /* ✅ DYNAMIC FONT SIZE FOR HEADER CARD */
+    .dashboard-header .header-left .header-name-card h1.name-length-25-30 { font-size: 18px !important; }
+    .dashboard-header .header-left .header-name-card h1.name-length-30-35 { font-size: 17px !important; }
+    .dashboard-header .header-left .header-name-card h1.name-length-35-40 { 
+        font-size: 16px !important;
+        white-space: normal !important;
+        line-height: 1.1 !important;
+    }
+    .dashboard-header .header-left .header-name-card h1.name-length-40-45 { 
+        font-size: 15px !important;
+        white-space: normal !important;
+        line-height: 1.1 !important;
+    }
+    .dashboard-header .header-left .header-name-card h1.name-length-45-50 { 
+        font-size: 14px !important;
+        white-space: normal !important;
+        line-height: 1 !important;
+    }
+    .dashboard-header .header-left .header-name-card h1.name-length-50-plus { 
+        font-size: 13px !important;
+        white-space: normal !important;
+        line-height: 1 !important;
+    }
+    
+    /* ✅ DYNAMIC FONT SIZE FOR HELLO TEXT */
+    .dashboard-header .header-left .header-name-card h1.name-length-25-30 .hello-text { font-size: 16px !important; }
+    .dashboard-header .header-left .header-name-card h1.name-length-30-35 .hello-text { font-size: 15px !important; }
+    .dashboard-header .header-left .header-name-card h1.name-length-35-40 .hello-text { font-size: 14px !important; }
+    .dashboard-header .header-left .header-name-card h1.name-length-40-45 .hello-text { font-size: 13px !important; }
+    .dashboard-header .header-left .header-name-card h1.name-length-45-50 .hello-text { font-size: 12px !important; }
+    .dashboard-header .header-left .header-name-card h1.name-length-50-plus .hello-text { font-size: 11px !important; }
+    
+    .dashboard-header .header-left .welcome-text {
+        color: #333 !important;
+        font-size: 14px !important;
+        margin-top: 3px !important;
+        font-weight: 500 !important;
+        opacity: 0.8 !important;
+        padding-left: 5px;
+    }
+    
+    .dashboard-header .header-right {
+        width: 30%;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+    }
+    
+    /* ✅ HEADER PHOTO - CIRCLE ME */
+    .dashboard-header .profile-pic {
+        width: 60px !important;
+        height: 60px !important;
+        max-width: 60px !important;
+        border-radius: 50% !important; /* ✅ Circle */
+        border: 3px solid rgba(255, 204, 0, 0.6);
+        object-fit: cover;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Responsive Design for popup */
+    @media (max-width: 768px) {
+        .customer-photo-container {
+            width: 200px;
+            height: 200px;
+            box-shadow: 
+                0 0 0 8px rgba(139, 0, 0, 0.15),
+                0 3px 15px rgba(0, 0, 0, 0.2),
+                0 6px 30px rgba(0, 0, 0, 0.3),
+                0 12px 40px rgba(0, 0, 0, 0.35),
+                0 0 60px rgba(255, 204, 0, 0.08),
+                inset 0 0 25px rgba(255, 255, 255, 0.06);
+        }
+        
+        .simple-name-card {
+            padding: 10px 16px;
+            font-size: 16px;
+            min-width: 250px;
+            min-height: 45px;
+        }
+        
+        /* Responsive font sizes for card */
+        .simple-name-card.name-length-25-30 { font-size: 15px; }
+        .simple-name-card.name-length-30-35 { font-size: 14px; }
+        .simple-name-card.name-length-35-40 { font-size: 13px; }
+        .simple-name-card.name-length-40-45 { font-size: 12px; }
+        .simple-name-card.name-length-45-50 { font-size: 11px; }
+        .simple-name-card.name-length-50-plus { font-size: 10px; }
+        
+        /* Header adjustments */
+        .dashboard-header {
+            padding: 12px 15px;
+        }
+        
+        .dashboard-header .header-left {
+            width: 65%;
+        }
+        
+        .dashboard-header .header-left .header-name-card {
+            padding: 8px 12px;
+            min-height: 40px;
+            border-radius: 8px;
+        }
+        
+        .dashboard-header .header-left .header-name-card h1 {
+            font-size: 18px !important;
+        }
+        .dashboard-header .header-left .header-name-card h1.name-length-25-30 { font-size: 17px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-30-35 { font-size: 16px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-35-40 { 
+            font-size: 15px !important;
+            white-space: normal !important;
+        }
+        .dashboard-header .header-left .header-name-card h1.name-length-40-45 { 
+            font-size: 14px !important;
+            white-space: normal !important;
+        }
+        .dashboard-header .header-left .header-name-card h1.name-length-45-50 { 
+            font-size: 13px !important;
+            white-space: normal !important;
+        }
+        .dashboard-header .header-left .header-name-card h1.name-length-50-plus { 
+            font-size: 12px !important;
+            white-space: normal !important;
+        }
+        
+        .dashboard-header .header-left .header-name-card h1.name-length-25-30 .hello-text { font-size: 15px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-30-35 .hello-text { font-size: 14px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-35-40 .hello-text { font-size: 13px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-40-45 .hello-text { font-size: 12px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-45-50 .hello-text { font-size: 11px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-50-plus .hello-text { font-size: 10px !important; }
+        
+        .dashboard-header .header-left .welcome-text {
+            font-size: 13px !important;
+        }
+        
+        .dashboard-header .header-right {
+            width: 35%;
+        }
+        
+        .dashboard-header .profile-pic {
+            width: 55px !important;
+            height: 55px !important;
+            border-width: 2px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .customer-photo-container {
+            width: 180px;
+            height: 180px;
+            box-shadow: 
+                0 0 0 6px rgba(139, 0, 0, 0.15),
+                0 2px 10px rgba(0, 0, 0, 0.2),
+                0 4px 20px rgba(0, 0, 0, 0.25),
+                0 8px 30px rgba(0, 0, 0, 0.3),
+                0 0 40px rgba(255, 204, 0, 0.06),
+                inset 0 0 20px rgba(255, 255, 255, 0.05);
+        }
+        
+        .popup-message {
+            font-size: 13px;
+        }
+        
+        .customer-name {
+            font-size: 15px;
+        }
+        
+        .simple-name-card {
+            padding: 8px 12px;
+            font-size: 15px;
+            min-width: 220px;
+            min-height: 40px;
+            border-radius: 8px;
+        }
+        
+        /* Responsive font sizes for card */
+        .simple-name-card.name-length-25-30 { font-size: 14px; }
+        .simple-name-card.name-length-30-35 { font-size: 13px; }
+        .simple-name-card.name-length-35-40 { font-size: 12px; }
+        .simple-name-card.name-length-40-45 { font-size: 11px; }
+        .simple-name-card.name-length-45-50 { font-size: 10px; }
+        .simple-name-card.name-length-50-plus { font-size: 9px; }
+        
+        /* Header adjustments */
+        .dashboard-header {
+            padding: 10px 12px;
+        }
+        
+        .dashboard-header .header-left {
+            width: 60%;
+        }
+        
+        .dashboard-header .header-left .header-name-card {
+            padding: 6px 10px;
+            min-height: 35px;
+            border-radius: 6px;
+        }
+        
+        .dashboard-header .header-left .header-name-card h1 {
+            font-size: 16px !important;
+        }
+        .dashboard-header .header-left .header-name-card h1.name-length-25-30 { font-size: 15px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-30-35 { font-size: 14px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-35-40 { 
+            font-size: 13px !important;
+            white-space: normal !important;
+        }
+        .dashboard-header .header-left .header-name-card h1.name-length-40-45 { 
+            font-size: 12px !important;
+            white-space: normal !important;
+        }
+        .dashboard-header .header-left .header-name-card h1.name-length-45-50 { 
+            font-size: 11px !important;
+            white-space: normal !important;
+        }
+        .dashboard-header .header-left .header-name-card h1.name-length-50-plus { 
+            font-size: 10px !important;
+            white-space: normal !important;
+        }
+        
+        .dashboard-header .header-left .header-name-card h1.name-length-25-30 .hello-text { font-size: 14px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-30-35 .hello-text { font-size: 13px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-35-40 .hello-text { font-size: 12px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-40-45 .hello-text { font-size: 11px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-45-50 .hello-text { font-size: 10px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-50-plus .hello-text { font-size: 9px !important; }
+        
+        .dashboard-header .header-left .welcome-text {
+            font-size: 12px !important;
+        }
+        
+        .dashboard-header .header-right {
+            width: 40%;
+        }
+        
+        .dashboard-header .profile-pic {
+            width: 50px !important;
+            height: 50px !important;
+            border-width: 2px;
+        }
+    }
+    
+    @media (max-width: 360px) {
+        .customer-photo-container {
+            width: 160px;
+            height: 160px;
+        }
+        
+        .popup-message {
+            font-size: 12px;
+        }
+        
+        .simple-name-card {
+            padding: 6px 10px;
+            font-size: 14px;
+            min-width: 200px;
+            min-height: 35px;
+            border-radius: 6px;
+        }
+        
+        /* Responsive font sizes for card */
+        .simple-name-card.name-length-25-30 { font-size: 13px; }
+        .simple-name-card.name-length-30-35 { font-size: 12px; }
+        .simple-name-card.name-length-35-40 { font-size: 11px; }
+        .simple-name-card.name-length-40-45 { font-size: 10px; }
+        .simple-name-card.name-length-45-50 { font-size: 9px; }
+        .simple-name-card.name-length-50-plus { font-size: 8px; }
+        
+        /* Header adjustments */
+        .dashboard-header {
+            padding: 8px 10px;
+        }
+        
+        .dashboard-header .header-left {
+            width: 55%;
+        }
+        
+        .dashboard-header .header-left .header-name-card {
+            padding: 5px 8px;
+            min-height: 30px;
+            border-radius: 4px;
+        }
+        
+        .dashboard-header .header-left .header-name-card h1 {
+            font-size: 14px !important;
+        }
+        .dashboard-header .header-left .header-name-card h1.name-length-25-30 { font-size: 13px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-30-35 { font-size: 12px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-35-40 { 
+            font-size: 11px !important;
+            white-space: normal !important;
+        }
+        .dashboard-header .header-left .header-name-card h1.name-length-40-45 { 
+            font-size: 10px !important;
+            white-space: normal !important;
+        }
+        .dashboard-header .header-left .header-name-card h1.name-length-45-50 { 
+            font-size: 9px !important;
+            white-space: normal !important;
+        }
+        .dashboard-header .header-left .header-name-card h1.name-length-50-plus { 
+            font-size: 8px !important;
+            white-space: normal !important;
+        }
+        
+        .dashboard-header .header-left .header-name-card h1.name-length-25-30 .hello-text { font-size: 12px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-30-35 .hello-text { font-size: 11px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-35-40 .hello-text { font-size: 10px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-40-45 .hello-text { font-size: 9px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-45-50 .hello-text { font-size: 8px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-50-plus .hello-text { font-size: 7px !important; }
+        
+        .dashboard-header .header-left .welcome-text {
+            font-size: 11px !important;
+        }
+        
+        .dashboard-header .header-right {
+            width: 45%;
+        }
+        
+        .dashboard-header .profile-pic {
+            width: 45px !important;
+            height: 45px !important;
+            border-width: 1.5px;
+        }
+    }
+</style>
+
+<!-- Welcome Popup Modal - MINIMALIST VERSION (index.html se liya gaya) -->
+<div class="welcome-popup" id="welcomePopup">
+    <div class="popup-content">
+        <div class="popup-close" id="popupClose">&times;</div>
+        
+        <!-- Welcome badge -->
+        <div class="welcome-badge">WELCOME TO YOUR DASHBOARD</div>
+        
+        <!-- ✅ SIMPLE BORDER CARD FOR NAME -->
+        <div class="simple-name-card" id="popupCustomerName">{{ session.full_name }}</div>
+        
+        <div class="customer-photo-container">
+            <img src="{{ session.profile_pic }}" 
+                 alt="Customer Photo" 
+                 class="customer-photo"
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+        
+        <div class="popup-message-container">
+            <!-- Updated welcome message -->
+            <p class="popup-message">
+                Welcome back! Your personalized dashboard is ready. 
+                Manage your orders, view services, and explore delicious traditional flavors.
+            </p>
+            
+            <!-- Removed duplicate customer name here to avoid repetition -->
+            <div class="customer-title">Valued Customer</div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard">
+    <!-- Top Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <!-- ✅ SIMPLE BORDER CARD FOR HEADER NAME WITH "HELLO, " -->
+            <div class="header-name-card">
+                <h1 id="dashboardUserName">
+                    <span class="hello-text">Hello, </span>{{ session.full_name }}
+                </h1>
+            </div>
+            <!-- ✅ Black color welcome text -->
+            <p class="welcome-text">Welcome to your dashboard</p>
+        </div>
+        <div class="header-right">
+            <!-- ✅ PHOTO CIRCLE ME -->
+            <img src="{{ session.profile_pic }}" 
+                 alt="Profile" class="profile-pic" 
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <div class="content-placeholder">
+            <div class="placeholder-icon">
+                <i class="fas fa-home"></i>
+            </div>
+            <h2>Welcome to Your Dashboard</h2>
+            <p>Use the bottom navigation to explore services, menu, cart, orders, and profile.</p>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item" data-page="services">
+            <i class="fas fa-concierge-bell"></i>
+            <span>Services</span>
+        </a>
+        <a href="{{ url_for('menu') }}" class="nav-item" data-page="menu">
+            <i class="fas fa-utensils"></i>
+            <span>Menu</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item" data-page="cart">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item" data-page="orders">
+            <i class="fas fa-history"></i>
+            <span>Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item" data-page="profile">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+</div>
+
+<script>
+// ✅ FUNCTION: Get font size class based on name length
+function getFontSizeClass(nameLength) {
+    if (nameLength <= 25) {
+        return ''; // Default size
+    } else if (nameLength <= 30) {
+        return 'name-length-25-30';
+    } else if (nameLength <= 35) {
+        return 'name-length-30-35';
+    } else if (nameLength <= 40) {
+        return 'name-length-35-40';
+    } else if (nameLength <= 45) {
+        return 'name-length-40-45';
+    } else if (nameLength <= 50) {
+        return 'name-length-45-50';
+    } else {
+        return 'name-length-50-plus';
+    }
+}
+
+// ✅ FUNCTION: Apply dynamic font size to elements
+function applyDynamicFontSize() {
+    const fullName = "{{ session.full_name }}";
+    const nameLength = fullName.length;
+    
+    console.log(`Name: ${fullName}, Length: ${nameLength}`);
+    
+    // Get the font size class based on name length
+    const fontSizeClass = getFontSizeClass(nameLength);
+    
+    // Apply to popup customer name CARD
+    const popupCustomerName = document.getElementById('popupCustomerName');
+    if (popupCustomerName) {
+        // Remove all existing font size classes
+        popupCustomerName.classList.remove(
+            'name-length-25-30', 
+            'name-length-30-35', 
+            'name-length-35-40',
+            'name-length-40-45',
+            'name-length-45-50',
+            'name-length-50-plus'
+        );
+        
+        // Add the appropriate class
+        if (fontSizeClass) {
+            popupCustomerName.classList.add(fontSizeClass);
+        }
+    }
+    
+    // Apply to dashboard header name CARD
+    const dashboardUserName = document.getElementById('dashboardUserName');
+    if (dashboardUserName) {
+        // Remove all existing font size classes
+        dashboardUserName.classList.remove(
+            'name-length-25-30', 
+            'name-length-30-35', 
+            'name-length-35-40',
+            'name-length-40-45',
+            'name-length-45-50',
+            'name-length-50-plus'
+        );
+        
+        // Add the appropriate class
+        if (fontSizeClass) {
+            dashboardUserName.classList.add(fontSizeClass);
+        }
+        
+        // For very long names, show tooltip on hover
+        if (nameLength > 35) {
+            dashboardUserName.title = fullName;
+        }
+    }
+}
+
+// Handle navigation and load content via AJAX
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+        if (this.getAttribute('href').startsWith('#')) {
+            e.preventDefault();
+            const page = this.getAttribute('data-page');
+            loadPage(page);
+        }
+    });
+});
+
+function loadPage(page) {
+    const mainContent = document.getElementById('mainContent');
+    
+    // Remove active class from all nav items
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Add active class to clicked item
+    event.target.closest('.nav-item').classList.add('active');
+    
+    // You can implement AJAX loading here if needed
+    // For now, we'll rely on full page loads from Flask routes
+}
+
+// Welcome Popup Elements
+const welcomePopup = document.getElementById('welcomePopup');
+const popupClose = document.getElementById('popupClose');
+
+// Show popup ALWAYS on page load/refresh
+function showWelcomePopup() {
+    // ALWAYS show popup, no localStorage check
+    setTimeout(() => {
+        welcomePopup.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }, 300);
+}
+
+// Close welcome popup
+function closeWelcomePopup() {
+    welcomePopup.style.display = 'none';
+    document.body.style.overflow = 'auto';
+    // NO localStorage storage - so popup will show again on refresh
+}
+
+// ✅ FUNCTION: Ensure name fits in card
+function ensureNameFitsInCard() {
+    const userNameElement = document.getElementById('dashboardUserName');
+    if (!userNameElement) return;
+    
+    const userName = userNameElement.textContent;
+    
+    // Get the card container
+    const nameCard = document.querySelector('.header-name-card');
+    if (!nameCard) return;
+    
+    const cardWidth = nameCard.offsetWidth;
+    const textWidth = userNameElement.scrollWidth;
+    
+    console.log(`Card width: ${cardWidth}px, Text width: ${textWidth}px`);
+    
+    // If text is wider than card, adjust font size
+    if (textWidth > cardWidth) {
+        const currentSize = parseInt(window.getComputedStyle(userNameElement).fontSize);
+        const newSize = Math.max(8, currentSize - 1);
+        userNameElement.style.fontSize = newSize + 'px';
+        
+        console.log(`Adjusted font size to ${newSize}px to fit in card`);
+        
+        // For very long names, allow wrapping
+        if (newSize <= 12) {
+            userNameElement.style.whiteSpace = 'normal';
+            userNameElement.style.lineHeight = '1';
+        }
+    }
+}
+
+// Initialize popup on page load - ALWAYS SHOW
+document.addEventListener('DOMContentLoaded', function() {
+    showWelcomePopup();
+    
+    // ✅ Apply dynamic font size based on name length
+    applyDynamicFontSize();
+    
+    // ✅ Ensure name fits in card
+    setTimeout(() => {
+        ensureNameFitsInCard();
+        
+        // Double check after all elements are loaded
+        setTimeout(ensureNameFitsInCard, 100);
+    }, 500);
+    
+    // ✅ Adjust on window resize
+    window.addEventListener('resize', function() {
+        setTimeout(ensureNameFitsInCard, 100);
+    });
+});
+
+// Close popup events
+popupClose.addEventListener('click', closeWelcomePopup);
+
+// Close popup when clicking outside
+welcomePopup.addEventListener('click', function(e) {
+    if (e.target === welcomePopup) {
+        closeWelcomePopup();
+    }
+});
+
+// Handle escape key to close popup
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeWelcomePopup();
+    }
+});
+</script>
+{% endblock %}
