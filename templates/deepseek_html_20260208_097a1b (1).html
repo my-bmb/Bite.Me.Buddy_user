@@ -1,0 +1,983 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<style>
+    /* Welcome Popup Modal - MINIMALIST VERSION (index.html se liya gaya) */
+    .welcome-popup {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.92);
+        z-index: 5000;
+        animation: popupFadeIn 0.5s ease;
+        justify-content: center;
+        align-items: center;
+        padding: 15px;
+    }
+    
+    @keyframes popupFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .popup-content {
+        background: transparent;
+        width: 100%;
+        max-width: 340px;
+        position: relative;
+        animation: popupSlideIn 0.6s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    @keyframes popupSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(30px) scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+    
+    .popup-close {
+        position: absolute;
+        top: -40px;
+        right: 0;
+        width: 36px;
+        height: 36px;
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10;
+        font-weight: bold;
+        font-size: 20px;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(5px);
+    }
+    
+    .popup-close:hover {
+        background: rgba(255, 204, 0, 0.8);
+        color: #8b0000;
+        transform: scale(1.1);
+    }
+    
+    /* ✅ POPUP REORDERED STRUCTURE */
+    .welcome-badge {
+        background: linear-gradient(135deg, #8b0000 0%, #5a0000 100%);
+        color: #ffcc00;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        margin-bottom: 20px;
+        border: 1px solid rgba(255, 204, 0, 0.3);
+        display: inline-block;
+        box-shadow: 0 4px 15px rgba(139, 0, 0, 0.3);
+    }
+    
+    .customer-photo-container {
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        overflow: hidden;
+        margin: 0 auto 20px;
+        border: 5px solid rgba(255, 204, 0, 0.4);
+        /* ✅ PROFESSIONAL SHADOW - Updated */
+        box-shadow: 
+            0 0 0 10px rgba(139, 0, 0, 0.15),        /* Soft inner glow */
+            0 4px 20px rgba(0, 0, 0, 0.25),          /* Subtle drop shadow */
+            0 8px 40px rgba(0, 0, 0, 0.35),          /* Medium shadow */
+            0 15px 60px rgba(0, 0, 0, 0.45),         /* Outer shadow */
+            0 0 80px rgba(255, 204, 0, 0.1),         /* Golden ambient glow */
+            inset 0 0 30px rgba(255, 255, 255, 0.08); /* Soft inner highlight */
+        position: relative;
+        z-index: 1;
+        animation: professionalGlow 3s infinite alternate;
+    }
+    
+    /* ✅ PROFESSIONAL GLOW ANIMATION */
+    @keyframes professionalGlow {
+        0% {
+            box-shadow: 
+                0 0 0 10px rgba(139, 0, 0, 0.15),
+                0 4px 20px rgba(0, 0, 0, 0.25),
+                0 8px 40px rgba(0, 0, 0, 0.35),
+                0 15px 60px rgba(0, 0, 0, 0.45),
+                0 0 80px rgba(255, 204, 0, 0.1),
+                inset 0 0 30px rgba(255, 255, 255, 0.08);
+        }
+        50% {
+            box-shadow: 
+                0 0 0 12px rgba(139, 0, 0, 0.2),
+                0 6px 25px rgba(0, 0, 0, 0.3),
+                0 12px 50px rgba(0, 0, 0, 0.4),
+                0 20px 70px rgba(0, 0, 0, 0.5),
+                0 0 100px rgba(255, 204, 0, 0.15),
+                inset 0 0 35px rgba(255, 255, 255, 0.12);
+        }
+        100% {
+            box-shadow: 
+                0 0 0 8px rgba(139, 0, 0, 0.12),
+                0 3px 15px rgba(0, 0, 0, 0.2),
+                0 6px 30px rgba(0, 0, 0, 0.3),
+                0 12px 50px rgba(0, 0, 0, 0.4),
+                0 0 60px rgba(255, 204, 0, 0.08),
+                inset 0 0 25px rgba(255, 255, 255, 0.06);
+        }
+    }
+    
+    /* ✅ ADD RING EFFECT FOR MORE PROFESSIONAL LOOK */
+    .customer-photo-container::before {
+        content: '';
+        position: absolute;
+        top: -12px;
+        left: -12px;
+        right: -12px;
+        bottom: -12px;
+        border-radius: 50%;
+        background: radial-gradient(
+            circle at center,
+            rgba(255, 204, 0, 0.05) 0%,
+            rgba(255, 204, 0, 0.02) 30%,
+            transparent 70%
+        );
+        z-index: -1;
+        animation: ringPulse 4s infinite ease-in-out;
+    }
+    
+    @keyframes ringPulse {
+        0%, 100% {
+            transform: scale(1);
+            opacity: 0.6;
+        }
+        50% {
+            transform: scale(1.05);
+            opacity: 0.8;
+        }
+    }
+    
+    .customer-photo {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+        border-radius: 50%;
+        position: relative;
+        z-index: 2;
+    }
+    
+    /* ✅ SIMPLE BORDER CARD FOR POPUP NAME - 1PX BORDER - PUURA NAAM AAYE */
+    .simple-name-card {
+        border: 1px solid rgba(255, 204, 0, 0.6); /* ✅ 1px border */
+        border-radius: 8px;
+        padding: 8px 15px;
+        margin-bottom: 15px;
+        max-width: 100%;
+        word-wrap: break-word;
+        box-sizing: border-box;
+        text-align: center;
+        background: transparent !important;
+        
+        /* Default font size */
+        font-size: 18px;
+        color: #ffcc00;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        font-family: 'Montserrat', sans-serif;
+        
+        /* ✅ PUURA NAAM AAYE */
+        overflow: visible !important;
+        white-space: normal !important;
+        text-overflow: clip !important;
+        word-break: break-word !important;
+        line-height: 1.2;
+        
+        /* ✅ 2px niche shift */
+        transform: translateY(2px);
+    }
+    
+    .popup-message-container {
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        width: 100%;
+        border: 1px solid rgba(255, 204, 0, 0.2);
+        margin-top: 10px;
+        box-shadow: 
+            0 5px 25px rgba(0, 0, 0, 0.4),
+            0 10px 40px rgba(0, 0, 0, 0.3),
+            inset 0 0 20px rgba(255, 255, 255, 0.05);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .popup-message {
+        color: white;
+        font-size: 14px;
+        line-height: 1.4;
+        margin-bottom: 12px;
+        font-weight: 400;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    }
+    
+    .customer-title {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 11px;
+        margin-top: 3px;
+        letter-spacing: 0.5px;
+    }
+    
+    /* ✅ DYNAMIC FONT SIZE FOR LONG NAMES IN CARD */
+    .simple-name-card.name-length-25-30 { font-size: 16px; }
+    .simple-name-card.name-length-30-35 { font-size: 15px; }
+    .simple-name-card.name-length-35-40 { font-size: 14px; }
+    .simple-name-card.name-length-40-45 { font-size: 13px; }
+    .simple-name-card.name-length-45-50 { font-size: 12px; }
+    .simple-name-card.name-length-50-plus { font-size: 11px; }
+
+    /* ✅ Dashboard header styling */
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        margin-bottom: 20px;
+        position: relative;
+    }
+    
+    .dashboard-header .header-left {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        /* ✅ Card photo tak extend karega, photo se 9px pehle stop hoga */
+        flex: 1;
+        min-width: 0; /* Flexbox overflow fix */
+    }
+    
+    /* ✅ HEADER GREETING WITH HELLO + NAME */
+    .greeting-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+        width: 100%;
+        position: relative;
+    }
+    
+    .greeting-text {
+        color: #333;
+        font-size: 20px;
+        font-weight: 600;
+        margin-right: 8px;
+        font-family: inherit;
+        white-space: nowrap;
+        flex-shrink: 0; /* Size fixed rahe */
+    }
+    
+    /* ✅ HEADER NAME CARD - 1PX BORDER - PUURA NAAM AAYE - PHOTO TAK EXTEND */
+    .dashboard-header .header-left .header-name-card {
+        border: 1px solid rgba(255, 204, 0, 0.6); /* ✅ 1px border */
+        border-radius: 8px;
+        padding: 6px 12px;
+        box-sizing: border-box;
+        background: transparent !important;
+        min-height: 36px;
+        display: flex;
+        align-items: center;
+        vertical-align: middle;
+        
+        /* ✅ PUURA NAAM AAYE */
+        overflow: hidden !important; /* Hidden for proper width calculation */
+        text-overflow: ellipsis !important;
+        position: relative;
+        
+        /* ✅ 2px niche shift */
+        transform: translateY(2px);
+        
+        /* ✅ Card photo tak extend hoga, photo se 9px pehle stop */
+        flex: 1;
+        min-width: 0; /* Flexbox overflow fix */
+        max-width: calc(100% - 50px - 9px); /* Photo width (50px) + 9px gap */
+        margin-right: 9px; /* Photo se 9px ka gap */
+    }
+    
+    /* ✅ CARD KA RIGHT SIDE PHOTO KE LEFT SE 9PX PEHLE END HONA CHAHIYE */
+    .dashboard-header .header-left .header-name-card::after {
+        content: '';
+        position: absolute;
+        right: -9px; /* ✅ Photo se 9px pehle */
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: transparent;
+    }
+    
+    .dashboard-header .header-left .header-name-card h1 {
+        color: #8b0000 !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        font-weight: 700 !important;
+        line-height: 1.2 !important;
+        
+        /* ✅ PUURA NAAM AAYE - BUT CARD KE ANDAR HI */
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        max-width: 100% !important;
+        font-size: 20px !important;
+        width: 100%;
+        font-family: inherit !important;
+        flex: 1;
+        min-width: 0; /* Flexbox overflow fix */
+    }
+    
+    /* ✅ LONG NAMES KE LIYE WHITE-SPACE NORMAL */
+    .dashboard-header .header-left .header-name-card h1.long-name {
+        white-space: normal !important;
+        line-height: 1.1 !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        word-wrap: break-word !important;
+        word-break: break-word !important;
+    }
+    
+    /* ✅ DYNAMIC FONT SIZE FOR HEADER CARD */
+    .dashboard-header .header-left .header-name-card h1.name-length-25-30 { font-size: 18px !important; }
+    .dashboard-header .header-left .header-name-card h1.name-length-30-35 { font-size: 17px !important; }
+    .dashboard-header .header-left .header-name-card h1.name-length-35-40 { 
+        font-size: 16px !important;
+        line-height: 1.1 !important;
+    }
+    .dashboard-header .header-left .header-name-card h1.name-length-40-45 { 
+        font-size: 15px !important;
+        line-height: 1.1 !important;
+    }
+    .dashboard-header .header-left .header-name-card h1.name-length-45-50 { 
+        font-size: 14px !important;
+        line-height: 1 !important;
+    }
+    .dashboard-header .header-left .header-name-card h1.name-length-50-plus { 
+        font-size: 13px !important;
+        line-height: 1 !important;
+    }
+    
+    .dashboard-header .header-left .welcome-text {
+        color: #333 !important;
+        font-size: 14px !important;
+        margin-top: 5px !important;
+        font-weight: 500 !important;
+        opacity: 0.8 !important;
+        padding-left: 5px;
+    }
+    
+    .dashboard-header .header-right {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        flex-shrink: 0; /* Size fixed rahe */
+    }
+    
+    /* ✅ HEADER PHOTO - CIRCLE */
+    .dashboard-header .profile-pic {
+        width: 50px !important;
+        height: 50px !important;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 204, 0, 0.6);
+        object-fit: cover;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        flex-shrink: 0; /* Size fixed rahe */
+    }
+
+    /* Responsive Design for popup */
+    @media (max-width: 768px) {
+        .customer-photo-container {
+            width: 200px;
+            height: 200px;
+            box-shadow: 
+                0 0 0 8px rgba(139, 0, 0, 0.15),
+                0 3px 15px rgba(0, 0, 0, 0.2),
+                0 6px 30px rgba(0, 0, 0, 0.3),
+                0 12px 40px rgba(0, 0, 0, 0.35),
+                0 0 60px rgba(255, 204, 0, 0.08),
+                inset 0 0 25px rgba(255, 255, 255, 0.06);
+        }
+        
+        .simple-name-card {
+            padding: 6px 12px;
+            font-size: 16px;
+            border-width: 1px;
+        }
+        
+        /* Responsive font sizes for card */
+        .simple-name-card.name-length-25-30 { font-size: 15px; }
+        .simple-name-card.name-length-30-35 { font-size: 14px; }
+        .simple-name-card.name-length-35-40 { font-size: 13px; }
+        .simple-name-card.name-length-40-45 { font-size: 12px; }
+        .simple-name-card.name-length-45-50 { font-size: 11px; }
+        .simple-name-card.name-length-50-plus { font-size: 10px; }
+        
+        /* Header adjustments */
+        .dashboard-header {
+            padding: 12px 15px;
+        }
+        
+        .greeting-text {
+            font-size: 18px;
+        }
+        
+        .dashboard-header .header-left .header-name-card {
+            padding: 5px 10px;
+            min-height: 32px;
+            border-width: 1px;
+            max-width: calc(100% - 45px - 9px); /* Photo width (45px) + 9px gap */
+            margin-right: 9px;
+        }
+        
+        .dashboard-header .header-left .header-name-card h1 {
+            font-size: 18px !important;
+        }
+        .dashboard-header .header-left .header-name-card h1.name-length-25-30 { font-size: 17px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-30-35 { font-size: 16px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-35-40 { 
+            font-size: 15px !important;
+            line-height: 1.1 !important;
+        }
+        .dashboard-header .header-left .header-name-card h1.name-length-40-45 { 
+            font-size: 14px !important;
+            line-height: 1.1 !important;
+        }
+        .dashboard-header .header-left .header-name-card h1.name-length-45-50 { 
+            font-size: 13px !important;
+            line-height: 1 !important;
+        }
+        .dashboard-header .header-left .header-name-card h1.name-length-50-plus { 
+            font-size: 12px !important;
+            line-height: 1 !important;
+        }
+        
+        .dashboard-header .header-left .welcome-text {
+            font-size: 13px !important;
+        }
+        
+        .dashboard-header .profile-pic {
+            width: 45px !important;
+            height: 45px !important;
+            border-width: 2px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .customer-photo-container {
+            width: 180px;
+            height: 180px;
+            box-shadow: 
+                0 0 0 6px rgba(139, 0, 0, 0.15),
+                0 2px 10px rgba(0, 0, 0, 0.2),
+                0 4px 20px rgba(0, 0, 0, 0.25),
+                0 8px 30px rgba(0, 0, 0, 0.3),
+                0 0 40px rgba(255, 204, 0, 0.06),
+                inset 0 0 20px rgba(255, 255, 255, 0.05);
+        }
+        
+        .popup-message {
+            font-size: 13px;
+        }
+        
+        .simple-name-card {
+            padding: 5px 10px;
+            font-size: 15px;
+            border-width: 1px;
+        }
+        
+        /* Responsive font sizes for card */
+        .simple-name-card.name-length-25-30 { font-size: 14px; }
+        .simple-name-card.name-length-30-35 { font-size: 13px; }
+        .simple-name-card.name-length-35-40 { font-size: 12px; }
+        .simple-name-card.name-length-40-45 { font-size: 11px; }
+        .simple-name-card.name-length-45-50 { font-size: 10px; }
+        .simple-name-card.name-length-50-plus { font-size: 9px; }
+        
+        /* Header adjustments */
+        .dashboard-header {
+            padding: 10px 12px;
+        }
+        
+        .greeting-text {
+            font-size: 16px;
+            margin-right: 5px;
+        }
+        
+        .dashboard-header .header-left .header-name-card {
+            padding: 4px 8px;
+            min-height: 28px;
+            border-radius: 6px;
+            border-width: 1px;
+            max-width: calc(100% - 40px - 9px); /* Photo width (40px) + 9px gap */
+            margin-right: 9px;
+        }
+        
+        .dashboard-header .header-left .header-name-card h1 {
+            font-size: 16px !important;
+        }
+        .dashboard-header .header-left .header-name-card h1.name-length-25-30 { font-size: 15px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-30-35 { font-size: 14px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-35-40 { 
+            font-size: 13px !important;
+            line-height: 1.1 !important;
+        }
+        .dashboard-header .header-left .header-name-card h1.name-length-40-45 { 
+            font-size: 12px !important;
+            line-height: 1.1 !important;
+        }
+        .dashboard-header .header-left .header-name-card h1.name-length-45-50 { 
+            font-size: 11px !important;
+            line-height: 1 !important;
+        }
+        .dashboard-header .header-left .header-name-card h1.name-length-50-plus { 
+            font-size: 10px !important;
+            line-height: 1 !important;
+        }
+        
+        .dashboard-header .header-left .welcome-text {
+            font-size: 12px !important;
+        }
+        
+        .dashboard-header .profile-pic {
+            width: 40px !important;
+            height: 40px !important;
+            border-width: 2px;
+        }
+    }
+    
+    @media (max-width: 360px) {
+        .customer-photo-container {
+            width: 160px;
+            height: 160px;
+        }
+        
+        .popup-message {
+            font-size: 12px;
+        }
+        
+        .simple-name-card {
+            padding: 4px 8px;
+            font-size: 14px;
+            border-width: 1px;
+        }
+        
+        /* Responsive font sizes for card */
+        .simple-name-card.name-length-25-30 { font-size: 13px; }
+        .simple-name-card.name-length-30-35 { font-size: 12px; }
+        .simple-name-card.name-length-35-40 { font-size: 11px; }
+        .simple-name-card.name-length-40-45 { font-size: 10px; }
+        .simple-name-card.name-length-45-50 { font-size: 9px; }
+        .simple-name-card.name-length-50-plus { font-size: 8px; }
+        
+        /* Header adjustments */
+        .dashboard-header {
+            padding: 8px 10px;
+        }
+        
+        .greeting-text {
+            font-size: 14px;
+            margin-right: 4px;
+        }
+        
+        .dashboard-header .header-left .header-name-card {
+            padding: 3px 6px;
+            min-height: 24px;
+            border-radius: 4px;
+            border-width: 1px;
+            max-width: calc(100% - 35px - 9px); /* Photo width (35px) + 9px gap */
+            margin-right: 9px;
+        }
+        
+        .dashboard-header .header-left .header-name-card h1 {
+            font-size: 14px !important;
+        }
+        .dashboard-header .header-left .header-name-card h1.name-length-25-30 { font-size: 13px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-30-35 { font-size: 12px !important; }
+        .dashboard-header .header-left .header-name-card h1.name-length-35-40 { 
+            font-size: 11px !important;
+            line-height: 1 !important;
+        }
+        .dashboard-header .header-left .header-name-card h1.name-length-40-45 { 
+            font-size: 10px !important;
+            line-height: 1 !important;
+        }
+        .dashboard-header .header-left .header-name-card h1.name-length-45-50 { 
+            font-size: 9px !important;
+            line-height: 1 !important;
+        }
+        .dashboard-header .header-left .header-name-card h1.name-length-50-plus { 
+            font-size: 8px !important;
+            line-height: 1 !important;
+        }
+        
+        .dashboard-header .header-left .welcome-text {
+            font-size: 11px !important;
+        }
+        
+        .dashboard-header .profile-pic {
+            width: 35px !important;
+            height: 35px !important;
+            border-width: 1px;
+        }
+    }
+</style>
+
+<!-- Welcome Popup Modal - REORDERED STRUCTURE -->
+<div class="welcome-popup" id="welcomePopup">
+    <div class="popup-content">
+        <div class="popup-close" id="popupClose">&times;</div>
+        
+        <!-- ✅ 1. WELCOME BADGE (Top) -->
+        <div class="welcome-badge">WELCOME TO YOUR DASHBOARD</div>
+        
+        <!-- ✅ 2. PHOTO (Middle) -->
+        <div class="customer-photo-container">
+            <img src="{{ session.profile_pic }}" 
+                 alt="Customer Photo" 
+                 class="customer-photo"
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+        
+        <!-- ✅ 3. NAME CARD (Below Photo) - 1PX BORDER, PUURA NAAM -->
+        <div class="simple-name-card" id="popupCustomerName">{{ session.full_name }}</div>
+        
+        <!-- ✅ 4. WELCOME MESSAGE (Below Name) -->
+        <div class="popup-message-container">
+            <!-- Welcome message -->
+            <p class="popup-message">
+                Welcome back! Your personalized dashboard is ready. 
+                Manage your orders, view services, and explore delicious traditional flavors.
+            </p>
+            
+            <div class="customer-title">Valued Customer</div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard">
+    <!-- Top Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <!-- ✅ GREETING WITH HELLO + NAME IN CARD - 1PX BORDER, PUURA NAAM -->
+            <div class="greeting-container">
+                <span class="greeting-text">Hello,</span>
+                <div class="header-name-card">
+                    <h1 id="dashboardUserName">{{ session.full_name }}</h1>
+                </div>
+            </div>
+            <!-- ✅ Welcome text -->
+            <p class="welcome-text">Welcome to your dashboard</p>
+        </div>
+        <div class="header-right">
+            <!-- ✅ CIRCLE PHOTO IN HEADER -->
+            <img src="{{ session.profile_pic }}" 
+                 alt="Profile" class="profile-pic" 
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <div class="content-placeholder">
+            <div class="placeholder-icon">
+                <i class="fas fa-home"></i>
+            </div>
+            <h2>Welcome to Your Dashboard</h2>
+            <p>Use the bottom navigation to explore services, menu, cart, orders, and profile.</p>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item" data-page="services">
+            <i class="fas fa-concierge-bell"></i>
+            <span>Services</span>
+        </a>
+        <a href="{{ url_for('menu') }}" class="nav-item" data-page="menu">
+            <i class="fas fa-utensils"></i>
+            <span>Menu</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item" data-page="cart">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item" data-page="orders">
+            <i class="fas fa-history"></i>
+            <span>Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item" data-page="profile">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+</div>
+
+<script>
+// ✅ FUNCTION: Get font size class based on name length
+function getFontSizeClass(nameLength) {
+    if (nameLength <= 25) {
+        return ''; // Default size
+    } else if (nameLength <= 30) {
+        return 'name-length-25-30';
+    } else if (nameLength <= 35) {
+        return 'name-length-30-35';
+    } else if (nameLength <= 40) {
+        return 'name-length-35-40';
+    } else if (nameLength <= 45) {
+        return 'name-length-40-45';
+    } else if (nameLength <= 50) {
+        return 'name-length-45-50';
+    } else {
+        return 'name-length-50-plus';
+    }
+}
+
+// ✅ FUNCTION: Apply dynamic font size to elements
+function applyDynamicFontSize() {
+    const fullName = "{{ session.full_name }}";
+    const nameLength = fullName.length;
+    
+    console.log(`Name: ${fullName}, Length: ${nameLength}`);
+    
+    // Get the font size class based on name length
+    const fontSizeClass = getFontSizeClass(nameLength);
+    
+    // Apply to popup customer name CARD
+    const popupCustomerName = document.getElementById('popupCustomerName');
+    if (popupCustomerName) {
+        // Remove all existing font size classes
+        popupCustomerName.classList.remove(
+            'name-length-25-30', 
+            'name-length-30-35', 
+            'name-length-35-40',
+            'name-length-40-45',
+            'name-length-45-50',
+            'name-length-50-plus'
+        );
+        
+        // Add the appropriate class
+        if (fontSizeClass) {
+            popupCustomerName.classList.add(fontSizeClass);
+        }
+    }
+    
+    // Apply to dashboard header name CARD
+    const dashboardUserName = document.getElementById('dashboardUserName');
+    if (dashboardUserName) {
+        // Remove all existing font size classes
+        dashboardUserName.classList.remove(
+            'name-length-25-30', 
+            'name-length-30-35', 
+            'name-length-35-40',
+            'name-length-40-45',
+            'name-length-45-50',
+            'name-length-50-plus'
+        );
+        
+        // Add the appropriate class
+        if (fontSizeClass) {
+            dashboardUserName.classList.add(fontSizeClass);
+        }
+        
+        // For very long names, show tooltip on hover
+        if (nameLength > 35) {
+            dashboardUserName.title = fullName;
+        }
+    }
+}
+
+// ✅ FUNCTION: ADJUST CARD LENGTH TO PHOTO WITH 9PX GAP
+function adjustCardLengthToPhoto() {
+    const nameCard = document.querySelector('.header-name-card');
+    const profilePic = document.querySelector('.profile-pic');
+    
+    if (!nameCard || !profilePic) return;
+    
+    // Get photo position and width
+    const photoRect = profilePic.getBoundingClientRect();
+    const headerRect = document.querySelector('.dashboard-header').getBoundingClientRect();
+    
+    // Calculate available space (header width minus photo width minus 9px gap)
+    const availableWidth = headerRect.width - photoRect.width - 9;
+    
+    // Calculate "Hello," text width
+    const greetingText = document.querySelector('.greeting-text');
+    const greetingWidth = greetingText ? greetingText.offsetWidth : 60; // Approximate
+    
+    // Calculate maximum card width (available width minus "Hello," width minus margins)
+    const maxCardWidth = availableWidth - greetingWidth - 16; // 16px for margins/padding
+    
+    // Set card max-width
+    nameCard.style.maxWidth = Math.max(100, maxCardWidth) + 'px';
+    
+    console.log(`Photo width: ${photoRect.width}px, Available: ${availableWidth}px, Card max: ${maxCardWidth}px`);
+}
+
+// ✅ FUNCTION: ENSURE FULL NAME IS VISIBLE - ADAPTIVE
+function ensureFullNameVisible() {
+    const userNameElement = document.getElementById('dashboardUserName');
+    if (!userNameElement) return;
+    
+    const userName = userNameElement.textContent;
+    const nameLength = userName.length;
+    
+    // Card reference
+    const nameCard = document.querySelector('.header-name-card');
+    
+    if (nameLength > 30) {
+        // Long names ke liye word wrap allow karo
+        userNameElement.classList.add('long-name');
+        userNameElement.style.whiteSpace = 'normal';
+        userNameElement.style.lineHeight = '1.1';
+        userNameElement.style.wordBreak = 'break-word';
+        userNameElement.style.overflow = 'visible';
+        userNameElement.style.textOverflow = 'clip';
+        
+        // Card height adjust for wrapped text
+        if (nameCard) {
+            nameCard.style.minHeight = 'auto';
+            nameCard.style.alignItems = 'flex-start';
+            nameCard.style.paddingTop = '8px';
+            nameCard.style.paddingBottom = '8px';
+        }
+    } else {
+        // Short names ke liye single line
+        userNameElement.classList.remove('long-name');
+        userNameElement.style.whiteSpace = 'nowrap';
+        userNameElement.style.lineHeight = '1.2';
+        userNameElement.style.wordBreak = 'normal';
+        userNameElement.style.overflow = 'hidden';
+        userNameElement.style.textOverflow = 'ellipsis';
+        
+        // Card height reset
+        if (nameCard) {
+            nameCard.style.minHeight = '36px';
+            nameCard.style.alignItems = 'center';
+            nameCard.style.paddingTop = '6px';
+            nameCard.style.paddingBottom = '6px';
+        }
+    }
+    
+    // Font size adjustment based on name length
+    if (nameLength > 50) {
+        userNameElement.style.fontSize = '13px';
+    } else if (nameLength > 40) {
+        userNameElement.style.fontSize = '15px';
+    } else if (nameLength > 30) {
+        userNameElement.style.fontSize = '17px';
+    }
+}
+
+// Handle navigation and load content via AJAX
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+        if (this.getAttribute('href').startsWith('#')) {
+            e.preventDefault();
+            const page = this.getAttribute('data-page');
+            loadPage(page);
+        }
+    });
+});
+
+function loadPage(page) {
+    const mainContent = document.getElementById('mainContent');
+    
+    // Remove active class from all nav items
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Add active class to clicked item
+    event.target.closest('.nav-item').classList.add('active');
+    
+    // You can implement AJAX loading here if needed
+    // For now, we'll rely on full page loads from Flask routes
+}
+
+// Welcome Popup Elements
+const welcomePopup = document.getElementById('welcomePopup');
+const popupClose = document.getElementById('popupClose');
+
+// Show popup ALWAYS on page load/refresh
+function showWelcomePopup() {
+    // ALWAYS show popup, no localStorage check
+    setTimeout(() => {
+        welcomePopup.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }, 300);
+}
+
+// Close welcome popup
+function closeWelcomePopup() {
+    welcomePopup.style.display = 'none';
+    document.body.style.overflow = 'auto';
+    // NO localStorage storage - so popup will show again on refresh
+}
+
+// Initialize popup on page load - ALWAYS SHOW
+document.addEventListener('DOMContentLoaded', function() {
+    showWelcomePopup();
+    
+    // ✅ Apply dynamic font size based on name length
+    applyDynamicFontSize();
+    
+    // ✅ ADJUST CARD LENGTH TO PHOTO WITH 9PX GAP
+    setTimeout(() => {
+        adjustCardLengthToPhoto();
+        ensureFullNameVisible();
+        
+        // Double check after all elements are loaded
+        setTimeout(() => {
+            adjustCardLengthToPhoto();
+            ensureFullNameVisible();
+        }, 100);
+    }, 500);
+    
+    // ✅ Adjust on window resize
+    window.addEventListener('resize', function() {
+        setTimeout(() => {
+            adjustCardLengthToPhoto();
+            ensureFullNameVisible();
+        }, 100);
+    });
+});
+
+// Close popup events
+popupClose.addEventListener('click', closeWelcomePopup);
+
+// Close popup when clicking outside
+welcomePopup.addEventListener('click', function(e) {
+    if (e.target === welcomePopup) {
+        closeWelcomePopup();
+    }
+});
+
+// Handle escape key to close popup
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeWelcomePopup();
+    }
+});
+</script>
+{% endblock %}
