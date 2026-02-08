@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Top Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <!-- Both "Hello," and username in same color -->
+            <h1 style="display: inline;">
+                <strong id="greetingText" style="color: #1d4ed8 !important; display: inline;">Hello, </strong>
+                <strong id="userName" style="color: #1d4ed8 !important; display: inline;">{{ session.full_name }}</strong>
+            </h1>
+            <p class="welcome-text">Welcome to your dashboard</p>
+        </div>
+        <div class="header-right">
+            <!-- ✅ LINE 12 UPDATED FOR CLOUDINARY -->
+            <img src="{{ session.profile_pic }}" 
+                 alt="Profile" class="profile-pic" 
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <div class="content-placeholder">
+            <div class="placeholder-icon">
+                <i class="fas fa-home"></i>
+            </div>
+            <h2>Welcome to Your Dashboard</h2>
+            <p>Use the bottom navigation to explore services, menu, cart, orders, and profile.</p>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item" data-page="services">
+            <i class="fas fa-concierge-bell"></i>
+            <span>Services</span>
+        </a>
+        <a href="{{ url_for('menu') }}" class="nav-item" data-page="menu">
+            <i class="fas fa-utensils"></i>
+            <span>Menu</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item" data-page="cart">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item" data-page="orders">
+            <i class="fas fa-history"></i>
+            <span>Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item" data-page="profile">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+</div>
+
+<script>
+// Handle navigation and load content via AJAX
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+        if (this.getAttribute('href').startsWith('#')) {
+            e.preventDefault();
+            const page = this.getAttribute('data-page');
+            loadPage(page);
+        }
+    });
+});
+
+function loadPage(page) {
+    const mainContent = document.getElementById('mainContent');
+    
+    // Remove active class from all nav items
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Add active class to clicked item
+    event.target.closest('.nav-item').classList.add('active');
+    
+    // You can implement AJAX loading here if needed
+    // For now, we'll rely on full page loads from Flask routes
+}
+
+// Method 3: Force color change with JavaScript as backup
+document.addEventListener('DOMContentLoaded', function() {
+    // For "Hello,"
+    const greetingElement = document.getElementById('greetingText');
+    if (greetingElement) {
+        greetingElement.style.color = '#1d4ed8';
+        greetingElement.style.setProperty('color', '#1d4ed8', 'important');
+        greetingElement.classList.add('force-blue-color');
+    }
+    
+    // For username
+    const userNameElement = document.getElementById('userName');
+    if (userNameElement) {
+        userNameElement.style.color = '#1d4ed8';
+        userNameElement.style.setProperty('color', '#1d4ed8', 'important');
+        userNameElement.classList.add('force-blue-color');
+    }
+});
+</script>
+
+<style>
+/* Method 2: Direct CSS override with maximum specificity for both elements */
+.dashboard-header .header-left h1 strong#greetingText.force-blue-color,
+.dashboard-header .header-left h1 strong#userName.force-blue-color {
+    color: #1d4ed8 !important;
+}
+
+/* Additional nuclear option if nothing else works for both */
+body .dashboard .dashboard-header .header-left h1 strong#greetingText,
+body .dashboard .dashboard-header .header-left h1 strong#userName {
+    color: #1d4ed8 !important;
+}
+
+/* Even more specific - target the h1 directly */
+.dashboard-header .header-left h1 {
+    color: #1d4ed8 !important;
+}
+
+/* Make sure all text inside that h1 is blue */
+.dashboard-header .header-left h1 * {
+    color: #1d4ed8 !important;
+}
+</style>
+{% endblock %}
