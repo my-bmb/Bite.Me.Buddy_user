@@ -1,0 +1,609 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --primary-color: #3b82f6;  /* BLUE 500 - Tailwind Blue */
+        --primary-dark: #1d4ed8;   /* BLUE 700 - Tailwind Darker Blue */
+        --primary-light: #60a5fa;  /* BLUE 400 - Tailwind Lighter Blue */
+        --primary-bg: #eff6ff;     /* BLUE 50 - Tailwind Light Blue Background */
+        --accent-color: #f87171;   /* RED 400 for heart */
+    }
+
+    /* Welcome Popup Modal - COMPACT BLUE THEME GLASSY CARD */
+    .welcome-popup {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.85);
+        z-index: 5000;
+        animation: popupFadeIn 0.4s ease;
+        justify-content: center;
+        align-items: center;
+        padding: 15px;
+    }
+    
+    @keyframes popupFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .popup-content {
+        background: transparent;
+        width: 100%;
+        max-width: 320px;
+        position: relative;
+        animation: popupSlideIn 0.5s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    @keyframes popupSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+    
+    /* COMPACT BLUE THEME GLASSY CARD */
+    .glassy-card {
+        background: linear-gradient(145deg, 
+            rgba(59, 130, 246, 0.12) 0%, 
+            rgba(29, 78, 216, 0.08) 100%);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-radius: 20px;
+        padding: 25px 20px;
+        width: 100%;
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        box-shadow: 
+            0 15px 30px rgba(0, 0, 0, 0.25),
+            0 6px 20px rgba(59, 130, 246, 0.15),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1),
+            inset 0 0 20px rgba(59, 130, 246, 0.05);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .glassy-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, 
+            transparent, 
+            rgba(59, 130, 246, 0.3), 
+            transparent);
+    }
+    
+    .glassy-card::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(
+            circle at center,
+            rgba(59, 130, 246, 0.1) 0%,
+            rgba(29, 78, 216, 0.06) 25%,
+            rgba(96, 165, 250, 0.03) 50%,
+            transparent 70%
+        );
+        animation: blueCardGlow 8s ease-in-out infinite;
+        z-index: 0;
+    }
+    
+    @keyframes blueCardGlow {
+        0%, 100% {
+            transform: translate(0, 0);
+            opacity: 0.6;
+        }
+        25% {
+            transform: translate(3%, 3%);
+            opacity: 0.8;
+        }
+        50% {
+            transform: translate(-3%, -3%);
+            opacity: 0.7;
+        }
+        75% {
+            transform: translate(3%, -3%);
+            opacity: 0.8;
+        }
+    }
+    
+    /* COMPACT BLUE PHOTO CONTAINER */
+    .customer-photo-container {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        overflow: hidden;
+        margin: 0 auto 18px;
+        position: relative;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark), var(--primary-light));
+        padding: 2.5px;
+        animation: blueGradientBorder 4s ease-in-out infinite alternate;
+        background-size: 300% 300%;
+        z-index: 1;
+        border: 1.5px solid rgba(59, 130, 246, 0.3);
+        box-shadow: 
+            0 8px 20px rgba(0, 0, 0, 0.25),
+            0 4px 12px rgba(59, 130, 246, 0.2),
+            inset 0 0 15px rgba(255, 255, 255, 0.1);
+    }
+    
+    @keyframes blueGradientBorder {
+        0% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+    
+    .customer-photo {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+        border-radius: 50%;
+        display: block;
+    }
+    
+    /* COMPACT BLUE CONTENT */
+    .popup-content-inner {
+        text-align: center;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .popup-message {
+        color: #f0f0f0;
+        font-size: 12px;
+        line-height: 1.4;
+        margin-bottom: 12px;
+        font-weight: 400;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: rgba(29, 78, 216, 0.15);
+        padding: 10px 12px;
+        border-radius: 10px;
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(59, 130, 246, 0.15);
+    }
+    
+    .customer-name {
+        background: linear-gradient(135deg, var(--primary-light), var(--primary-color), var(--primary-dark));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 600;
+        font-size: 14px;
+        margin: 8px 0;
+        letter-spacing: 0.4px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        animation: blueTextGradientShift 5s ease-in-out infinite;
+        background-size: 200% 200%;
+    }
+    
+    @keyframes blueTextGradientShift {
+        0% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+    
+    .customer-title {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 11px;
+        margin-top: 6px;
+        letter-spacing: 0.25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: rgba(29, 78, 216, 0.15);
+        padding: 6px 12px;
+        border-radius: 18px;
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(59, 130, 246, 0.15);
+        width: fit-content;
+        margin: 8px auto 0;
+    }
+    
+    /* COMPACT BLUE HEART ANIMATION */
+    .heart-pulse {
+        display: inline-block;
+        animation: heartBeat 1.8s ease-in-out infinite;
+        color: var(--accent-color);
+        font-size: 10px;
+    }
+    
+    @keyframes heartBeat {
+        0% {
+            transform: scale(1);
+            opacity: 0.9;
+        }
+        5% {
+            transform: scale(1.15);
+            opacity: 1;
+        }
+        10% {
+            transform: scale(1);
+            opacity: 0.9;
+        }
+        15% {
+            transform: scale(1.1);
+            opacity: 1;
+        }
+        20% {
+            transform: scale(1);
+            opacity: 0.9;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 0.9;
+        }
+    }
+    
+    .heart-float {
+        display: inline-block;
+        position: relative;
+        animation: floatHeart 4s ease-in-out infinite;
+    }
+    
+    @keyframes floatHeart {
+        0%, 100% {
+            transform: translateY(0) rotate(0deg);
+            opacity: 0.9;
+        }
+        25% {
+            transform: translateY(-2px) rotate(-2deg);
+            opacity: 1;
+        }
+        75% {
+            transform: translateY(-1px) rotate(2deg);
+            opacity: 0.95;
+        }
+    }
+    
+    .heart-glow {
+        display: inline-block;
+        text-shadow: 0 0 2px rgba(248, 113, 113, 0.25);
+        animation: heartGlow 2.5s infinite alternate;
+    }
+    
+    @keyframes heartGlow {
+        from {
+            text-shadow: 0 0 2px rgba(248, 113, 113, 0.25),
+                        0 0 4px rgba(248, 113, 113, 0.15);
+        }
+        to {
+            text-shadow: 0 0 4px rgba(248, 113, 113, 0.4),
+                        0 0 8px rgba(248, 113, 113, 0.2),
+                        0 0 12px rgba(248, 113, 113, 0.08);
+        }
+    }
+
+    /* BLUE THEME RESPONSIVE DESIGN */
+    @media (min-width: 768px) {
+        .popup-content {
+            max-width: 350px;
+        }
+        
+        .glassy-card {
+            padding: 28px 22px;
+            border-radius: 22px;
+            background: linear-gradient(145deg, 
+                rgba(59, 130, 246, 0.14) 0%, 
+                rgba(29, 78, 216, 0.1) 100%);
+        }
+        
+        .customer-photo-container {
+            width: 110px;
+            height: 110px;
+            margin-bottom: 20px;
+        }
+        
+        .popup-message {
+            font-size: 13px;
+            padding: 11px 14px;
+        }
+        
+        .customer-name {
+            font-size: 15px;
+        }
+        
+        .customer-title {
+            font-size: 12px;
+        }
+        
+        .heart-pulse {
+            font-size: 11px;
+        }
+    }
+    
+    @media (min-width: 1024px) {
+        .popup-content {
+            max-width: 380px;
+        }
+        
+        .glassy-card {
+            padding: 30px 25px;
+            border-radius: 24px;
+            background: linear-gradient(145deg, 
+                rgba(59, 130, 246, 0.16) 0%, 
+                rgba(29, 78, 216, 0.12) 100%);
+        }
+        
+        .customer-photo-container {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 22px;
+        }
+        
+        .popup-message {
+            font-size: 14px;
+            padding: 12px 15px;
+        }
+        
+        .customer-name {
+            font-size: 16px;
+        }
+        
+        .customer-title {
+            font-size: 13px;
+        }
+        
+        .heart-pulse {
+            font-size: 12px;
+        }
+    }
+    
+    /* EXTRA SMALL PHONES - BLUE THEME */
+    @media (max-width: 360px) {
+        .popup-content {
+            max-width: 290px;
+            padding: 10px;
+        }
+        
+        .glassy-card {
+            padding: 20px 16px;
+            border-radius: 18px;
+        }
+        
+        .customer-photo-container {
+            width: 90px;
+            height: 90px;
+            margin-bottom: 15px;
+        }
+        
+        .popup-message {
+            font-size: 11px;
+            padding: 8px 10px;
+            margin-bottom: 10px;
+        }
+        
+        .customer-name {
+            font-size: 13px;
+            margin: 6px 0;
+        }
+        
+        .customer-title {
+            font-size: 10px;
+            padding: 5px 10px;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        
+        .heart-pulse {
+            font-size: 9px;
+        }
+    }
+    
+    /* VERY SMALL PHONES */
+    @media (max-width: 320px) {
+        .popup-content {
+            max-width: 270px;
+        }
+        
+        .glassy-card {
+            padding: 18px 14px;
+        }
+        
+        .customer-photo-container {
+            width: 85px;
+            height: 85px;
+        }
+        
+        .popup-message {
+            font-size: 10px;
+        }
+        
+        .customer-name {
+            font-size: 12px;
+        }
+    }
+</style>
+
+<!-- Welcome Popup Modal - COMPACT BLUE THEME GLASSY CARD -->
+<div class="welcome-popup" id="welcomePopup">
+    <div class="popup-content">
+        <!-- BLUE THEME GLASSY CARD -->
+        <div class="glassy-card">
+            <div class="popup-content-inner">
+                <!-- BLUE THEME PHOTO -->
+                <div class="customer-photo-container">
+                    <img src="{{ session.profile_pic }}" 
+                         alt="Customer Photo" 
+                         class="customer-photo"
+                         onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+                </div>
+                
+                <!-- BLUE THEME MESSAGE -->
+                <p class="popup-message">
+                    Welcome back {{ session.full_name }}! Your dashboard is ready.
+                </p>
+                
+                <!-- BLUE THEME NAME -->
+                <div class="customer-name">~ {{ session.full_name }} ~</div>
+                
+                <!-- BLUE THEME LOYAL PARTNER -->
+                <div class="customer-title">
+                    <span class="heart-float heart-pulse heart-glow">❤️</span>
+                    Loyal Partner
+                    <span class="heart-float heart-pulse heart-glow" style="animation-delay: 0.7s;">❤️</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard">
+    <!-- Top Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1>Hello, {{ session.full_name }}</h1>
+            <p class="welcome-text">Welcome to your dashboard</p>
+        </div>
+        <div class="header-right">
+            <img src="{{ session.profile_pic }}" 
+                 alt="Profile" class="profile-pic" 
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <div class="content-placeholder">
+            <div class="placeholder-icon">
+                <i class="fas fa-home"></i>
+            </div>
+            <h2>Welcome to Your Dashboard</h2>
+            <p>Use the bottom navigation to explore services, menu, cart, orders, and profile.</p>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item" data-page="services">
+            <i class="fas fa-concierge-bell"></i>
+            <span>Services</span>
+        </a>
+        <a href="{{ url_for('menu') }}" class="nav-item" data-page="menu">
+            <i class="fas fa-utensils"></i>
+            <span>Menu</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item" data-page="cart">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item" data-page="orders">
+            <i class="fas fa-history"></i>
+            <span>Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item" data-page="profile">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+</div>
+
+<script>
+// Handle navigation and load content via AJAX
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+        if (this.getAttribute('href').startsWith('#')) {
+            e.preventDefault();
+            const page = this.getAttribute('data-page');
+            loadPage(page);
+        }
+    });
+});
+
+function loadPage(page) {
+    const mainContent = document.getElementById('mainContent');
+    
+    // Remove active class from all nav items
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Add active class to clicked item
+    event.target.closest('.nav-item').classList.add('active');
+    
+    // You can implement AJAX loading here if needed
+    // For now, we'll rely on full page loads from Flask routes
+}
+
+// Welcome Popup Elements
+const welcomePopup = document.getElementById('welcomePopup');
+
+// Show popup ALWAYS on page load/refresh
+function showWelcomePopup() {
+    // ALWAYS show popup, no localStorage check
+    setTimeout(() => {
+        welcomePopup.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        
+        // Add staggered animation to hearts
+        const hearts = document.querySelectorAll('.heart-float');
+        hearts.forEach((heart, index) => {
+            heart.style.animationDelay = `${index * 0.5}s`;
+        });
+        
+        // Auto close after 3 seconds
+        setTimeout(closeWelcomePopup, 3000);
+    }, 300);
+}
+
+// Close welcome popup
+function closeWelcomePopup() {
+    welcomePopup.style.display = 'none';
+    document.body.style.overflow = 'auto';
+    // NO localStorage storage - so popup will show again on refresh
+}
+
+// Initialize popup on page load - ALWAYS SHOW
+document.addEventListener('DOMContentLoaded', function() {
+    showWelcomePopup();
+});
+
+// Close popup when clicking outside (still works if user clicks early)
+welcomePopup.addEventListener('click', function(e) {
+    if (e.target === welcomePopup) {
+        closeWelcomePopup();
+    }
+});
+
+// Handle escape key to close popup (still works if user presses early)
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeWelcomePopup();
+    }
+});
+</script>
+{% endblock %}
