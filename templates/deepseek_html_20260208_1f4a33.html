@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Top Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <!-- Nuclear Method 1: Inline styles with !important for both -->
+            <h1>
+                <span id="forceHello" style="color: #2563eb !important; display: inline !important; font-size: inherit !important;">Hello, </span>
+                <strong id="forceUserName" style="color: #2563eb !important; display: inline !important; font-size: inherit !important;">{{ session.full_name }}</strong>
+            </h1>
+            <p class="welcome-text">Welcome to your dashboard</p>
+        </div>
+        <div class="header-right">
+            <!-- ✅ LINE 12 UPDATED FOR CLOUDINARY -->
+            <img src="{{ session.profile_pic }}" 
+                 alt="Profile" class="profile-pic" 
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <div class="content-placeholder">
+            <div class="placeholder-icon">
+                <i class="fas fa-home"></i>
+            </div>
+            <h2>Welcome to Your Dashboard</h2>
+            <p>Use the bottom navigation to explore services, menu, cart, orders, and profile.</p>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item" data-page="services">
+            <i class="fas fa-concierge-bell"></i>
+            <span>Services</span>
+        </a>
+        <a href="{{ url_for('menu') }}" class="nav-item" data-page="menu">
+            <i class="fas fa-utensils"></i>
+            <span>Menu</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item" data-page="cart">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item" data-page="orders">
+            <i class="fas fa-history"></i>
+            <span>Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item" data-page="profile">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+</div>
+
+<script>
+// Handle navigation and load content via AJAX
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+        if (this.getAttribute('href').startsWith('#')) {
+            e.preventDefault();
+            const page = this.getAttribute('data-page');
+            loadPage(page);
+        }
+    });
+});
+
+function loadPage(page) {
+    const mainContent = document.getElementById('mainContent');
+    
+    // Remove active class from all nav items
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Add active class to clicked item
+    event.target.closest('.nav-item').classList.add('active');
+    
+    // You can implement AJAX loading here if needed
+    // For now, we'll rely on full page loads from Flask routes
+}
+
+// Nuclear Method 3: JavaScript DOM manipulation with multiple approaches
+document.addEventListener('DOMContentLoaded', function() {
+    // Approach 1: Direct style setting
+    const helloElement = document.getElementById('forceHello');
+    const userNameElement = document.getElementById('forceUserName');
+    
+    if (helloElement) {
+        helloElement.style.cssText = 'color: #2563eb !important; display: inline !important; font-size: inherit !important;';
+        helloElement.setAttribute('style', 'color: #2563eb !important; display: inline !important; font-size: inherit !important;');
+    }
+    
+    if (userNameElement) {
+        userNameElement.style.cssText = 'color: #2563eb !important; display: inline !important; font-size: inherit !important;';
+        userNameElement.setAttribute('style', 'color: #2563eb !important; display: inline !important; font-size: inherit !important;');
+    }
+    
+    // Approach 2: Create and inject a style element
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+        #forceHello, #forceUserName {
+            color: #2563eb !important;
+        }
+        .dashboard-header .header-left h1 * {
+            color: #2563eb !important;
+        }
+    `;
+    document.head.appendChild(styleElement);
+    
+    // Approach 3: MutationObserver to catch any dynamic changes
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                if (mutation.target.id === 'forceHello' || mutation.target.id === 'forceUserName') {
+                    mutation.target.style.color = '#2563eb';
+                    mutation.target.style.setProperty('color', '#2563eb', 'important');
+                }
+            }
+        });
+    });
+    
+    if (helloElement) {
+        observer.observe(helloElement, { attributes: true, attributeFilter: ['style'] });
+    }
+    if (userNameElement) {
+        observer.observe(userNameElement, { attributes: true, attributeFilter: ['style'] });
+    }
+    
+    // Approach 4: Periodic check and force (nuclear option)
+    let forceAttempts = 0;
+    const forceInterval = setInterval(function() {
+        const elements = document.querySelectorAll('#forceHello, #forceUserName');
+        elements.forEach(el => {
+            el.style.color = '#2563eb';
+            el.style.setProperty('color', '#2563eb', 'important');
+            // Remove any conflicting classes
+            el.classList.remove('text-black', 'text-dark', 'text-primary', 'text-secondary');
+        });
+        
+        forceAttempts++;
+        if (forceAttempts >= 10) { // Stop after 10 attempts
+            clearInterval(forceInterval);
+        }
+    }, 100);
+});
+
+// Extra: Also run on page show event
+document.addEventListener('pageshow', function() {
+    const elements = document.querySelectorAll('#forceHello, #forceUserName');
+    elements.forEach(el => {
+        el.style.color = '#2563eb';
+        el.style.setProperty('color', '#2563eb', 'important');
+    });
+});
+</script>
+
+<style>
+/* Nuclear Method 2: CSS with extreme specificity */
+/* Level 1: ID selectors with !important */
+#forceHello,
+#forceUserName {
+    color: #2563eb !important;
+}
+
+/* Level 2: Multiple ID and class combinations */
+html body .dashboard .dashboard-header .header-left h1 #forceHello,
+html body .dashboard .dashboard-header .header-left h1 #forceUserName {
+    color: #2563eb !important;
+}
+
+/* Level 3: Attribute selectors with maximum specificity */
+[style*="color: #2563eb"][id="forceHello"],
+[style*="color: #2563eb"][id="forceUserName"] {
+    color: #2563eb !important;
+}
+
+/* Level 4: Target all possible selectors that might override */
+h1 > span:first-child,
+h1 > strong:last-child,
+.dashboard-header h1 *,
+.dashboard-header .header-left :is(span, strong) {
+    color: #2563eb !important;
+}
+
+/* Level 5: Universal override for this specific context */
+body:has(.dashboard) .dashboard-header .header-left h1 * {
+    color: #2563eb !important;
+}
+
+/* Level 6: Style attribute override */
+style ~ #forceHello,
+style ~ #forceUserName {
+    color: #2563eb !important;
+}
+
+/* Level 7: Prevent any other color values */
+#forceHello:not([style*="color: #2563eb"]),
+#forceUserName:not([style*="color: #2563eb"]) {
+    color: #2563eb !important;
+}
+</style>
+
+<!-- Nuclear Method 4: Inline style element with !important -->
+<div style="display: none;">
+    <style>
+        #forceHello { color: #2563eb !important; }
+        #forceUserName { color: #2563eb !important; }
+    </style>
+</div>
+{% endblock %}
