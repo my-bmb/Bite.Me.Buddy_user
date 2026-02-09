@@ -1,0 +1,963 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- FontAwesome CDN for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts - Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        /* Main container */
+        .login-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px; /* HEIGHT BADHAYI */
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .login-wrapper::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(96, 165, 250, 0.08) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(96, 165, 250, 0.08) 0%, transparent 20%),
+                radial-gradient(circle at 50% 30%, rgba(96, 165, 250, 0.05) 0%, transparent 30%);
+            z-index: 0;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        /* Floating animation */
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(-10px, -10px) rotate(1deg); }
+            66% { transform: translate(10px, 10px) rotate(-1deg); }
+        }
+
+        /* Login card - HEIGHT BADHAYI */
+        .login-box {
+            width: 100%;
+            max-width: 440px; /* THODA BADA KIYA */
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(12px);
+            border-radius: 18px; /* THODA BADA KIYA */
+            box-shadow: 
+                0 12px 40px rgba(0, 0, 0, 0.07), /* SHADOW BHI BADA KIYA */
+                0 6px 20px rgba(96, 165, 250, 0.05),
+                0 3px 10px rgba(96, 165, 250, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            padding: 32px; /* HEIGHT BADHAYI - 22px se 32px */
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.5s ease-out;
+            margin-top: -10px; /* UPAR SHIFT THODA KAM KIYA */
+        }
+
+        /* Card animation */
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Decorative corner */
+        .login-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 90px; /* BADA KIYA */
+            height: 90px; /* BADA KIYA */
+            background: linear-gradient(135deg, transparent 50%, rgba(96, 165, 250, 0.05) 50%);
+            border-radius: 0 18px 0 0; /* CORNER BHI BADA KIYA */
+            z-index: -1;
+        }
+
+        /* ==================================== */
+        /* UPDATED HEADER - HEIGHT BADHAYI */
+        /* ==================================== */
+        .login-heading {
+            text-align: center;
+            color: #60a5fa;
+            margin-bottom: 28px; /* THODA BADA KIYA */
+            font-size: 28px; /* TEXT BADA KIYA: 26px to 28px */
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: none;
+            -webkit-text-fill-color: #60a5fa;
+            text-shadow: none;
+            position: relative;
+            padding-bottom: 14px; /* LINE HEIGHT BADHAYI */
+            font-family: 'Poppins', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        /* Straight line below LOGIN */
+        .login-heading::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px; /* BADA KIYA */
+            height: 2px;
+            background: #60a5fa;
+            border-radius: 1px;
+        }
+
+        /* Form groups - SPACING BADHAYI */
+        .input-group {
+            margin-bottom: 18px; /* SPACING BADHAYI */
+            position: relative;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 6px; /* SPACING BADHAYI */
+            color: #475569;
+            font-weight: 600;
+            font-size: 15px; /* TEXT BADA KIYA */
+            letter-spacing: 0.3px;
+            font-family: 'Poppins', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        /* ==================================== */
+        /* INPUT FIELDS - HEIGHT BADHAYI */
+        /* ==================================== */
+        .form-input {
+            width: 100%;
+            padding: 15px 16px; /* HEIGHT BADHAYI */
+            border: 1px solid #60a5fa;
+            border-radius: 10px; /* BORDER RADIUS BADA KIYA */
+            font-size: 16px; /* TEXT BADA KIYA */
+            transition: all 0.2s ease;
+            background: white;
+            color: #1e293b;
+            position: relative;
+            z-index: 1;
+            font-family: 'Poppins', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        /* Focus state - simple light blue border */
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            border-width: 1.5px;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.05);
+        }
+
+        /* ==================================== */
+        /* PLACEHOLDER TEXT - BADA KIYA */
+        /* ==================================== */
+        .form-input::placeholder {
+            color: #94a3b8;
+            font-size: 15px; /* BADA KIYA */
+            font-family: 'Poppins', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        /* Validation states - simple borders */
+        .form-input.validation-valid {
+            border-color: #10b981 !important;
+            border-width: 1.5px;
+        }
+
+        .form-input.validation-invalid {
+            border-color: #ef4444 !important;
+            border-width: 1.5px;
+        }
+
+        /* ==================================== */
+        /* LOGIN BUTTON - HEIGHT BADHAYI */
+        /* ==================================== */
+        .submit-btn {
+            width: 100%;
+            padding: 17px; /* HEIGHT BADHAYI */
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            border-radius: 10px; /* BORDER RADIUS BADA KIYA */
+            font-size: 16px; /* TEXT BADA KIYA */
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.5px;
+            margin-top: 12px; /* SPACING BADHAYI */
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4), 0 2px 8px rgba(59, 130, 246, 0.2);
+            font-family: 'Poppins', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            z-index: 1;
+        }
+
+        /* Shimmer effect */
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.3), 
+                transparent);
+            transition: 0.5s;
+            z-index: 1;
+        }
+
+        .submit-btn:hover::before {
+            left: 100%;
+        }
+
+        /* Glowing effect */
+        .submit-btn::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            background: linear-gradient(135deg, 
+                #3b82f6, 
+                #60a5fa, 
+                #3b82f6,
+                #2563eb);
+            border-radius: 14px; /* BADA KIYA */
+            z-index: -1;
+            opacity: 0.6;
+            filter: blur(12px);
+            transition: all 0.3s ease;
+            animation: buttonGlow 2s infinite alternate;
+        }
+
+        /* Glow animation */
+        @keyframes buttonGlow {
+            0% {
+                opacity: 0.4;
+                filter: blur(10px);
+            }
+            100% {
+                opacity: 0.7;
+                filter: blur(14px);
+            }
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5), 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .submit-btn:hover::after {
+            opacity: 0.8;
+            filter: blur(14px);
+            animation: buttonGlowHover 1.5s infinite alternate;
+        }
+
+        @keyframes buttonGlowHover {
+            0% {
+                opacity: 0.6;
+                filter: blur(12px);
+            }
+            100% {
+                opacity: 0.9;
+                filter: blur(16px);
+            }
+        }
+
+        .submit-btn:active {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+            transition: all 0.1s ease;
+        }
+
+        .submit-btn:active::after {
+            opacity: 0.5;
+            filter: blur(8px);
+        }
+
+        /* Button text styling */
+        .submit-btn span {
+            position: relative;
+            z-index: 2;
+            display: block;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        /* ==================================== */
+        /* FORGOT PASSWORD SECTION - HEIGHT BADHAYI */
+        /* ==================================== */
+        .forgot-section {
+            text-align: center;
+            margin: 22px 0; /* SPACING BADHAYI */
+            padding: 16px; /* HEIGHT BADHAYI */
+            background: rgba(248, 250, 252, 0.8);
+            border-radius: 10px; /* BORDER RADIUS BADA KIYA */
+            border: 1px solid rgba(96, 165, 250, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .forgot-text {
+            color: #64748b;
+            font-size: 15px; /* TEXT BADA KIYA */
+            margin-right: 8px;
+            font-family: 'Poppins', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        .forgot-link {
+            color: #60a5fa;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 15px; /* TEXT BADA KIYA */
+            padding: 7px 14px; /* HEIGHT BADHAYI */
+            border-radius: 6px; /* BORDER RADIUS BADA KIYA */
+            background: rgba(96, 165, 250, 0.1);
+            transition: all 0.2s ease;
+            display: inline-block;
+            box-shadow: 0 1px 4px rgba(96, 165, 250, 0.1);
+            font-family: 'Poppins', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        .forgot-link:hover {
+            background: rgba(96, 165, 250, 0.15);
+            color: #2563eb;
+            text-decoration: none;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(96, 165, 250, 0.15);
+        }
+
+        /* Footer - HEIGHT BADHAYI */
+        .login-footer {
+            text-align: center;
+            margin-top: 20px; /* SPACING BADHAYI */
+            padding-top: 16px; /* HEIGHT BADHAYI */
+            border-top: 1px solid rgba(226, 232, 240, 0.5);
+            color: #64748b;
+            font-size: 15px; /* TEXT BADA KIYA */
+            position: relative;
+            font-family: 'Poppins', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        .login-footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70px; /* BADA KIYA */
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #60a5fa, transparent);
+        }
+
+        .register-link {
+            color: #60a5fa;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            margin-left: 6px;
+            position: relative;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: 'Poppins', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        .register-link:hover {
+            color: #1d4ed8;
+            text-decoration: underline;
+            background: rgba(96, 165, 250, 0.08);
+        }
+
+        /* Loading Spinner */
+        .fa-spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ====================== */
+        /* RESPONSIVE DESIGN - ADJUSTED FOR NEW HEIGHTS */
+        /* ====================== */
+
+        /* Tablet & Small Desktop (768px and below) */
+        @media (max-width: 768px) {
+            .login-wrapper {
+                padding: 12px; /* HEIGHT BADHAYI */
+            }
+            
+            .login-box {
+                padding: 26px; /* HEIGHT BADHAYI */
+                max-width: 90vw;
+                width: 90vw;
+                border-radius: 16px; /* BORDER RADIUS BADA KIYA */
+                box-shadow: 
+                    0 10px 30px rgba(0, 0, 0, 0.06),
+                    0 5px 18px rgba(96, 165, 250, 0.05),
+                    0 3px 10px rgba(96, 165, 250, 0.04),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+                margin-top: -8px; /* UPAR SHIFT THODA KAM KIYA */
+            }
+            
+            .login-heading {
+                font-size: 26px; /* TEXT BADA KIYA: 24px to 26px */
+                margin-bottom: 24px;
+                padding-bottom: 12px;
+            }
+            
+            .login-heading::after {
+                width: 70px;
+                height: 2px;
+            }
+            
+            .input-group {
+                margin-bottom: 16px; /* SPACING BADHAYI */
+            }
+            
+            .input-label {
+                font-size: 14px; /* TEXT BADA KIYA */
+                margin-bottom: 5px; /* SPACING BADHAYI */
+            }
+            
+            .form-input {
+                padding: 13px 14px; /* HEIGHT BADHAYI */
+                font-size: 15px; /* TEXT BADA KIYA */
+                border-radius: 9px; /* BORDER RADIUS BADA KIYA */
+            }
+            
+            .form-input::placeholder {
+                font-size: 14px; /* TEXT BADA KIYA */
+            }
+            
+            .submit-btn {
+                padding: 15px; /* HEIGHT BADHAYI */
+                font-size: 15px; /* TEXT BADA KIYA */
+                margin-top: 10px; /* SPACING BADHAYI */
+                border-radius: 9px; /* BORDER RADIUS BADA KIYA */
+            }
+            
+            .submit-btn::after {
+                border-radius: 12px; /* BADA KIYA */
+                filter: blur(11px);
+            }
+            
+            .forgot-section {
+                margin: 18px 0; /* SPACING BADHAYI */
+                padding: 14px; /* HEIGHT BADHAYI */
+                border-radius: 9px; /* BORDER RADIUS BADA KIYA */
+            }
+            
+            .forgot-text {
+                font-size: 14px; /* TEXT BADA KIYA */
+            }
+            
+            .forgot-link {
+                font-size: 14px; /* TEXT BADA KIYA */
+                padding: 6px 12px; /* HEIGHT BADHAYI */
+                border-radius: 5px; /* BORDER RADIUS BADA KIYA */
+            }
+            
+            .login-footer {
+                margin-top: 18px; /* SPACING BADHAYI */
+                padding-top: 14px; /* HEIGHT BADHAYI */
+                font-size: 14px; /* TEXT BADA KIYA */
+            }
+        }
+
+        /* Mobile (480px and below) */
+        @media (max-width: 480px) {
+            .login-wrapper {
+                padding: 8px; /* HEIGHT BADHAYI */
+                background: linear-gradient(135deg, #f0f9ff 0%, #dbeafe 100%);
+            }
+            
+            .login-box {
+                padding: 22px; /* HEIGHT BADHAYI */
+                border-radius: 14px; /* BORDER RADIUS BADA KIYA */
+                border: none;
+                max-width: 90vw;
+                width: 90vw;
+                box-shadow: 
+                    0 8px 25px rgba(0, 0, 0, 0.05),
+                    0 4px 15px rgba(96, 165, 250, 0.04),
+                    0 2px 8px rgba(96, 165, 250, 0.03),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+                margin-top: -5px; /* UPAR SHIFT THODA KAM KIYA */
+            }
+            
+            .login-heading {
+                font-size: 24px; /* TEXT BADA KIYA: 22px to 24px */
+                margin-bottom: 20px;
+                padding-bottom: 10px;
+            }
+            
+            .login-heading::after {
+                width: 60px;
+                height: 2px;
+            }
+            
+            .input-group {
+                margin-bottom: 14px; /* SPACING BADHAYI */
+            }
+            
+            .input-label {
+                font-size: 13px; /* TEXT BADA KIYA */
+                margin-bottom: 4px; /* SPACING BADHAYI */
+            }
+            
+            .form-input {
+                padding: 12px 13px; /* HEIGHT BADHAYI */
+                font-size: 14px; /* TEXT BADA KIYA */
+                border-radius: 8px; /* BORDER RADIUS BADA KIYA */
+            }
+            
+            .form-input::placeholder {
+                font-size: 13px; /* TEXT BADA KIYA */
+            }
+            
+            .submit-btn {
+                padding: 14px; /* HEIGHT BADHAYI */
+                font-size: 14px; /* TEXT BADA KIYA */
+                border-radius: 8px; /* BORDER RADIUS BADA KIYA */
+                margin-top: 8px; /* SPACING BADHAYI */
+            }
+            
+            .submit-btn::after {
+                border-radius: 11px; /* BADA KIYA */
+                filter: blur(10px);
+            }
+            
+            .submit-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 7px 20px rgba(59, 130, 246, 0.5), 0 4px 12px rgba(59, 130, 246, 0.3);
+            }
+            
+            .forgot-section {
+                margin: 16px 0; /* SPACING BADHAYI */
+                padding: 12px; /* HEIGHT BADHAYI */
+                border-radius: 8px; /* BORDER RADIUS BADA KIYA */
+            }
+            
+            .forgot-text {
+                font-size: 13px; /* TEXT BADA KIYA */
+            }
+            
+            .forgot-link {
+                font-size: 13px; /* TEXT BADA KIYA */
+                padding: 5px 10px; /* HEIGHT BADHAYI */
+                border-radius: 5px; /* BORDER RADIUS BADA KIYA */
+            }
+            
+            .login-footer {
+                margin-top: 16px; /* SPACING BADHAYI */
+                padding-top: 12px; /* HEIGHT BADHAYI */
+                font-size: 13px; /* TEXT BADA KIYA */
+            }
+        }
+
+        /* Small Mobile (360px and below) */
+        @media (max-width: 360px) {
+            .login-box {
+                padding: 20px; /* HEIGHT BADHAYI */
+                box-shadow: 
+                    0 7px 22px rgba(0, 0, 0, 0.04),
+                    0 4px 14px rgba(96, 165, 250, 0.03),
+                    0 2px 7px rgba(96, 165, 250, 0.02),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+                margin-top: -3px; /* UPAR SHIFT THODA KAM KIYA */
+            }
+            
+            .login-heading {
+                font-size: 22px; /* TEXT BADA KIYA: 20px to 22px */
+                margin-bottom: 18px;
+                padding-bottom: 8px;
+            }
+            
+            .login-heading::after {
+                width: 50px;
+                height: 2px;
+            }
+            
+            .input-group {
+                margin-bottom: 12px; /* SPACING BADHAYI */
+            }
+            
+            .input-label {
+                font-size: 12px; /* TEXT BADA KIYA */
+                margin-bottom: 3px; /* SPACING BADHAYI */
+            }
+            
+            .form-input {
+                padding: 11px 12px; /* HEIGHT BADHAYI */
+                font-size: 13px; /* TEXT BADA KIYA */
+                border-radius: 7px; /* BORDER RADIUS BADA KIYA */
+            }
+            
+            .form-input::placeholder {
+                font-size: 12px; /* TEXT BADA KIYA */
+            }
+            
+            .submit-btn {
+                padding: 13px; /* HEIGHT BADHAYI */
+                font-size: 13px; /* TEXT BADA KIYA */
+                border-radius: 7px; /* BORDER RADIUS BADA KIYA */
+                margin-top: 6px; /* SPACING BADHAYI */
+            }
+            
+            .submit-btn::after {
+                border-radius: 10px; /* BADA KIYA */
+                filter: blur(9px);
+            }
+            
+            .forgot-section {
+                margin: 14px 0; /* SPACING BADHAYI */
+                padding: 10px; /* HEIGHT BADHAYI */
+                border-radius: 7px; /* BORDER RADIUS BADA KIYA */
+            }
+            
+            .login-footer {
+                margin-top: 14px; /* SPACING BADHAYI */
+                padding-top: 10px; /* HEIGHT BADHAYI */
+                font-size: 12px; /* TEXT BADA KIYA */
+            }
+        }
+
+        /* Landscape Mode */
+        @media (max-height: 600px) and (orientation: landscape) {
+            .login-wrapper {
+                align-items: flex-start;
+                padding-top: 12px; /* HEIGHT BADHAYI */
+                padding-bottom: 12px; /* HEIGHT BADHAYI */
+            }
+            
+            .login-box {
+                margin: 8px 0; /* SPACING BADHAYI */
+                padding: 20px; /* HEIGHT BADHAYI */
+                overflow-y: auto;
+                margin-top: 0;
+            }
+            
+            .login-heading {
+                margin-bottom: 18px;
+                font-size: 22px;
+                padding-bottom: 10px;
+            }
+            
+            .input-group {
+                margin-bottom: 10px; /* SPACING BADHAYI */
+            }
+            
+            .submit-btn {
+                margin-top: 8px; /* SPACING BADHAYI */
+            }
+            
+            .forgot-section {
+                margin: 14px 0; /* SPACING BADHAYI */
+                padding: 12px; /* HEIGHT BADHAYI */
+            }
+        }
+
+        /* Large Desktop (1200px and above) */
+        @media (min-width: 1200px) {
+            .login-box {
+                max-width: 460px; /* THODA BADA KIYA */
+                padding: 36px; /* HEIGHT BADHAYI */
+                box-shadow: 
+                    0 15px 50px rgba(0, 0, 0, 0.09),
+                    0 8px 30px rgba(96, 165, 250, 0.07),
+                    0 4px 15px rgba(96, 165, 250, 0.05),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+                margin-top: -15px; /* UPAR SHIFT THODA KAM KIYA */
+            }
+            
+            .login-heading {
+                font-size: 30px; /* TEXT BADA KIYA: 28px to 30px */
+                margin-bottom: 32px;
+            }
+            
+            .input-label {
+                font-size: 16px; /* TEXT BADA KIYA */
+            }
+            
+            .form-input {
+                padding: 16px 18px; /* HEIGHT BADHAYI */
+                font-size: 17px; /* TEXT BADA KIYA */
+                border-radius: 11px; /* BORDER RADIUS BADA KIYA */
+            }
+            
+            .form-input::placeholder {
+                font-size: 16px; /* TEXT BADA KIYA */
+            }
+            
+            .submit-btn {
+                padding: 18px; /* HEIGHT BADHAYI */
+                font-size: 17px; /* TEXT BADA KIYA */
+                border-radius: 11px; /* BORDER RADIUS BADA KIYA */
+            }
+            
+            .submit-btn::after {
+                filter: blur(14px);
+                border-radius: 15px; /* BADA KIYA */
+            }
+            
+            .forgot-section {
+                margin: 24px 0; /* SPACING BADHAYI */
+                padding: 18px; /* HEIGHT BADHAYI */
+                border-radius: 11px; /* BORDER RADIUS BADA KIYA */
+            }
+            
+            .forgot-text {
+                font-size: 16px; /* TEXT BADA KIYA */
+            }
+            
+            .forgot-link {
+                font-size: 16px; /* TEXT BADA KIYA */
+                padding: 8px 16px; /* HEIGHT BADHAYI */
+            }
+            
+            .login-footer {
+                font-size: 16px; /* TEXT BADA KIYA */
+            }
+        }
+
+        /* Touch device optimizations */
+        @media (hover: none) and (pointer: coarse) {
+            .submit-btn:hover {
+                transform: none;
+                box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4), 0 2px 8px rgba(59, 130, 246, 0.2);
+            }
+            
+            .submit-btn:active {
+                transform: scale(0.98);
+                box-shadow: 0 2px 10px rgba(59, 130, 246, 0.4);
+                background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            }
+            
+            .forgot-link:hover {
+                transform: none;
+                box-shadow: none;
+            }
+            
+            /* Keep glow effect on touch devices */
+            .submit-btn::after {
+                animation: buttonGlow 2s infinite alternate;
+            }
+            
+            .submit-btn:active::after {
+                opacity: 0.8;
+                filter: blur(10px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-box">
+            <h1 class="login-heading">LOGIN</h1>
+
+            <form method="POST" class="login-form">
+                <div class="input-group">
+                    <label for="phone" class="input-label">Mobile Number</label>
+                    <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        class="form-input"
+                        placeholder="Enter 10-digit mobile number"
+                        required
+                        pattern="[0-9]{10}"
+                        inputmode="numeric"
+                        maxlength="10">
+                </div>
+
+                <div class="input-group">
+                    <label for="password" class="input-label">Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        class="form-input"
+                        placeholder="Enter your password"
+                        required
+                        minlength="6">
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <span>LOGIN</span>
+                </button>
+
+                <!-- Forgot Password -->
+                <div class="forgot-section">
+                    <span class="forgot-text">Forgot your password?</span>
+                    <a href="https://bite-me-buddy-user.onrender.com" target="_blank" class="forgot-link">
+                        Reset Here
+                    </a>
+                </div>
+
+                <!-- Register Link -->
+                <div class="login-footer">
+                    Don't have an account?
+                    <a href="{{ url_for('register') }}" class="register-link">Create Account</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    // Phone number validation
+    document.addEventListener('DOMContentLoaded', function() {
+        const phoneInput = document.getElementById('phone');
+        const passwordInput = document.getElementById('password');
+        const form = document.querySelector('.login-form');
+        const inputs = document.querySelectorAll('.form-input');
+        
+        // Phone number formatting
+        if (phoneInput) {
+            phoneInput.addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '');
+                
+                if (this.value.length >= 10) {
+                    this.style.borderColor = '#10b981';
+                } else if (this.value.length > 0) {
+                    this.style.borderColor = '#f59e0b';
+                } else {
+                    this.style.borderColor = '#60a5fa';
+                }
+            });
+        }
+        
+        // Add focus/blur effects for inputs
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.style.border = '1.5px solid #3b82f6';
+                this.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.05)';
+                this.classList.remove('validation-valid', 'validation-invalid');
+            });
+            
+            input.addEventListener('blur', function() {
+                this.style.boxShadow = 'none';
+                validateInputOnBlur(this);
+            });
+        });
+        
+        // Validation function
+        function validateInputOnBlur(input) {
+            input.classList.remove('validation-valid', 'validation-invalid');
+            
+            // Check if input has value
+            if (input.value.trim() === '') {
+                input.style.border = '1px solid #60a5fa';
+                return;
+            }
+            
+            // Phone number validation
+            if (input.id === 'phone') {
+                if (input.value.length === 10 && /^\d{10}$/.test(input.value)) {
+                    input.classList.add('validation-valid');
+                    input.style.border = '1.5px solid #10b981';
+                } else {
+                    input.classList.add('validation-invalid');
+                    input.style.border = '1.5px solid #ef4444';
+                }
+            }
+            
+            // Password validation
+            if (input.id === 'password') {
+                if (input.value.length >= 6) {
+                    input.classList.add('validation-valid');
+                    input.style.border = '1.5px solid #10b981';
+                } else {
+                    input.classList.add('validation-invalid');
+                    input.style.border = '1.5px solid #ef4444';
+                }
+            }
+        }
+        
+        // Form submission validation
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                let isValid = true;
+                
+                // Validate phone number
+                if (phoneInput) {
+                    if (phoneInput.value.length !== 10 || !/^\d{10}$/.test(phoneInput.value)) {
+                        isValid = false;
+                        phoneInput.classList.add('validation-invalid');
+                        phoneInput.style.border = '1.5px solid #ef4444';
+                    } else {
+                        phoneInput.classList.add('validation-valid');
+                        phoneInput.style.border = '1.5px solid #10b981';
+                    }
+                }
+                
+                // Validate password length
+                if (passwordInput) {
+                    if (passwordInput.value.length < 6) {
+                        isValid = false;
+                        passwordInput.classList.add('validation-invalid');
+                        passwordInput.style.border = '1.5px solid #ef4444';
+                    } else {
+                        passwordInput.classList.add('validation-valid');
+                        passwordInput.style.border = '1.5px solid #10b981';
+                    }
+                }
+                
+                // Show alert if invalid
+                if (!isValid) {
+                    e.preventDefault();
+                    
+                    // Check which field is invalid
+                    if (phoneInput && phoneInput.value.length !== 10) {
+                        alert('Please enter a valid 10-digit mobile number');
+                        phoneInput.focus();
+                    } else if (passwordInput && passwordInput.value.length < 6) {
+                        alert('Password must be at least 6 characters long');
+                        passwordInput.focus();
+                    }
+                    
+                    return false;
+                }
+                
+                // All validations passed
+                return true;
+            });
+        }
+        
+        // Auto-focus on phone input for better UX
+        setTimeout(() => {
+            if (phoneInput && window.innerWidth <= 768) {
+                phoneInput.focus();
+            }
+        }, 300);
+    });
+    </script>
+</body>
+</html>
+{% endblock %}
