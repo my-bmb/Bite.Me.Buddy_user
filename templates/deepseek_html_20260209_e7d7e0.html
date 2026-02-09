@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Top Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <!-- Method 1: Separate inline styles with !important for both -->
+            <!-- ADDED: font-size: 1.5em -->
+            <strong id="helloText" style="color: #2563eb !important; display: inline; font-size: 1.5em !important;">Hello, </strong>
+            <strong id="userName" style="color: #2563eb !important; display: inline; font-size: 1.5em !important;">{{ session.full_name }}</strong>
+            <p class="welcome-text">Welcome to your dashboard</p>
+        </div>
+        <div class="header-right">
+            <!-- ✅ LINE 12 UPDATED FOR CLOUDINARY -->
+            <img src="{{ session.profile_pic }}" 
+                 alt="Profile" class="profile-pic" 
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <div class="content-placeholder">
+            <div class="placeholder-icon">
+                <i class="fas fa-home"></i>
+            </div>
+            <h2>Welcome to Your Dashboard</h2>
+            <p>Use the bottom navigation to explore services, menu, cart, orders, and profile.</p>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item" data-page="services">
+            <i class="fas fa-concierge-bell"></i>
+            <span>Services</span>
+        </a>
+        <a href="{{ url_for('menu') }}" class="nav-item" data-page="menu">
+            <i class="fas fa-utensils"></i>
+            <span>Menu</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item" data-page="cart">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item" data-page="orders">
+            <i class="fas fa-history"></i>
+            <span>Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item" data-page="profile">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+</div>
+
+<script>
+// Handle navigation and load content via AJAX
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+        if (this.getAttribute('href').startsWith('#')) {
+            e.preventDefault();
+            const page = this.getAttribute('data-page');
+            loadPage(page);
+        }
+    });
+});
+
+function loadPage(page) {
+    const mainContent = document.getElementById('mainContent');
+    
+    // Remove active class from all nav items
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Add active class to clicked item
+    event.target.closest('.nav-item').classList.add('active');
+    
+    // You can implement AJAX loading here if needed
+    // For now, we'll rely on full page loads from Flask routes
+}
+
+// Method 3: Force color change with JavaScript as backup for BOTH elements
+document.addEventListener('DOMContentLoaded', function() {
+    // For "Hello," text
+    const helloElement = document.getElementById('helloText');
+    if (helloElement) {
+        helloElement.style.color = '#2563eb';
+        helloElement.style.setProperty('color', '#2563eb', 'important');
+        helloElement.style.fontSize = '1.5em'; // ADDED: font size
+        helloElement.style.setProperty('font-size', '1.5em', 'important'); // ADDED
+        helloElement.classList.add('force-blue-color');
+        helloElement.classList.add('large-text'); // ADDED: class for CSS
+    }
+    
+    // For user name
+    const userNameElement = document.getElementById('userName');
+    if (userNameElement) {
+        userNameElement.style.color = '#2563eb';
+        userNameElement.style.setProperty('color', '#2563eb', 'important');
+        userNameElement.style.fontSize = '1.5em'; // ADDED: font size
+        userNameElement.style.setProperty('font-size', '1.5em', 'important'); // ADDED
+        userNameElement.classList.add('force-blue-color');
+        userNameElement.classList.add('large-text'); // ADDED: class for CSS
+    }
+});
+</script>
+
+<style>
+/* Method 2: Direct CSS override with maximum specificity for BOTH elements */
+
+/* For "Hello," text */
+.dashboard-header .header-left strong#helloText.force-blue-color,
+.dashboard-header .header-left strong#helloText.large-text {
+    color: #2563eb !important;
+    font-size: 1.5em !important; /* ADDED: font size */
+}
+
+/* For user name */
+.dashboard-header .header-left strong#userName.force-blue-color,
+.dashboard-header .header-left strong#userName.large-text {
+    color: #2563eb !important;
+    font-size: 1.5em !important; /* ADDED: font size */
+}
+
+/* Additional nuclear option if nothing else works for BOTH */
+body .dashboard .dashboard-header .header-left strong#helloText,
+body .dashboard .dashboard-header .header-left strong#userName {
+    color: #2563eb !important;
+    font-size: 1.5em !important; /* ADDED: font size */
+}
+
+/* Make them appear on same line properly */
+.dashboard-header .header-left strong {
+    font-size: inherit;
+    font-weight: bold;
+}
+
+/* ADDED: Additional CSS for large text */
+.dashboard-header .header-left strong.large-text {
+    font-size: 1.5em !important;
+    line-height: 1.2;
+}
+</style>
+{% endblock %}
