@@ -1,0 +1,1959 @@
+{% extends "base.html" %}
+
+{% block title %}Menu{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Top Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1>Menu</h1>
+            <p class="welcome-text">Browse our delicious offerings</p>
+        </div>
+        <div class="header-right">
+            <img src="{{ session.profile_pic }}" alt="Profile" class="profile-pic"
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+    </header>
+
+    <!-- Menu Content -->
+    <main class="main-content">
+        {% if menu_items %}
+            <!-- Hidden data container for all menu items -->
+            <div id="allMenuData" style="display: none;">
+                {% for item in menu_items %}
+                <div class="menu-data-global"
+                     data-id="{{ item.id }}"
+                     data-name="{{ item.name }}"
+                     data-desc="{{ item.description }}"
+                     data-photo="{{ item.photo }}"
+                     data-price="{{ item.price }}"
+                     data-discount="{{ item.discount }}"
+                     data-final="{{ item.final_price }}">
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Categories will be loaded here by JavaScript -->
+            <div id="categoriesContainer" class="categories-container">
+                <!-- JavaScript will populate this -->
+            </div>
+            
+            <!-- Loading indicator -->
+            <div id="loadingCategories" style="text-align: center; padding: 40px;">
+                <i class="fas fa-spinner fa-spin fa-2x" style="color: #C0B283;"></i>
+                <p>Loading categories...</p>
+            </div>
+        {% else %}
+            <div class="no-services">
+                <i class="fas fa-utensils fa-3x"></i>
+                <h3>No Menu Items Available</h3>
+                <p>Check back soon for delicious items!</p>
+            </div>
+        {% endif %}
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item">
+            <i class="fas fa-concierge-bell"></i><span>Services</span>
+        </a>
+        <a href="{{ url_for('menu') }}" class="nav-item active">
+            <i class="fas fa-utensils"></i><span>Menu</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item">
+            <i class="fas fa-shopping-cart"></i><span>Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item">
+            <i class="fas fa-history"></i><span>Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item">
+            <i class="fas fa-user"></i><span>Profile</span>
+        </a>
+    </nav>
+</div>
+
+<!-- CATEGORY MODAL - UPDATED TO 2-COLUMN LAYOUT -->
+<div id="categoryModal" class="category-modal center-modal">
+    <div class="modal-overlay" onclick="closeCategoryModal()"></div>
+    <div class="modal-container">
+        <div class="modal-header compact-header">
+            <div class="modal-title">
+                <i class="fas fa-layer-group"></i>
+                <div class="modal-title-content">
+                    <h2>Category <span id="modalCatNumber">1</span></h2>
+                    <div class="modal-subtitle">
+                        <span class="item-count-badge">
+                            <i class="fas fa-utensils"></i>
+                            <span id="modalItemCount">0</span> items available
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <button class="modal-close" onclick="closeCategoryModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-content" id="categoryMenuList">
+            <!-- Menu items will be loaded here in 2-column layout -->
+        </div>
+    </div>
+</div>
+
+<!-- MENU ITEM DETAILS MODAL -->
+<div id="menuItemModal" class="service-modal center-modal">
+    <div class="modal-overlay" onclick="closeMenuItemModal()"></div>
+    <div class="modal-container">
+        <div class="modal-header compact-header">
+            <div class="service-modal-title">
+                <i class="fas fa-utensils"></i>
+                <h2>Item Details</h2>
+            </div>
+            <button class="modal-close" onclick="closeMenuItemModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-content" id="menuItemDetailsContent">
+            <!-- Menu item details will be loaded here with scrollable area -->
+        </div>
+    </div>
+</div>
+
+<!-- BOOKING NOTIFICATION - HIDDEN BY DEFAULT -->
+<div id="bookingNotification" class="booking-notification-fixed" style="display: none;">
+    <div class="notification-fixed-content">
+        <div class="notification-fixed-icon">
+            <i class="fas fa-shopping-cart"></i>
+        </div>
+        <div class="notification-fixed-text">
+            <strong>Item Added Successfully!</strong>
+            <span>Added to your cart</span>
+        </div>
+        <div class="notification-fixed-actions">
+            <button class="btn-view-cart-fixed" onclick="window.location.href='/cart'">
+                View Cart
+            </button>
+            <button class="btn-close-fixed" onclick="closeBookingNotification()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ✅ CATEGORY CREATION LOGIC
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('allMenuData')) {
+        createMenuCategories();
+    }
+});
+
+function createMenuCategories() {
+    const allMenuItems = document.querySelectorAll('.menu-data-global');
+    const categoriesContainer = document.getElementById('categoriesContainer');
+    const loadingIndicator = document.getElementById('loadingCategories');
+    
+    if (allMenuItems.length === 0) {
+        loadingIndicator.innerHTML = '<div class="no-services"><i class="fas fa-utensils fa-3x"></i><h3>No Menu Items Available</h3></div>';
+        return;
+    }
+    
+    // Define category sizes
+    const categorySizes = [
+        10, 7, 6, 8, 4, 10, 6, 5, 7, 8,
+        6, 6, 5, 9, 7, 8, 6, 5, 7, 10,
+        6, 5, 8, 7, 6, 9, 5, 8, 7, 6,
+        5, 7, 8, 6, 9, 5, 7, 8, 6, 10,
+        5, 6, 7, 8, 6, 5, 9, 7, 8, 6,
+        5, 7, 8, 6, 9, 5, 7, 8, 6, 10,
+        5, 6, 7, 8, 6, 5, 9, 7, 8, 6,
+        5, 7, 8, 6, 9, 5, 7, 8, 6, 10,
+        5, 6, 7, 8, 6, 5, 9, 7, 8, 6
+    ];
+    
+    let currentIndex = 0;
+    let categoriesCreated = 0;
+    let categoriesHTML = '';
+    
+    // Store category header item IDs for exclusion
+    window.categoryHeaderItemIds = [];
+    
+    // Create hidden data container for all categories
+    let hiddenDataHTML = '';
+    
+    for (let i = 0; i < categorySizes.length; i++) {
+        // Stop if no items left
+        if (currentIndex >= allMenuItems.length) break;
+        
+        const categorySize = categorySizes[i];
+        const endIndex = Math.min(currentIndex + categorySize, allMenuItems.length);
+        
+        // Get items for this category
+        const categoryItems = Array.from(allMenuItems).slice(currentIndex, endIndex);
+        
+        if (categoryItems.length > 0) {
+            categoriesCreated++;
+            const headerItem = categoryItems[0];
+            
+            // Store header item ID for exclusion
+            window.categoryHeaderItemIds.push(headerItem.dataset.id);
+            
+            // Get photo URL
+            const photoUrl = headerItem.dataset.photo.startsWith('http') 
+                ? headerItem.dataset.photo 
+                : '/static/uploads/' + headerItem.dataset.photo;
+            
+            // Calculate total items in this category (excluding header)
+            const totalItemsInCategory = categoryItems.length - 1;
+            
+            // Category card HTML
+            categoriesHTML += `
+                <div class="category-item" data-category="${categoriesCreated}" onclick="showCategoryModal(${categoriesCreated})">
+                    <!-- SQUARE PHOTO -->
+                    <div class="category-square-photo">
+                        <img src="${photoUrl}" 
+                             alt="${headerItem.dataset.name}"
+                             onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_food.jpg'">
+                        <!-- UPDATED: Number SQUARE with fixed position -->
+                        <div class="category-number">
+                            <span>${categoriesCreated}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="category-details">
+                        <div class="category-header">
+                            <h3 class="category-title">${headerItem.dataset.name}</h3>
+                        </div>
+                        
+                        <!-- VIEW BUTTON WITH COUNT BESIDE IT -->
+                        <div class="category-actions">
+                            <button class="btn-view-category">
+                                <i class="fas fa-eye"></i> 
+                                <span class="btn-text">View Items</span>
+                                <span class="item-count-badge-btn">
+                                    <span class="count-number">${totalItemsInCategory}</span>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- HIDDEN DATA -->
+                    <div class="hidden-category-data" id="categoryData${categoriesCreated}" style="display: none;">
+            `;
+            
+            // Add each menu item data (EXCLUDE THE FIRST ITEM - category header)
+            // Start from index 1 to skip the header item
+            for (let j = 1; j < categoryItems.length; j++) {
+                const item = categoryItems[j];
+                hiddenDataHTML += `
+                    <div class="menu-item-data"
+                         data-id="${item.dataset.id}"
+                         data-name="${item.dataset.name}"
+                         data-desc="${item.dataset.desc}"
+                         data-photo="${item.dataset.photo}"
+                         data-price="${item.dataset.price}"
+                         data-discount="${item.dataset.discount}"
+                         data-final="${item.dataset.final}">
+                    </div>
+                `;
+            }
+            
+            categoriesHTML += hiddenDataHTML;
+            categoriesHTML += `
+                    </div>
+                </div>
+            `;
+            
+            // Reset hiddenDataHTML for next category
+            hiddenDataHTML = '';
+            
+            // Update current index
+            currentIndex = endIndex;
+        }
+    }
+    
+    // Update the DOM
+    categoriesContainer.innerHTML = categoriesHTML;
+    loadingIndicator.style.display = 'none';
+    
+    // If no categories were created
+    if (categoriesCreated === 0) {
+        categoriesContainer.innerHTML = '<div class="no-services"><i class="fas fa-utensils fa-3x"></i><h3>No Categories Available</h3></div>';
+    }
+}
+
+// ✅ UPDATED CATEGORY MODAL WITH 2-COLUMN LAYOUT LIKE SERVICES
+function showCategoryModal(categoryNumber) {
+    const categoryData = document.getElementById(`categoryData${categoryNumber}`);
+    const menuItems = categoryData.querySelectorAll('.menu-item-data');
+    
+    // Update modal title with item count
+    const itemCount = menuItems.length;
+    document.getElementById('modalItemCount').textContent = itemCount;
+    
+    let modalHTML = '<div class="menu-two-column-grid">';
+    
+    menuItems.forEach((item, index) => {
+        const itemId = item.dataset.id;
+        const itemName = item.dataset.name;
+        const itemPhoto = item.dataset.photo;
+        const itemPrice = parseFloat(item.dataset.price);
+        const itemDiscount = parseFloat(item.dataset.discount);
+        const itemFinal = parseFloat(item.dataset.final);
+        
+        const photoUrl = itemPhoto.startsWith('http') ? itemPhoto : '/static/uploads/' + itemPhoto;
+        
+        // Build menu item card HTML - SERVICES STYLE
+        modalHTML += `
+            <div class="menu-modal-item-card" onclick="highlightCard(this)" data-item-id="${itemId}">
+                <!-- Left Column: Photo Square -->
+                <div class="menu-modal-photo-square">
+                    <img src="${photoUrl}" 
+                         alt="${itemName}"
+                         onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_food.jpg'">
+                </div>
+                
+                <!-- Right Column: Details Square -->
+                <div class="menu-modal-details-square">
+                    <div class="menu-modal-header">
+                        <h4 class="menu-modal-item-name">${itemName}</h4>
+                        <div class="menu-modal-item-number">
+                            <span>#${index + 1}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="menu-modal-pricing">
+        `;
+        
+        if (itemDiscount > 0) {
+            modalHTML += `
+                        <div class="menu-modal-discount-row">
+                            <span class="menu-modal-original-price">₹${itemPrice.toFixed(2)}</span>
+                            <span class="menu-modal-discount-badge">-${itemDiscount}%</span>
+                        </div>
+            `;
+        }
+        
+        modalHTML += `
+                        <div class="menu-modal-final-price">
+                            <span class="menu-modal-rupee">₹</span>
+                            <span class="menu-modal-price-value">${itemFinal.toFixed(2)}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="menu-modal-actions">
+                        <button class="btn-menu-modal-details" onclick="event.stopPropagation(); showMenuItemDetails(${itemId})">
+                            <i class="fas fa-info-circle"></i> Details
+                        </button>
+                        <button class="btn-menu-modal-add" onclick="event.stopPropagation(); addMenuItemToCart(${itemId})">
+                            <i class="fas fa-cart-plus"></i> Add
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    modalHTML += '</div>';
+    
+    document.getElementById('modalCatNumber').textContent = categoryNumber;
+    document.getElementById('categoryMenuList').innerHTML = modalHTML;
+    
+    // ✅ Enable scrolling for modal content (Services ki tarah)
+    const modalContent = document.getElementById('categoryMenuList');
+    modalContent.style.overflowY = 'auto';
+    
+    document.getElementById('categoryModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+// Card highlight effect
+function highlightCard(card) {
+    // Remove highlight from all cards
+    const allCards = document.querySelectorAll('.menu-modal-item-card');
+    allCards.forEach(c => c.classList.remove('highlighted'));
+    
+    // Add highlight to clicked card
+    card.classList.add('highlighted');
+    
+    // Remove highlight after 1.5 seconds
+    setTimeout(() => {
+        card.classList.remove('highlighted');
+    }, 1500);
+}
+
+function closeCategoryModal() {
+    document.getElementById('categoryModal').classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+
+// ✅ MENU ITEM DETAILS MODAL
+function showMenuItemDetails(itemId) {
+    // Get all menu item data from ALL categories
+    const allMenuItemData = document.querySelectorAll('.menu-item-data');
+    let foundItem = null;
+    
+    // First, search in regular menu items
+    allMenuItemData.forEach(item => {
+        if (parseInt(item.dataset.id) === parseInt(itemId)) {
+            foundItem = {
+                id: item.dataset.id,
+                name: item.dataset.name,
+                description: item.dataset.desc,
+                photo: item.dataset.photo,
+                price: parseFloat(item.dataset.price),
+                discount: parseFloat(item.dataset.discount),
+                final_price: parseFloat(item.dataset.final)
+            };
+        }
+    });
+    
+    // If not found in regular items, check in category header items
+    if (!foundItem) {
+        // Get all menu data global items (includes category headers)
+        const allMenuDataGlobal = document.querySelectorAll('.menu-data-global');
+        allMenuDataGlobal.forEach(item => {
+            if (parseInt(item.dataset.id) === parseInt(itemId)) {
+                foundItem = {
+                    id: item.dataset.id,
+                    name: item.dataset.name,
+                    description: item.dataset.desc,
+                    photo: item.dataset.photo,
+                    price: parseFloat(item.dataset.price),
+                    discount: parseFloat(item.dataset.discount),
+                    final_price: parseFloat(item.dataset.final)
+                };
+            }
+        });
+    }
+    
+    if (foundItem) {
+        const photoUrl = foundItem.photo.startsWith('http') ? foundItem.photo : '/static/uploads/' + foundItem.photo;
+        
+        let priceHTML = '';
+        if (foundItem.discount > 0) {
+            priceHTML = `
+                <div class="price-row">
+                    <span>Original Price:</span>
+                    <span class="original">₹${foundItem.price.toFixed(2)}</span>
+                </div>
+                <div class="price-row">
+                    <span>Discount:</span>
+                    <span class="discount">${foundItem.discount}% OFF</span>
+                </div>
+            `;
+        }
+        
+        const modalHTML = `
+            <div class="menu-item-details-content">
+                <div class="details-image-container">
+                    <img src="${photoUrl}" alt="${foundItem.name}" class="details-image">
+                </div>
+                
+                <h2 class="menu-item-name">${foundItem.name}</h2>
+                
+                <!-- SCROLLABLE CONTENT AREA -->
+                <div class="scrollable-details">
+                    <div class="details-section">
+                        <h4><i class="fas fa-align-left"></i> Description</h4>
+                        <div class="description-text">
+                            ${foundItem.description}
+                        </div>
+                    </div>
+                    
+                    <div class="details-price">
+                        ${priceHTML}
+                        <div class="price-row final-price-row">
+                            <span>Final Price:</span>
+                            <span class="final">₹${foundItem.final_price.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn-add-to-cart-large" onclick="addMenuItemToCart(${foundItem.id}); closeMenuItemModal()">
+                    <i class="fas fa-cart-plus"></i> Add to Cart
+                </button>
+            </div>
+        `;
+        
+        document.getElementById('menuItemDetailsContent').innerHTML = modalHTML;
+        document.getElementById('menuItemModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // ✅ Enable scrolling for menu item details modal (Services ki tarah)
+        const serviceModalContent = document.getElementById('menuItemDetailsContent');
+        serviceModalContent.style.overflowY = 'auto';
+    }
+}
+
+function closeMenuItemModal() {
+    document.getElementById('menuItemModal').classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+
+// ✅ ADD TO CART FUNCTION
+function addMenuItemToCart(itemId) {
+    fetch('/add_to_cart', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `item_type=menu&item_id=${itemId}&quantity=1`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showBookingNotification();
+        }
+    })
+    .catch(error => {
+        console.error("Add to cart error:", error);
+        // Fallback: show notification anyway
+        showBookingNotification();
+    });
+}
+
+// ✅ NOTIFICATION
+function showBookingNotification() {
+    const notification = document.getElementById('bookingNotification');
+    notification.style.display = 'block';
+    
+    // Force reflow
+    notification.offsetHeight;
+    
+    notification.classList.add('show');
+    
+    setTimeout(() => {
+        closeBookingNotification();
+    }, 5000);
+}
+
+function closeBookingNotification() {
+    const notification = document.getElementById('bookingNotification');
+    notification.classList.remove('show');
+    
+    // Hide completely after animation
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 400);
+}
+
+// Event listeners
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('modal-overlay')) {
+        closeCategoryModal();
+        closeMenuItemModal();
+    }
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeCategoryModal();
+        closeMenuItemModal();
+        closeBookingNotification();
+    }
+});
+</script>
+
+<style>
+:root {
+    /* ✅ UPDATED: Premium Gold & Dark Theme */
+    --menu-primary-color: #C0B283;           /* Champagne Gold - MAIN COLOR */
+    --menu-primary-dark: #8e7d4d;            /* Darker Gold */
+    --menu-primary-light: #D9C8A9;           /* Light Gold */
+    --menu-primary-bg: #1A1A1A;              /* Dark background */
+    --menu-secondary-color: #666666;         /* Muted Grey */
+    --menu-gradient-start: #C0B283;          /* Gold - MAIN */
+    --menu-gradient-end: #8e7d4d;            /* Dark Gold */
+    --menu-success-color: #D98324;           /* Burnt Orange */
+    --menu-danger-color: #D98324;            /* Burnt Orange for discount */
+    --menu-warning-color: #f59e0b;           /* Orange */
+    --menu-light-bg: #0D0D0D;                /* Dark background */
+    --menu-border-color: rgba(192, 178, 131, 0.3); /* Gold tinted border */
+    --menu-text-primary: #C0B283;            /* Gold text */
+    --menu-text-secondary: #888888;          /* Light Grey text */
+    --menu-card-shadow: 0 1px 3px 0 rgba(192, 178, 131, 0.15); /* Gold shadow */
+    --menu-rupee-color: #C0B283;             /* Gold for rupee */
+    --menu-rupee-bg: rgba(192, 178, 131, 0.1); /* Light gold with opacity */
+    --menu-glow-color: rgba(192, 178, 131, 0.5); /* Gold glow */
+}
+
+/* ========== BASIC STYLES ========== */
+.categories-container {
+    padding: 12px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    background-color: var(--menu-light-bg); /* Dark background */
+}
+
+/* CATEGORY ITEM */
+.category-item {
+    background: #1A1A1A; /* Dark background */
+    border-radius: 10px;
+    border: 1px solid var(--menu-border-color);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    cursor: pointer;
+    height: 180px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.category-item:hover {
+    box-shadow: 0 5px 20px rgba(192, 178, 131, 0.25); /* Gold in hover */
+    transform: translateY(-2px);
+    border-color: #C0B283;
+}
+
+/* SQUARE PHOTO WITH GOLD THEME */
+.category-square-photo {
+    width: 100%;
+    height: 110px;
+    border-radius: 8px 8px 0 0;
+    overflow: hidden;
+    position: relative;
+    border-bottom: 1px solid var(--menu-border-color);
+    background: linear-gradient(135deg, #0D0D0D 0%, #1A1A1A 100%); /* Dark gradient */
+}
+
+.category-square-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.category-item:hover .category-square-photo img {
+    transform: scale(1.05);
+}
+
+/* Category number SQUARE with solid gold */
+.category-number {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 26px;
+    height: 26px;
+    background: #C0B283; /* Solid Gold */
+    color: #000000; /* Black text */
+    border-radius: 50%; /* Circle shape */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    box-shadow: 0 2px 5px rgba(192, 178, 131, 0.5);
+    border: 2px solid #1A1A1A; /* Dark border */
+    z-index: 2;
+}
+
+.category-details {
+    padding: 10px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.category-header {
+    margin-bottom: 8px;
+}
+
+.category-title {
+    margin: 0;
+    color: var(--menu-text-primary); /* Gold */
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.3;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.category-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* VIEW ITEMS BUTTON - SOLID GOLD */
+.btn-view-category {
+    background: #C0B283; /* Solid Gold */
+    color: #000000; /* Black text */
+    border: none;
+    padding: 5px 8px !important;
+    border-radius: 5px;
+    font-size: 10px !important;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    transition: all 0.3s;
+    width: 100%;
+    box-shadow: 0 2px 6px rgba(192, 178, 131, 0.3);
+    position: relative;
+    overflow: hidden;
+    height: 28px !important;
+}
+
+.btn-view-category:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(192, 178, 131, 0.4);
+    background: #D9C8A9; /* Lighter Gold */
+}
+
+.btn-view-category .btn-text {
+    flex: 1;
+    text-align: left;
+    font-weight: 600;
+}
+
+/* ITEM COUNT BADGE INSIDE BUTTON - WITH DARK TINT */
+.item-count-badge-btn {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(0, 0, 0, 0.35);
+    border-radius: 8px;
+    padding: 1px 4px !important;
+    font-size: 9px !important;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 14px !important;
+    backdrop-filter: blur(5px);
+    margin-left: 2px;
+}
+
+.count-number {
+    color: #000000; /* Black text */
+    font-weight: 700;
+    font-size: 9px !important;
+}
+
+/* MODAL TITLE STYLES */
+.modal-title-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.modal-subtitle {
+    margin-top: 2px;
+}
+
+.item-count-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    white-space: nowrap;
+}
+
+.item-count-badge i {
+    font-size: 11px;
+    opacity: 0.9;
+}
+
+/* ========== COMPACT HEADER ========== */
+.compact-header {
+    padding: 10px 15px !important;
+    min-height: auto !important;
+    background: #1A1A1A !important; /* Solid Dark Grey */
+    border-bottom: 2px solid #C0B283; /* Gold border */
+}
+
+/* ========== MODALS ========== */
+.category-modal,
+.service-modal {
+    display: none;
+    position: fixed;
+    z-index: 9998;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.category-modal.active,
+.service-modal.active {
+    display: block;
+}
+
+.modal-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(3px);
+}
+
+.center-modal .modal-container {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    background: #0D0D0D; /* Dark background */
+    border-radius: 12px;
+    border: 1px solid var(--menu-border-color);
+    opacity: 0;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    max-height: 85vh;
+    max-width: 95vw;
+}
+
+.center-modal.active .modal-container {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+}
+
+.category-modal .modal-container {
+    width: 750px;
+    max-width: 95%;
+    height: 650px;
+    max-height: 85vh;
+}
+
+.service-modal .modal-container {
+    width: 500px;
+    max-width: 92%;
+    height: auto;
+    max-height: 80vh;
+}
+
+.modal-header {
+    background: #1A1A1A; /* Solid Dark Grey */
+    color: #C0B283; /* Gold text */
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+    border-bottom: 2px solid #C0B283; /* Gold border */
+}
+
+.modal-title, .service-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-title h2, .service-modal-title h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.modal-close {
+    background: rgba(192, 178, 131, 0.2);
+    color: #C0B283;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s;
+}
+
+.modal-close:hover {
+    background: rgba(192, 178, 131, 0.3);
+    color: #D9C8A9;
+}
+
+/* ✅ MODAL CONTENT - SCROLLABLE WITH RIGHT PADDING FOR SCROLLBAR */
+.modal-content {
+    padding: 0;
+    overflow-y: auto;
+    flex-grow: 1;
+    max-height: calc(85vh - 58px);
+    border-radius: 0 0 11px 11px;
+    /* ✅ Right padding for scrollbar gap */
+    padding-right: 4px !important;
+}
+
+/* ========== 2-COLUMN GRID FOR CATEGORY MODAL ========== */
+.menu-two-column-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    border-radius: 0 0 11px 11px;
+    /* ✅ FIX: Enable scrolling with right padding */
+    overflow-y: auto;
+    max-height: calc(85vh - 58px);
+    /* ✅ Scrollbar ke liye padding */
+    padding-right: 4px !important;
+}
+
+/* ✅ SCROLLBAR STYLING WITH GAP - GOLD THEME */
+.menu-two-column-grid::-webkit-scrollbar {
+    width: 8px;
+}
+
+.menu-two-column-grid::-webkit-scrollbar-track {
+    background: #1A1A1A;
+    margin: 4px 0;
+}
+
+.menu-two-column-grid::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #C0B283 0%, #8e7d4d 100%);
+    border-radius: 10px;
+    border: 2px solid #0D0D0D; /* ✅ Gap create karne ke liye */
+}
+
+.menu-two-column-grid::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #D9C8A9 0%, #C0B283 100%);
+}
+
+/* MENU MODAL ITEM CARD */
+.menu-modal-item-card {
+    display: flex;
+    gap: 2px !important;
+    padding: 0 !important;
+    background: #1A1A1A; /* Dark background */
+    border-radius: 0;
+    border: 1px solid var(--menu-border-color);
+    transition: all 0.3s ease;
+    height: 99px !important;
+    min-height: 99px;
+    align-items: stretch;
+    box-shadow: none;
+    margin: 0;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    /* ✅ Card ke right side me padding for scrollbar gap */
+    margin-right: 4px !important;
+}
+
+/* GLOW EFFECT ON CLICK - GOLD */
+.menu-modal-item-card.highlighted {
+    animation: glowPulse 1.5s ease-in-out;
+    z-index: 1;
+    position: relative;
+}
+
+@keyframes glowPulse {
+    0% {
+        box-shadow: 0 0 0 0 var(--menu-glow-color);
+        border-color: var(--menu-primary-color);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 10px 3px rgba(192, 178, 131, 0.6);
+        border-color: #D9C8A9;
+        transform: scale(1.01);
+    }
+    100% {
+        box-shadow: 0 0 0 0 var(--menu-glow-color);
+        border-color: var(--menu-primary-color);
+        transform: scale(1);
+    }
+}
+
+/* Desktop layout borders */
+@media (min-width: 768px) {
+    .menu-modal-item-card:nth-child(odd) {
+        border-left: none;
+    }
+    
+    .menu-modal-item-card:nth-child(even) {
+        border-right: none;
+    }
+    
+    .menu-modal-item-card:nth-child(1),
+    .menu-modal-item-card:nth-child(2) {
+        border-top: none;
+    }
+    
+    .menu-modal-item-card:nth-last-child(-n+2) {
+        border-bottom: none;
+    }
+    
+    .menu-modal-item-card {
+        height: 114px !important;
+        min-height: 114px;
+    }
+}
+
+/* Left Column: Photo Square */
+.menu-modal-photo-square {
+    flex: 0 0 95px;
+    width: 95px;
+    height: 95px;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--menu-border-color);
+    background: #0D0D0D;
+    position: relative;
+    margin: 2px 0 !important;
+}
+
+.menu-modal-photo-square img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.menu-modal-item-card:hover .menu-modal-photo-square img {
+    transform: scale(1.05);
+}
+
+/* Desktop photo size */
+@media (min-width: 768px) {
+    .menu-modal-photo-square {
+        flex: 0 0 110px;
+        width: 110px;
+        height: 110px;
+        margin: 2px 0 !important;
+    }
+}
+
+/* Right Column: Details Square */
+.menu-modal-details-square {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0 !important;
+    height: 95px;
+    background: #1A1A1A;
+    position: relative;
+    margin: 2px 0 !important;
+    /* ✅ Card details ke right side me padding for scrollbar */
+    padding-right: 2px !important;
+}
+
+/* Desktop details spacing */
+@media (min-width: 768px) {
+    .menu-modal-details-square {
+        height: 110px;
+        margin: 2px 0 !important;
+        padding-right: 4px !important;
+    }
+}
+
+/* Header */
+.menu-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 3px !important;
+    width: 100%;
+    gap: 3px;
+}
+
+.menu-modal-item-name {
+    margin: 0;
+    font-size: 12.6px !important;
+    font-weight: 700;
+    color: #C0B283; /* Gold */
+    line-height: 1.15 !important;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    /* ✅ Text scrollbar se overlap na kare */
+    padding-right: 2px;
+}
+
+/* Desktop font size */
+@media (min-width: 768px) {
+    .menu-modal-item-name {
+        font-size: 14px !important;
+        padding-right: 4px;
+    }
+    
+    .menu-modal-header {
+        margin-bottom: 4px !important;
+        gap: 4px;
+    }
+}
+
+.menu-modal-item-number {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.8px;
+    font-size: 9.9px !important;
+    padding: 1.8px 4.5px;
+    border-radius: 3.6px;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+    background: rgba(192, 178, 131, 0.1); /* Light gold */
+    color: #C0B283;
+    border: 1px solid rgba(192, 178, 131, 0.3);
+}
+
+/* Desktop item number */
+@media (min-width: 768px) {
+    .menu-modal-item-number {
+        font-size: 11px !important;
+        padding: 2px 5px;
+        gap: 2px;
+        border-radius: 4px;
+    }
+}
+
+/* Pricing */
+.menu-modal-pricing {
+    margin-bottom: 1px !important;
+    padding: 0;
+    /* ✅ Scrollbar gap ke liye padding */
+    padding-right: 2px;
+}
+
+.menu-modal-discount-row {
+    display: flex;
+    align-items: center;
+    gap: 5.4px;
+    margin-bottom: 1px !important;
+    position: relative;
+    top: -2px;
+}
+
+.menu-modal-original-price {
+    color: #888888; /* Muted Grey */
+    text-decoration: line-through;
+    font-size: 9.9px !important;
+    font-weight: 500;
+}
+
+.menu-modal-discount-badge {
+    background: linear-gradient(135deg, #D98324 0%, #B3691D 100%); /* Burnt Orange */
+    color: white;
+    padding: 1.8px 5.4px;
+    border-radius: 9px;
+    font-size: 9px !important;
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgba(217, 131, 36, 0.2);
+}
+
+.menu-modal-final-price {
+    display: flex;
+    align-items: baseline;
+    gap: 1.8px;
+    position: relative;
+    top: -2px;
+}
+
+.menu-modal-rupee {
+    color: #C0B283; /* Gold */
+    font-size: 15.4px !important;
+    font-weight: 800;
+    margin-right: 0.9px;
+}
+
+.menu-modal-price-value {
+    font-weight: 900;
+    color: #C0B283; /* Gold */
+    font-size: 17.6px !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* Desktop price styles */
+@media (min-width: 768px) {
+    .menu-modal-rupee {
+        font-size: 16px !important;
+        font-weight: 900;
+    }
+    
+    .menu-modal-price-value {
+        font-size: 19px !important;
+        font-weight: 1000;
+    }
+    
+    .menu-modal-final-price {
+        gap: 2px;
+    }
+    
+    .menu-modal-discount-row {
+        top: -3px;
+    }
+    
+    .menu-modal-final-price {
+        top: -3px;
+    }
+    
+    .menu-modal-pricing {
+        padding-right: 4px;
+    }
+}
+
+/* Action Buttons */
+.menu-modal-actions {
+    display: flex;
+    gap: 7.2px;
+    margin-top: -2px !important;
+    width: 100%;
+    margin-bottom: 0;
+    position: relative;
+    top: -4px;
+    /* ✅ Buttons scrollbar se overlap na kare */
+    padding-right: 2px;
+}
+
+.btn-menu-modal-details {
+    flex: 1;
+    background: transparent;
+    border: 1px solid #C0B283; /* Gold border */
+    color: #C0B283; /* Gold text */
+    padding: 5.4px 7.2px;
+    border-radius: 5.4px;
+    font-size: 10.8px !important;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3.6px;
+    transition: all 0.2s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    min-width: 0;
+    white-space: nowrap;
+    height: 27px !important;
+}
+
+.btn-menu-modal-details:hover {
+    background: rgba(192, 178, 131, 0.1);
+    border-color: #D9C8A9;
+    color: #D9C8A9;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(192, 178, 131, 0.2);
+}
+
+.btn-menu-modal-add {
+    flex: 1;
+    background: #C0B283; /* Solid Gold */
+    color: #000000; /* Black text */
+    border: none;
+    padding: 5.4px 7.2px;
+    border-radius: 5.4px;
+    font-size: 10.8px !important;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3.6px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(192, 178, 131, 0.3);
+    min-width: 0;
+    white-space: nowrap;
+    height: 27px !important;
+}
+
+.btn-menu-modal-add::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.6s;
+}
+
+.btn-menu-modal-add:hover::before {
+    left: 100%;
+}
+
+.btn-menu-modal-add:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(192, 178, 131, 0.4);
+    background: #D9C8A9; /* Lighter Gold */
+}
+
+/* Desktop button styles */
+@media (min-width: 768px) {
+    .menu-modal-actions {
+        gap: 8px;
+        margin-top: 0px !important;
+        top: -6px;
+        padding-right: 4px;
+    }
+    
+    .btn-menu-modal-details,
+    .btn-menu-modal-add {
+        height: 30px !important;
+        padding: 6px 8px !important;
+        font-size: 12px !important;
+        border-radius: 6px;
+        gap: 4px;
+    }
+    
+    .btn-menu-modal-details i,
+    .btn-menu-modal-add i {
+        font-size: 12px;
+    }
+}
+
+/* ========== MENU ITEM DETAILS MODAL - WITH SCROLLABLE AREA ========== */
+.menu-item-details-content {
+    text-align: center;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    /* ✅ FIX: Ensure it takes full height */
+    min-height: 100%;
+    /* ✅ Scrollbar gap ke liye padding */
+    padding-right: 4px !important;
+    background: #0D0D0D;
+}
+
+.details-image-container {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+    border-radius: 0 0 12px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0D0D0D 0%, #1A1A1A 100%);
+    border-bottom: 1px solid var(--menu-border-color);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+}
+
+.details-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.menu-item-name {
+    text-align: center;
+    margin: 10px 0 !important;
+    padding: 0 13.5px;
+    color: #C0B283; /* Gold */
+    font-size: 16.2px !important;
+    font-weight: 800;
+    line-height: 1.3;
+    background: none;
+    -webkit-text-fill-color: #C0B283;
+    background-clip: border-box;
+    flex-shrink: 0;
+    /* ✅ Scrollbar gap */
+    padding-right: 17.5px !important;
+}
+
+/* ✅ FIX: SCROLLABLE CONTENT AREA - IMPROVED */
+.scrollable-details {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 13.5px 10px 13.5px;
+    /* ✅ Dynamic height calculation */
+    max-height: calc(80vh - 320px);
+    min-height: 150px;
+    /* ✅ Scrollbar gap */
+    padding-right: 17.5px !important;
+    background: #0D0D0D;
+}
+
+/* ✅ Menu details ke liye bhi scrollbar gap - GOLD THEME */
+.scrollable-details::-webkit-scrollbar {
+    width: 8px;
+}
+
+.scrollable-details::-webkit-scrollbar-track {
+    background: #1A1A1A;
+    margin: 4px 0;
+}
+
+.scrollable-details::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #C0B283 0%, #8e7d4d 100%);
+    border-radius: 10px;
+    border: 2px solid #0D0D0D; /* ✅ Gap create karne ke liye */
+}
+
+.scrollable-details::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #D9C8A9 0%, #C0B283 100%);
+}
+
+.details-section {
+    text-align: left;
+    background: #1A1A1A;
+    padding: 10.125px !important;
+    border-radius: 6.75px;
+    margin: 0 0 10.125px 0 !important;
+    border-left: 3px solid #C0B283;
+    box-shadow: 0 2.025px 5.4px rgba(0, 0, 0, 0.1);
+}
+
+.details-section h4 {
+    display: flex;
+    align-items: center;
+    gap: 5.4px;
+    margin-bottom: 6.75px !important;
+    color: #C0B283;
+    font-size: 12.6px !important;
+}
+
+.description-text {
+    text-align: left;
+    line-height: 1.5;
+    font-size: 10.8px !important;
+    color: #888888;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 3.375px;
+}
+
+.details-price {
+    padding: 10.125px !important;
+    background: #1A1A1A;
+    border-radius: 6.75px;
+    border: 1px solid var(--menu-border-color);
+    box-shadow: 0 2.025px 5.4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 10.125px !important;
+}
+
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5.4px !important;
+    padding-bottom: 5.4px !important;
+    border-bottom: 1px solid var(--menu-border-color);
+}
+
+.final-price-row {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.price-row span:first-child {
+    color: #888888;
+    font-weight: 600;
+    font-size: 10.8px !important;
+}
+
+.original {
+    color: #666666; /* Muted Grey */
+    text-decoration: line-through;
+    font-weight: 600;
+    font-size: 10.8px !important;
+}
+
+.discount {
+    color: #D98324; /* Burnt Orange */
+    font-weight: 700;
+    font-size: 10.8px !important;
+}
+
+.final {
+    font-size: 16.2px !important;
+    font-weight: 900;
+    color: #C0B283; /* Gold */
+}
+
+.btn-add-to-cart-large {
+    margin: 0 10.8px 10.8px 10.8px !important;
+    background: #C0B283; /* Solid Gold */
+    color: #000000; /* Black text */
+    border: none;
+    padding: 9.45px !important;
+    border-radius: 6.75px;
+    font-size: 12.15px !important;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6.75px;
+    width: calc(100% - 21.6px) !important;
+    transition: all 0.3s;
+    box-shadow: 0 2.7px 10.125px rgba(192, 178, 131, 0.3);
+    flex-shrink: 0;
+}
+
+.btn-add-to-cart-large:hover {
+    transform: translateY(-1.5px);
+    box-shadow: 0 5.4px 16.875px rgba(192, 178, 131, 0.4);
+    background: #D9C8A9; /* Lighter Gold */
+}
+
+/* Description text scrollbar - GOLD THEME */
+.description-text::-webkit-scrollbar {
+    width: 3px;
+}
+
+.description-text::-webkit-scrollbar-track {
+    background: #1A1A1A;
+    border-radius: 5px;
+}
+
+.description-text::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #C0B283 0%, #8e7d4d 100%);
+    border-radius: 5px;
+}
+
+/* ========== NOTIFICATION WITH GOLD GRADIENT ========== */
+.booking-notification-fixed {
+    position: fixed;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    max-width: 400px;
+    background: #1A1A1A;
+    border-radius: 12px;
+    border: 1px solid var(--menu-border-color);
+    z-index: 99999;
+    transition: top 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.booking-notification-fixed.show {
+    top: 15px;
+}
+
+.notification-fixed-content {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    gap: 15px;
+}
+
+.notification-fixed-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #C0B283 0%, #8e7d4d 100%);
+    color: #000000;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(192, 178, 131, 0.3);
+}
+
+.notification-fixed-text {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.notification-fixed-text strong {
+    font-size: 15px;
+    font-weight: 800;
+    color: #C0B283;
+    margin-bottom: 4px;
+}
+
+.notification-fixed-text span {
+    font-size: 13px;
+    color: #888888;
+}
+
+.notification-fixed-actions {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.btn-view-cart-fixed {
+    background: linear-gradient(135deg, #C0B283 0%, #8e7d4d 100%);
+    color: #000000;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.3s;
+    box-shadow: 0 3px 8px rgba(192, 178, 131, 0.3);
+}
+
+.btn-view-cart-fixed:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(192, 178, 131, 0.4);
+    background: linear-gradient(135deg, #D9C8A9 0%, #C0B283 100%);
+}
+
+.btn-close-fixed {
+    background: #1A1A1A;
+    color: #888888;
+    border: 1px solid var(--menu-border-color);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.btn-close-fixed:hover {
+    background: #2A2A2A;
+    border-color: #C0B283;
+    color: #C0B283;
+    box-shadow: 0 3px 8px rgba(192, 178, 131, 0.2);
+}
+
+/* ========== RESPONSIVE: TABLET & DESKTOP ========== */
+@media (min-width: 768px) {
+    .categories-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 20px;
+        padding: 20px;
+    }
+    
+    .category-item {
+        height: 200px;
+    }
+    
+    .category-square-photo {
+        height: 120px;
+    }
+    
+    .category-title {
+        font-size: 15px;
+    }
+    
+    .item-count-badge-btn {
+        min-width: 22px;
+        height: 18px;
+        font-size: 11px;
+    }
+}
+
+/* ========== MOBILE RESPONSIVE ========== */
+@media (max-width: 767px) {
+    .categories-container {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 12px;
+        padding: 12px;
+    }
+    
+    .category-item {
+        height: 170px;
+    }
+    
+    .category-square-photo {
+        height: 100px;
+    }
+    
+    /* Category number square ko mobile ke liye chhota karo */
+    .category-number {
+        width: 18px !important;
+        height: 18px !important;
+        font-size: 9px !important;
+        top: 2px !important;
+        left: 2px !important;
+        border: 1.5px solid #1A1A1A !important;
+    }
+    
+    .category-modal .modal-container {
+        width: 95%;
+        height: 85vh;
+        /* ✅ Mobile ke liye flex container */
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    
+    /* ✅ Service details modal mobile fix */
+    .service-modal .modal-container {
+        width: 95%;
+        height: 85vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    
+    /* ✅ MOBILE FIX: Switch to 1-column grid on mobile */
+    .menu-two-column-grid {
+        grid-template-columns: 1fr !important;
+        gap: 2px !important;
+        padding: 0 !important;
+        /* ✅ Mobile me proper scrolling enable karo */
+        overflow-y: auto;
+        max-height: none;
+        /* ✅ Mobile me bhi scrollbar gap */
+        padding-right: 4px !important;
+    }
+    
+    /* ✅ Mobile पर modal content को scrollable बनाएं */
+    .modal-content {
+        overflow-y: auto !important;
+        max-height: calc(85vh - 58px) !important;
+        flex: 1;
+        /* ✅ Mobile me bhi scrollbar gap */
+        padding-right: 4px !important;
+    }
+    
+    /* Adjust menu cards for mobile */
+    .menu-modal-item-card {
+        height: 100px !important; /* ✅ Mobile पर थोड़ा height बढ़ाएं */
+        min-height: 100px !important;
+        gap: 2px !important;
+        border: 1px solid var(--menu-border-color) !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        /* ✅ Mobile me bhi scrollbar gap */
+        margin-right: 4px !important;
+    }
+    
+    /* Sabhi borders ko reset karo mobile ke liye */
+    .menu-modal-item-card:nth-child(odd),
+    .menu-modal-item-card:nth-child(even) {
+        border: 1px solid var(--menu-border-color) !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+    }
+    
+    .menu-modal-item-card:first-child {
+        border-top: 1px solid var(--menu-border-color) !important;
+    }
+    
+    .menu-modal-item-card:last-child {
+        border-bottom: 1px solid var(--menu-border-color) !important;
+    }
+    
+    /* Photo square ko adjust karo mobile ke liye */
+    .menu-modal-photo-square {
+        flex: 0 0 95px !important;
+        width: 95px !important;
+        height: 95px !important;
+        margin: 2px 0 !important;
+    }
+    
+    /* Details square ko adjust karo */
+    .menu-modal-details-square {
+        height: 95px !important;
+        margin: 2px 0 !important;
+        /* ✅ Mobile me bhi scrollbar gap */
+        padding-right: 2px !important;
+    }
+    
+    /* Mobile font sizes */
+    .menu-modal-item-name {
+        font-size: 12.6px !important;
+        /* ✅ Mobile me bhi scrollbar gap */
+        padding-right: 2px;
+    }
+    
+    .menu-modal-price-value {
+        font-size: 17.6px !important;
+    }
+    
+    .menu-modal-rupee {
+        font-size: 15.4px !important;
+    }
+    
+    .btn-menu-modal-details,
+    .btn-menu-modal-add {
+        height: 27px !important;
+        padding: 5.4px 7.2px !important;
+        font-size: 10.8px !important;
+    }
+    
+    /* Mobile me buttons spacing */
+    .menu-modal-actions {
+        margin-top: -2px !important;
+        top: -4px;
+        gap: 7.2px !important;
+        /* ✅ Mobile me bhi scrollbar gap */
+        padding-right: 2px;
+    }
+    
+    .menu-modal-pricing {
+        margin-bottom: 1px !important;
+        /* ✅ Mobile me bhi scrollbar gap */
+        padding-right: 2px;
+    }
+    
+    /* Mobile me aur compact sizes */
+    .menu-modal-item-number {
+        font-size: 9.9px !important;
+        padding: 1.8px 4.5px !important;
+        gap: 1.8px !important;
+    }
+    
+    .menu-modal-original-price {
+        font-size: 9.9px !important;
+    }
+    
+    .menu-modal-discount-badge {
+        font-size: 9px !important;
+        padding: 1.8px 5.4px !important;
+    }
+    
+    /* View Items button mobile me aur chhota */
+    .btn-view-category {
+        padding: 4px 6px !important;
+        font-size: 9px !important;
+        height: 26px !important;
+    }
+    
+    .item-count-badge-btn {
+        height: 12px !important;
+        min-width: 16px !important;
+        font-size: 8px !important;
+    }
+    
+    .count-number {
+        font-size: 8px !important;
+    }
+    
+    /* ✅ Mobile me item details modal adjustments */
+    .details-image-container {
+        height: 180px;
+        flex-shrink: 0;
+    }
+    
+    .scrollable-details {
+        max-height: calc(85vh - 300px) !important;
+        min-height: 120px;
+        /* ✅ Mobile me bhi scrollbar gap */
+        padding-right: 13.5px !important;
+    }
+    
+    .menu-item-name {
+        flex-shrink: 0;
+        margin: 8px 0 !important;
+        font-size: 15px !important;
+        /* ✅ Mobile me bhi scrollbar gap */
+        padding-right: 13.5px !important;
+    }
+    
+    .btn-add-to-cart-large {
+        margin: 0 10px 10px 10px !important;
+        padding: 8px !important;
+        font-size: 11px !important;
+        flex-shrink: 0;
+    }
+    
+    .menu-item-details-content {
+        padding-right: 4px !important;
+    }
+}
+
+/* Extra Small Mobile ke liye aur optimizations */
+@media (max-width: 480px) {
+    .menu-modal-item-card {
+        height: 94px !important;
+        min-height: 94px;
+    }
+    
+    .menu-modal-photo-square {
+        flex: 0 0 90px !important;
+        width: 90px !important;
+        height: 90px !important;
+    }
+    
+    .menu-modal-details-square {
+        height: 90px !important;
+    }
+    
+    /* Extra small mobile me aur compact */
+    .menu-modal-item-name {
+        font-size: 11.34px !important;
+    }
+    
+    .menu-modal-price-value {
+        font-size: 15.84px !important;
+    }
+    
+    .menu-modal-rupee {
+        font-size: 13.86px !important;
+    }
+    
+    .btn-menu-modal-details,
+    .btn-menu-modal-add {
+        height: 24.3px !important;
+        padding: 4.86px 6.48px !important;
+        font-size: 9.72px !important;
+    }
+    
+    .menu-modal-actions {
+        margin-top: -3px !important;
+        top: -3px;
+        gap: 6.48px !important;
+    }
+    
+    /* Category number aur bhi chhota karo */
+    .category-number {
+        width: 16px !important;
+        height: 16px !important;
+        font-size: 8px !important;
+        top: 2px !important;
+        left: 2px !important;
+        border: 1px solid #1A1A1A !important;
+    }
+    
+    /* ✅ Extra small mobile me item details fix */
+    .scrollable-details {
+        max-height: calc(85vh - 280px) !important;
+        min-height: 100px;
+    }
+    
+    .details-image-container {
+        height: 150px;
+    }
+}
+
+/* ========== NO ITEMS STATE ========== */
+.no-services {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--menu-text-secondary);
+    background-color: var(--menu-light-bg);
+}
+
+.no-services i {
+    margin-bottom: 20px;
+    color: #555555;
+}
+
+.no-services h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #888888;
+}
+
+.no-services p {
+    font-size: 14px;
+    color: #666666;
+}
+</style>
+{% endblock %}
