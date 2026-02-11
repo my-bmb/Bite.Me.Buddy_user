@@ -1,0 +1,2629 @@
+{% extends "base.html" %}
+
+{% block title %}Services{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- ✅ UPDATED HEADER - MOBILE & DESKTOP FRIENDLY -->
+    <header class="dashboard-header services-header">
+        <div class="header-left">
+            <h1 class="header-title">Services</h1>
+            <p class="welcome-text">Browse our premium services</p>
+        </div>
+        <div class="header-right">
+            <div class="profile-container">
+                <img src="{{ session.profile_pic }}" alt="Profile" class="profile-pic"
+                     onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+                <div class="profile-status"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Services Content -->
+    <main class="main-content">
+        {% if services %}
+            <!-- Hidden data container for all services -->
+            <div id="allServicesData" style="display: none;">
+                {% for service in services %}
+                <div class="service-data-global"
+                     data-id="{{ service.id }}"
+                     data-name="{{ service.name }}"
+                     data-desc="{{ service.description }}"
+                     data-photo="{{ service.photo }}"
+                     data-price="{{ service.price }}"
+                     data-discount="{{ service.discount }}"
+                     data-final="{{ service.final_price }}">
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Categories will be loaded here by JavaScript -->
+            <div id="categoriesContainer" class="categories-container">
+                <!-- JavaScript will populate this -->
+            </div>
+            
+            <!-- Loading indicator -->
+            <div id="loadingCategories" style="text-align: center; padding: 40px;">
+                <i class="fas fa-spinner fa-spin fa-2x" style="color: #8e7d4d;"></i>
+                <p>Loading categories...</p>
+            </div>
+        {% else %}
+            <div class="no-services">
+                <i class="fas fa-concierge-bell fa-3x"></i>
+                <h3>No Services Available</h3>
+                <p>Check back soon for premium selections!</p>
+            </div>
+        {% endif %}
+    </main>
+
+    <!-- ✅ UPDATED BOTTOM NAVIGATION - MOBILE & DESKTOP FRIENDLY -->
+    <nav class="bottom-nav services-bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item active" data-title="Services">
+            <div class="nav-icon-container">
+                <i class="fas fa-concierge-bell"></i>
+                <div class="nav-active-indicator"></div>
+            </div>
+            <span class="nav-label">Services</span>
+        </a>
+        <a href="{{ url_for('menu') }}" class="nav-item" data-title="Menu">
+            <div class="nav-icon-container">
+                <i class="fas fa-utensils"></i>
+            </div>
+            <span class="nav-label">Menu</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item" data-title="Cart">
+            <div class="nav-icon-container">
+                <i class="fas fa-shopping-cart"></i>
+                <!-- Cart count badge -->
+                {% if session.get('cart_count') and session['cart_count'] > 0 %}
+                <span class="cart-count-badge">{{ session['cart_count'] }}</span>
+                {% endif %}
+            </div>
+            <span class="nav-label">Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item" data-title="Orders">
+            <div class="nav-icon-container">
+                <i class="fas fa-history"></i>
+            </div>
+            <span class="nav-label">Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item" data-title="Profile">
+            <div class="nav-icon-container">
+                <i class="fas fa-user"></i>
+            </div>
+            <span class="nav-label">Profile</span>
+        </a>
+    </nav>
+</div>
+
+<!-- CATEGORY MODAL - UPDATED TO 2-COLUMN LAYOUT -->
+<div id="categoryModal" class="category-modal center-modal">
+    <div class="modal-overlay" onclick="closeCategoryModal()"></div>
+    <div class="modal-container">
+        <div class="modal-header compact-header">
+            <div class="modal-title">
+                <i class="fas fa-layer-group"></i>
+                <div class="modal-title-content">
+                    <h2>Category <span id="modalCatNumber">1</span></h2>
+                    <div class="modal-subtitle">
+                        <span class="item-count-badge">
+                            <i class="fas fa-concierge-bell"></i>
+                            <span id="modalItemCount">0</span> services available
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <button class="modal-close" onclick="closeCategoryModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-content" id="categoryServicesList">
+            <!-- Services will be loaded here in 2-column layout -->
+        </div>
+    </div>
+</div>
+
+<!-- SERVICE DETAILS MODAL -->
+<div id="serviceModal" class="service-modal center-modal">
+    <div class="modal-overlay" onclick="closeServiceModal()"></div>
+    <div class="modal-container">
+        <div class="modal-header compact-header">
+            <div class="service-modal-title">
+                <i class="fas fa-concierge-bell"></i>
+                <h2>Service Details</h2>
+            </div>
+            <button class="modal-close" onclick="closeServiceModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-content" id="serviceDetailsContent">
+            <!-- Service details will be loaded here with scrollable area -->
+        </div>
+    </div>
+</div>
+
+<!-- BOOKING NOTIFICATION - HIDDEN BY DEFAULT -->
+<div id="bookingNotification" class="booking-notification-fixed" style="display: none;">
+    <div class="notification-fixed-content">
+        <div class="notification-fixed-icon">
+            <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="notification-fixed-text">
+            <strong>Service Booked Successfully!</strong>
+            <span>Added to your cart</span>
+        </div>
+        <div class="notification-fixed-actions">
+            <button class="btn-view-cart-fixed" onclick="window.location.href='/cart'">
+                View Cart
+            </button>
+            <button class="btn-close-fixed" onclick="closeBookingNotification()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ✅ CATEGORY CREATION LOGIC - MENU STYLE
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('allServicesData')) {
+        createServiceCategories();
+    }
+    
+    // ✅ Bottom navigation hover effects
+    setupNavigation();
+});
+
+function createServiceCategories() {
+    const allServices = document.querySelectorAll('.service-data-global');
+    const categoriesContainer = document.getElementById('categoriesContainer');
+    const loadingIndicator = document.getElementById('loadingCategories');
+    
+    if (allServices.length === 0) {
+        loadingIndicator.innerHTML = '<div class="no-services"><i class="fas fa-concierge-bell fa-3x"></i><h3>No Services Available</h3></div>';
+        return;
+    }
+    
+    // Define category sizes
+    const categorySizes = [
+        5, 7, 6, 8, 4, 10, 6, 5, 7, 8,
+        6, 6, 5, 9, 7, 8, 6, 5, 7, 10,
+        6, 5, 8, 7, 6, 9, 5, 8, 7, 6,
+        5, 7, 8, 6, 9, 5, 7, 8, 6, 10,
+        5, 6, 7, 8, 6, 5, 9, 7, 8, 6,
+        5, 7, 8, 6, 9, 5, 7, 8, 6, 10,
+        5, 6, 7, 8, 6, 5, 9, 7, 8, 6,
+        5, 7, 8, 6, 9, 5, 7, 8, 6, 10,
+        5, 6, 7, 8, 6, 5, 9, 7, 8, 6
+    ];
+    
+    let currentIndex = 0;
+    let categoriesCreated = 0;
+    let categoriesHTML = '';
+    
+    // Store category header service IDs for exclusion
+    window.categoryHeaderServiceIds = [];
+    
+    // Create hidden data container for all categories
+    let hiddenDataHTML = '';
+    
+    for (let i = 0; i < categorySizes.length; i++) {
+        // Stop if no services left
+        if (currentIndex >= allServices.length) break;
+        
+        const categorySize = categorySizes[i];
+        const endIndex = Math.min(currentIndex + categorySize, allServices.length);
+        
+        // Get services for this category
+        const categoryServices = Array.from(allServices).slice(currentIndex, endIndex);
+        
+        if (categoryServices.length > 0) {
+            categoriesCreated++;
+            const headerService = categoryServices[0];
+            
+            // Store header service ID for exclusion
+            window.categoryHeaderServiceIds.push(headerService.dataset.id);
+            
+            // Get photo URL
+            const photoUrl = headerService.dataset.photo.startsWith('http') 
+                ? headerService.dataset.photo 
+                : '/static/uploads/' + headerService.dataset.photo;
+            
+            // Calculate total services in this category (excluding header)
+            const totalServicesInCategory = categoryServices.length - 1;
+            
+            // Category card HTML - MENU STYLE
+            categoriesHTML += `
+                <div class="category-item" data-category="${categoriesCreated}" onclick="showCategoryModal(${categoriesCreated})">
+                    <!-- SQUARE PHOTO -->
+                    <div class="category-square-photo">
+                        <img src="${photoUrl}" 
+                             alt="${headerService.dataset.name}"
+                             onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
+                        <!-- Number SQUARE with fixed position -->
+                        <div class="category-number">
+                            <span>${categoriesCreated}</span>
+                        </div>
+                        <!-- STATUS INDICATOR -->
+                        <div class="category-status-indicator"></div>
+                    </div>
+                    
+                    <div class="category-details">
+                        <div class="category-header">
+                            <h3 class="category-title">${headerService.dataset.name}</h3>
+                        </div>
+                        
+                        <!-- VIEW BUTTON WITH COUNT BESIDE IT -->
+                        <div class="category-actions">
+                            <button class="btn-view-category">
+                                <i class="fas fa-eye"></i> 
+                                <span class="btn-text">View Services</span>
+                                <span class="item-count-badge-btn">
+                                    <span class="count-number">${totalServicesInCategory}</span>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- HIDDEN DATA -->
+                    <div class="hidden-category-data" id="categoryData${categoriesCreated}" style="display: none;">
+            `;
+            
+            // Add each service data (EXCLUDE THE FIRST SERVICE - category header)
+            // Start from index 1 to skip the header service
+            for (let j = 1; j < categoryServices.length; j++) {
+                const service = categoryServices[j];
+                hiddenDataHTML += `
+                    <div class="service-item-data"
+                         data-id="${service.dataset.id}"
+                         data-name="${service.dataset.name}"
+                         data-desc="${service.dataset.desc}"
+                         data-photo="${service.dataset.photo}"
+                         data-price="${service.dataset.price}"
+                         data-discount="${service.dataset.discount}"
+                         data-final="${service.dataset.final}">
+                    </div>
+                `;
+            }
+            
+            categoriesHTML += hiddenDataHTML;
+            categoriesHTML += `
+                    </div>
+                </div>
+            `;
+            
+            // Reset hiddenDataHTML for next category
+            hiddenDataHTML = '';
+            
+            // Update current index
+            currentIndex = endIndex;
+        }
+    }
+    
+    // Update the DOM
+    categoriesContainer.innerHTML = categoriesHTML;
+    loadingIndicator.style.display = 'none';
+    
+    // If no categories were created
+    if (categoriesCreated === 0) {
+        categoriesContainer.innerHTML = '<div class="no-services"><i class="fas fa-concierge-bell fa-3x"></i><h3>No Categories Available</h3></div>';
+    }
+}
+
+// ✅ UPDATED CATEGORY MODAL WITH 2-COLUMN LAYOUT LIKE MENU
+function showCategoryModal(categoryNumber) {
+    const categoryData = document.getElementById(`categoryData${categoryNumber}`);
+    const services = categoryData.querySelectorAll('.service-item-data');
+    
+    // Update modal title with service count
+    const serviceCount = services.length;
+    document.getElementById('modalItemCount').textContent = serviceCount;
+    
+    let modalHTML = '<div class="service-two-column-grid">';
+    
+    services.forEach((service, index) => {
+        const serviceId = service.dataset.id;
+        const serviceName = service.dataset.name;
+        const servicePhoto = service.dataset.photo;
+        const servicePrice = parseFloat(service.dataset.price);
+        const serviceDiscount = parseFloat(service.dataset.discount);
+        const serviceFinal = parseFloat(service.dataset.final);
+        
+        const photoUrl = servicePhoto.startsWith('http') ? servicePhoto : '/static/uploads/' + servicePhoto;
+        
+        // Build service card HTML - MENU STYLE
+        modalHTML += `
+            <div class="service-modal-item-card" onclick="highlightCard(this)" data-service-id="${serviceId}">
+                <!-- Left Column: Photo Square -->
+                <div class="service-modal-photo-square">
+                    <img src="${photoUrl}" 
+                         alt="${serviceName}"
+                         onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
+                </div>
+                
+                <!-- Right Column: Details Square -->
+                <div class="service-modal-details-square">
+                    <div class="service-modal-header">
+                        <h4 class="service-modal-item-name">${serviceName}</h4>
+                        <div class="service-modal-item-number">
+                            <span>#${index + 1}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="service-modal-pricing">
+        `;
+        
+        if (serviceDiscount > 0) {
+            modalHTML += `
+                        <div class="service-modal-discount-row">
+                            <span class="service-modal-original-price">₹${servicePrice.toFixed(2)}</span>
+                            <span class="service-modal-discount-badge">-${serviceDiscount}%</span>
+                        </div>
+            `;
+        }
+        
+        modalHTML += `
+                        <div class="service-modal-final-price">
+                            <span class="service-modal-rupee">₹</span>
+                            <span class="service-modal-price-value">${serviceFinal.toFixed(2)}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="service-modal-actions">
+                        <button class="btn-service-modal-details" onclick="event.stopPropagation(); showServiceDetails(${serviceId})">
+                            <i class="fas fa-info-circle"></i> Details
+                        </button>
+                        <button class="btn-service-modal-book" onclick="event.stopPropagation(); bookService(${serviceId})">
+                            <i class="fas fa-calendar-check"></i> Book
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    modalHTML += '</div>';
+    
+    document.getElementById('modalCatNumber').textContent = categoryNumber;
+    document.getElementById('categoryServicesList').innerHTML = modalHTML;
+    
+    // ✅ Enable scrolling for modal content
+    const modalContent = document.getElementById('categoryServicesList');
+    modalContent.style.overflowY = 'auto';
+    
+    document.getElementById('categoryModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+// Card highlight effect
+function highlightCard(card) {
+    // Remove highlight from all cards
+    const allCards = document.querySelectorAll('.service-modal-item-card');
+    allCards.forEach(c => c.classList.remove('highlighted'));
+    
+    // Add highlight to clicked card
+    card.classList.add('highlighted');
+    
+    // Remove highlight after 1.5 seconds
+    setTimeout(() => {
+        card.classList.remove('highlighted');
+    }, 1500);
+}
+
+function closeCategoryModal() {
+    document.getElementById('categoryModal').classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+
+// ✅ SERVICE DETAILS MODAL
+function showServiceDetails(serviceId) {
+    // Get all service data from ALL categories
+    const allServiceData = document.querySelectorAll('.service-item-data');
+    let foundService = null;
+    
+    // First, search in regular services
+    allServiceData.forEach(service => {
+        if (parseInt(service.dataset.id) === parseInt(serviceId)) {
+            foundService = {
+                id: service.dataset.id,
+                name: service.dataset.name,
+                description: service.dataset.desc,
+                photo: service.dataset.photo,
+                price: parseFloat(service.dataset.price),
+                discount: parseFloat(service.dataset.discount),
+                final_price: parseFloat(service.dataset.final)
+            };
+        }
+    });
+    
+    // If not found in regular services, check in category header services
+    if (!foundService) {
+        // Get all service data global items (includes category headers)
+        const allServiceDataGlobal = document.querySelectorAll('.service-data-global');
+        allServiceDataGlobal.forEach(service => {
+            if (parseInt(service.dataset.id) === parseInt(serviceId)) {
+                foundService = {
+                    id: service.dataset.id,
+                    name: service.dataset.name,
+                    description: service.dataset.desc,
+                    photo: service.dataset.photo,
+                    price: parseFloat(service.dataset.price),
+                    discount: parseFloat(service.dataset.discount),
+                    final_price: parseFloat(service.dataset.final)
+                };
+            }
+        });
+    }
+    
+    if (foundService) {
+        const photoUrl = foundService.photo.startsWith('http') ? foundService.photo : '/static/uploads/' + foundService.photo;
+        
+        let priceHTML = '';
+        if (foundService.discount > 0) {
+            priceHTML = `
+                <div class="price-row">
+                    <span>Original Price:</span>
+                    <span class="original">₹${foundService.price.toFixed(2)}</span>
+                </div>
+                <div class="price-row">
+                    <span>Discount:</span>
+                    <span class="discount">${foundService.discount}% OFF</span>
+                </div>
+            `;
+        }
+        
+        const modalHTML = `
+            <div class="service-item-details-content">
+                <div class="details-image-container">
+                    <img src="${photoUrl}" alt="${foundService.name}" class="details-image">
+                </div>
+                
+                <h2 class="service-item-name">${foundService.name}</h2>
+                
+                <!-- SCROLLABLE CONTENT AREA -->
+                <div class="scrollable-details">
+                    <div class="details-section">
+                        <h4><i class="fas fa-align-left"></i> Description</h4>
+                        <div class="description-text">
+                            ${foundService.description}
+                        </div>
+                    </div>
+                    
+                    <div class="details-price">
+                        ${priceHTML}
+                        <div class="price-row final-price-row">
+                            <span>Final Price:</span>
+                            <span class="final">₹${foundService.final_price.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn-book-service-large" onclick="bookService(${foundService.id}); closeServiceModal()">
+                    <i class="fas fa-calendar-check"></i> Book This Service
+                </button>
+            </div>
+        `;
+        
+        document.getElementById('serviceDetailsContent').innerHTML = modalHTML;
+        document.getElementById('serviceModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // ✅ Enable scrolling for service details modal
+        const serviceModalContent = document.getElementById('serviceDetailsContent');
+        serviceModalContent.style.overflowY = 'auto';
+    }
+}
+
+function closeServiceModal() {
+    document.getElementById('serviceModal').classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+
+// ✅ BOOKING FUNCTION
+function bookService(serviceId) {
+    fetch('/add_to_cart', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `item_type=service&item_id=${serviceId}&quantity=1`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showBookingNotification();
+            // Update cart count badge
+            updateCartCount();
+        }
+    })
+    .catch(error => {
+        console.error("Booking error:", error);
+        // Fallback: show notification anyway
+        showBookingNotification();
+    });
+}
+
+// ✅ Update cart count badge
+function updateCartCount() {
+    fetch('/get_cart_count')
+        .then(response => response.json())
+        .then(data => {
+            const cartBadge = document.querySelector('.cart-count-badge');
+            if (cartBadge) {
+                if (data.count > 0) {
+                    cartBadge.textContent = data.count;
+                    cartBadge.style.display = 'flex';
+                } else {
+                    cartBadge.style.display = 'none';
+                }
+            }
+        });
+}
+
+// ✅ NOTIFICATION
+function showBookingNotification() {
+    const notification = document.getElementById('bookingNotification');
+    notification.style.display = 'block';
+    
+    // Force reflow
+    notification.offsetHeight;
+    
+    notification.classList.add('show');
+    
+    setTimeout(() => {
+        closeBookingNotification();
+    }, 5000);
+}
+
+function closeBookingNotification() {
+    const notification = document.getElementById('bookingNotification');
+    notification.classList.remove('show');
+    
+    // Hide completely after animation
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 400);
+}
+
+// ✅ Navigation setup
+function setupNavigation() {
+    const navItems = document.querySelectorAll('.nav-item');
+    
+    navItems.forEach(item => {
+        // Click event
+        item.addEventListener('click', function(e) {
+            if (!this.classList.contains('active')) {
+                navItems.forEach(nav => nav.classList.remove('active'));
+                this.classList.add('active');
+            }
+        });
+        
+        // Hover effects for desktop
+        item.addEventListener('mouseenter', function() {
+            if (!this.classList.contains('active')) {
+                this.style.transform = 'translateY(-2px)';
+            }
+        });
+        
+        item.addEventListener('mouseleave', function() {
+            if (!this.classList.contains('active')) {
+                this.style.transform = 'translateY(0)';
+            }
+        });
+    });
+}
+
+// Event listeners
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('modal-overlay')) {
+        closeCategoryModal();
+        closeServiceModal();
+    }
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeCategoryModal();
+        closeServiceModal();
+        closeBookingNotification();
+    }
+});
+</script>
+
+<style>
+/* Import Google Fonts for premium typography */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ✅ PREMIUM PROFESSIONAL THEME - UPDATED COLOR SYSTEM (SERVICES SPECIFIC) */
+:root {
+    /* ✅ Service Card Base #0D0D0D Matte Black: Background se match karta hua, jo ek "Seamless" look deta hai */
+    --service-card-base: #0D0D0D; /* Matte Black for seamless background */
+    
+    /* ✅ Service Title #A0A0A0 Silver Mist: Professional aur subtle look ke liye (Aankhon ko chubhta nahi) */
+    --service-title: #A0A0A0; /* Silver Mist - Professional & Subtle */
+    
+    /* ✅ Service Icon #8e7d4d Antique Bronze: Bronze rang reliability aur purani legacy/trust ko dikhata hai */
+    --service-icon: #8e7d4d; /* Antique Bronze - Reliability & Legacy */
+    
+    /* ✅ Active/Selected Glow rgba(142, 125, 77, 0.2) Jab user service select karega, toh bronze rang ki halki roshni piche dikhegi */
+    --service-active-glow: rgba(142, 125, 77, 0.2); /* Bronze Glow on Selection */
+    
+    /* ✅ Status Indicator #2E7D32 Royal Emerald: Agar service "Open" ya "Available" hai */
+    --service-status-available: #2E7D32; /* Royal Emerald - Available Status */
+    
+    /* ✅ Border Detail #333333 Slate Grey: Ek bahut hi halki border jo card ko background se alag kare */
+    --service-border-detail: #333333; /* Slate Grey - Subtle Border */
+    
+    /* ✅ Header & Navigation Colors */
+    --header-bg: #0D0D0D; /* Matte Black */
+    --header-text: #F4F1E1; /* Creamy White */
+    --header-accent: #8e7d4d; /* Antique Bronze */
+    --nav-bg: #0D0D0D; /* Matte Black */
+    --nav-active: #8e7d4d; /* Antique Bronze */
+    --nav-inactive: #A0A0A0; /* Silver Mist */
+    --nav-hover: #D4C19C; /* Light Gold */
+    
+    /* Additional Colors for consistency */
+    --creamy-white: #F4F1E1;
+    --silver-mist: #A0A0A0;
+    --royal-emerald: #2E7D32;
+    --matte-black: #0D0D0D;
+    --dark-overlay: rgba(0, 0, 0, 0.9);
+    
+    /* Typography */
+    --serif-font: 'Playfair Display', Georgia, serif;
+    --sans-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    
+    /* Shadows */
+    --bronze-glow: 0 0 15px rgba(142, 125, 77, 0.3);
+    --modal-glow: 0 0 30px rgba(0,0,0,0.8), 0 0 10px rgba(142, 125, 77, 0.1);
+    --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    --modal-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    --header-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    --nav-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* ========== ✅ SERVICES HEADER - MOBILE & DESKTOP ========== */
+.dashboard-header.services-header {
+    background: var(--header-bg);
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--service-border-detail);
+    box-shadow: var(--header-shadow);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: 60px; /* Fixed height */
+}
+
+/* Header Left */
+.dashboard-header .header-left {
+    flex: 1;
+}
+
+.dashboard-header .header-title {
+    margin: 0;
+    color: var(--header-text);
+    font-size: 18px;
+    font-weight: 700;
+    font-family: var(--serif-font);
+    letter-spacing: 0.5px;
+}
+
+.dashboard-header .welcome-text {
+    margin: 3px 0 0 0;
+    color: var(--service-title);
+    font-size: 12px;
+    font-family: var(--sans-font);
+    font-weight: 400;
+}
+
+/* Header Right */
+.dashboard-header .header-right {
+    display: flex;
+    align-items: center;
+}
+
+.dashboard-header .profile-container {
+    position: relative;
+    width: 40px;
+    height: 40px;
+}
+
+.dashboard-header .profile-pic {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--header-accent);
+    box-shadow: 0 0 8px rgba(142, 125, 77, 0.3);
+}
+
+.dashboard-header .profile-status {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    background: var(--service-status-available);
+    border-radius: 50%;
+    border: 2px solid var(--header-bg);
+    box-shadow: 0 0 5px rgba(46, 125, 50, 0.5);
+}
+
+/* ========== ✅ BOTTOM NAVIGATION - MOBILE & DESKTOP ========== */
+.bottom-nav.services-bottom-nav {
+    background: var(--nav-bg);
+    border-top: 1px solid var(--service-border-detail);
+    box-shadow: var(--nav-shadow);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 8px 0;
+    height: 60px; /* Fixed height */
+}
+
+.bottom-nav .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: var(--nav-inactive);
+    flex: 1;
+    padding: 6px 0;
+    transition: all 0.3s ease;
+    position: relative;
+    min-width: 60px;
+}
+
+.bottom-nav .nav-icon-container {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+}
+
+.bottom-nav .nav-item i {
+    font-size: 18px;
+    transition: all 0.3s ease;
+}
+
+.bottom-nav .nav-label {
+    font-size: 10px;
+    font-weight: 500;
+    font-family: var(--sans-font);
+    transition: all 0.3s ease;
+    letter-spacing: 0.3px;
+}
+
+/* Active State */
+.bottom-nav .nav-item.active {
+    color: var(--nav-active);
+    transform: translateY(-2px);
+}
+
+.bottom-nav .nav-item.active i {
+    color: var(--nav-active);
+    transform: scale(1.1);
+}
+
+.bottom-nav .nav-item.active .nav-label {
+    color: var(--nav-active);
+    font-weight: 600;
+}
+
+.bottom-nav .nav-active-indicator {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 6px;
+    height: 6px;
+    background: var(--nav-active);
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(142, 125, 77, 0.5);
+}
+
+/* Hover Effects (Desktop only) */
+@media (min-width: 768px) {
+    .bottom-nav .nav-item:hover:not(.active) {
+        color: var(--nav-hover);
+        transform: translateY(-2px);
+    }
+    
+    .bottom-nav .nav-item:hover:not(.active) i {
+        color: var(--nav-hover);
+        transform: scale(1.05);
+    }
+    
+    .bottom-nav .nav-item:hover:not(.active) .nav-label {
+        color: var(--nav-hover);
+    }
+}
+
+/* Cart Count Badge */
+.cart-count-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #d98324;
+    color: #000000;
+    font-size: 10px;
+    font-weight: 700;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--nav-bg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* ========== SERVICES SECTION STYLES ========== */
+
+/* ========== BASIC STYLES ========== */
+.categories-container {
+    padding: 12px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    background: var(--service-card-base);
+    /* Padding for bottom navigation */
+    padding-bottom: 70px; /* Bottom nav height + spacing */
+}
+
+/* CATEGORY ITEM */
+.category-item {
+    background: var(--service-card-base);
+    border-radius: 10px;
+    border: 1px solid var(--service-border-detail);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    cursor: pointer;
+    height: 180px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: none;
+}
+
+.category-item:hover {
+    border-color: var(--service-icon);
+    box-shadow: var(--bronze-glow);
+    transform: translateY(-2px);
+    background: linear-gradient(
+        145deg,
+        var(--service-card-base) 0%,
+        rgba(142, 125, 77, 0.03) 100%
+    );
+}
+
+/* ✅ SQUARE PHOTO WITH PROFESSIONAL STYLING - 40% ZYADA VIBRANT */
+.category-square-photo {
+    width: 100%;
+    height: 110px;
+    border-radius: 8px 8px 0 0;
+    overflow: hidden;
+    position: relative;
+    border-bottom: 1px solid var(--service-border-detail);
+    background: var(--service-card-base);
+}
+
+.category-square-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease, filter 0.3s ease;
+    border-radius: 8px 8px 0 0;
+    filter: saturate(1.4) contrast(1.2) brightness(1.05); /* ✅ 40% zyada vibrant */
+}
+
+.category-item:hover .category-square-photo img {
+    transform: scale(1.05);
+    filter: saturate(1.6) contrast(1.3) brightness(1.1); /* ✅ Hover par aur vibrant */
+}
+
+/* Category number SQUARE with professional styling */
+.category-number {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 26px;
+    height: 26px;
+    background: var(--service-icon);
+    color: var(--creamy-white);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+    border: 2px solid var(--service-card-base);
+    z-index: 2;
+    font-family: var(--serif-font);
+}
+
+/* ✅ STATUS INDICATOR - Royal Emerald for available services */
+.category-status-indicator {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
+    background: var(--service-status-available);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(46, 125, 50, 0.5);
+    border: 1px solid var(--creamy-white);
+    z-index: 2;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
+}
+
+.category-details {
+    padding: 10px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.category-header {
+    margin-bottom: 8px;
+}
+
+.category-title {
+    margin: 0;
+    color: var(--service-title);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.3;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--sans-font);
+    letter-spacing: 0.2px;
+}
+
+.category-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* VIEW SERVICES BUTTON - ANTIQUE BRONZE SOLID */
+.btn-view-category {
+    background: var(--service-icon);
+    color: var(--creamy-white);
+    border: none;
+    padding: 5px 8px !important;
+    border-radius: 5px;
+    font-size: 10px !important;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    transition: all 0.3s;
+    width: 100%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+    height: 28px !important;
+    font-family: var(--sans-font);
+    letter-spacing: 0.3px;
+}
+
+.btn-view-category:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--bronze-glow);
+    background: rgba(142, 125, 77, 0.9);
+    color: var(--creamy-white);
+}
+
+.btn-view-category .btn-text {
+    flex: 1;
+    text-align: left;
+    font-weight: 600;
+}
+
+/* ITEM COUNT BADGE INSIDE BUTTON - WITH ANTIQUE BRONZE TINT */
+.item-count-badge-btn {
+    background: rgba(26, 26, 26, 0.8);
+    border: 1px solid var(--service-icon);
+    border-radius: 8px;
+    padding: 1px 4px !important;
+    font-size: 9px !important;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 14px !important;
+    backdrop-filter: blur(5px);
+    margin-left: 2px;
+}
+
+.count-number {
+    color: var(--service-icon);
+    font-weight: 700;
+    font-size: 9px !important;
+}
+
+/* MODAL TITLE STYLES */
+.modal-title-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.modal-subtitle {
+    margin-top: 2px;
+}
+
+.item-count-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(26, 26, 26, 0.5);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--service-icon);
+    border: 1px solid var(--service-icon);
+    backdrop-filter: blur(5px);
+    white-space: nowrap;
+}
+
+.item-count-badge i {
+    font-size: 11px;
+    color: var(--service-icon);
+}
+
+/* ========== COMPACT HEADER ========== */
+.compact-header {
+    padding: 10px 15px !important;
+    min-height: auto !important;
+    background: linear-gradient(135deg, 
+        var(--service-card-base) 0%, 
+        rgba(20, 20, 20, 0.95) 100%) !important;
+    border-bottom: 1px solid rgba(142, 125, 77, 0.3);
+    color: var(--creamy-white);
+}
+
+.compact-header i {
+    color: var(--service-icon);
+}
+
+/* ========== MODALS ========== */
+.category-modal,
+.service-modal {
+    display: none;
+    position: fixed;
+    z-index: 9998;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.category-modal.active,
+.service-modal.active {
+    display: block;
+}
+
+/* ✅ BACKDROP - DEEP BLACK FOR CONTRAST */
+.modal-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(3px);
+}
+
+/* ✅ ITEM MODAL GLOW EFFECT - 3D DEPTH */
+.center-modal .modal-container {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    background: var(--service-card-base);
+    border-radius: 12px;
+    border: 1px solid rgba(142, 125, 77, 0.3);
+    opacity: 0;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(0,0,0,0.8), 0 0 10px rgba(142, 125, 77, 0.1);
+    max-height: 85vh;
+    max-width: 95vw;
+}
+
+.center-modal.active .modal-container {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+}
+
+.category-modal .modal-container {
+    width: 750px;
+    max-width: 95%;
+    height: 650px;
+    max-height: 85vh;
+}
+
+.service-modal .modal-container {
+    width: 500px;
+    max-width: 92%;
+    height: auto;
+    max-height: 80vh;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, 
+        var(--service-card-base) 0%, 
+        rgba(20, 20, 20, 0.95) 100%);
+    color: var(--creamy-white);
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(142, 125, 77, 0.3);
+}
+
+.modal-title, .service-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-title h2, .service-modal-title h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--creamy-white);
+    font-family: var(--serif-font);
+}
+
+/* ✅ MODAL CLOSE BUTTON ENHANCEMENT */
+.modal-close {
+    background: rgba(26, 26, 26, 0.8);
+    color: var(--service-icon);
+    border: 1px solid rgba(142, 125, 77, 0.3);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.modal-close:hover {
+    background: rgba(142, 125, 77, 0.2);
+    color: var(--creamy-white);
+    transform: rotate(90deg);
+    box-shadow: 0 0 8px rgba(142, 125, 77, 0.3);
+}
+
+/* ✅ MODAL CONTENT - SCROLLABLE WITH RIGHT PADDING FOR SCROLLBAR */
+.modal-content {
+    padding: 0;
+    overflow-y: auto;
+    flex-grow: 1;
+    max-height: calc(85vh - 58px);
+    border-radius: 0 0 11px 11px;
+    background: var(--service-card-base);
+    padding-right: 4px !important;
+}
+
+/* ========== 2-COLUMN GRID FOR CATEGORY MODAL ========== */
+.service-two-column-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    border-radius: 0 0 11px 11px;
+    overflow-y: auto;
+    max-height: calc(85vh - 58px);
+    padding-right: 4px !important;
+}
+
+/* ✅ SCROLLBAR STYLING WITH GAP - BRONZE THEME */
+.service-two-column-grid::-webkit-scrollbar {
+    width: 8px;
+}
+
+.service-two-column-grid::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 4px 0;
+}
+
+.service-two-column-grid::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--service-icon) 0%, #6e5d3d 100%);
+    border-radius: 10px;
+    border: 2px solid var(--service-card-base);
+}
+
+.service-two-column-grid::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #9e8d6d 0%, #5e4d2d 100%);
+}
+
+/* SERVICE MODAL ITEM CARD */
+.service-modal-item-card {
+    display: flex;
+    gap: 2px !important;
+    padding: 0 !important;
+    background: var(--service-card-base);
+    border-radius: 0;
+    border: 1px solid var(--service-border-detail);
+    transition: all 0.3s ease;
+    height: 99px !important;
+    min-height: 99px;
+    align-items: stretch;
+    box-shadow: none;
+    margin: 0;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    margin-right: 4px !important;
+}
+
+.service-modal-item-card:hover {
+    border-color: var(--service-icon);
+    background: rgba(31, 31, 31, 0.9);
+}
+
+/* ✅ GLOW EFFECT ON CLICK - BRONZE GLOW */
+.service-modal-item-card.highlighted {
+    animation: bronzeGlowPulse 1.5s ease-in-out;
+    z-index: 1;
+    position: relative;
+    background: var(--service-active-glow) !important;
+}
+
+@keyframes bronzeGlowPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(142, 125, 77, 0);
+        border-color: var(--service-icon);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 10px 3px rgba(142, 125, 77, 0.6);
+        border-color: #9e8d6d;
+        transform: scale(1.01);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(142, 125, 77, 0);
+        border-color: var(--service-icon);
+        transform: scale(1);
+    }
+}
+
+/* Desktop layout borders */
+@media (min-width: 768px) {
+    .service-modal-item-card:nth-child(odd) {
+        border-left: none;
+    }
+    
+    .service-modal-item-card:nth-child(even) {
+        border-right: none;
+    }
+    
+    .service-modal-item-card:nth-child(1),
+    .service-modal-item-card:nth-child(2) {
+        border-top: none;
+    }
+    
+    .service-modal-item-card:nth-last-child(-n+2) {
+        border-bottom: none;
+    }
+    
+    .service-modal-item-card {
+        height: 114px !important;
+        min-height: 114px;
+    }
+}
+
+/* ✅ Left Column: Photo Square - 40% ZYADA VIBRANT */
+.service-modal-photo-square {
+    flex: 0 0 95px;
+    width: 95px;
+    height: 95px;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--service-border-detail);
+    background: var(--service-card-base);
+    position: relative;
+    margin: 2px 0 !important;
+}
+
+.service-modal-photo-square img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease, filter 0.3s ease;
+    border-radius: 4px;
+    filter: saturate(1.4) contrast(1.2) brightness(1.05); /* ✅ 40% zyada vibrant */
+}
+
+.service-modal-item-card:hover .service-modal-photo-square img {
+    transform: scale(1.05);
+    filter: saturate(1.6) contrast(1.3) brightness(1.1); /* ✅ Hover par aur vibrant */
+}
+
+/* Desktop photo size */
+@media (min-width: 768px) {
+    .service-modal-photo-square {
+        flex: 0 0 110px;
+        width: 110px;
+        height: 110px;
+        margin: 2px 0 !important;
+    }
+}
+
+/* Right Column: Details Square */
+.service-modal-details-square {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0 !important;
+    height: 95px;
+    background: transparent;
+    position: relative;
+    margin: 2px 0 !important;
+    padding-right: 2px !important;
+}
+
+/* Desktop details spacing */
+@media (min-width: 768px) {
+    .service-modal-details-square {
+        height: 110px;
+        margin: 2px 0 !important;
+        padding-right: 4px !important;
+    }
+}
+
+/* Header */
+.service-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 3px !important;
+    width: 100%;
+    gap: 3px;
+}
+
+.service-modal-item-name {
+    margin: 0;
+    font-size: 12.6px !important;
+    font-weight: 700;
+    color: var(--service-title);
+    line-height: 1.15 !important;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 2px;
+    font-family: var(--sans-font);
+}
+
+/* Desktop font size */
+@media (min-width: 768px) {
+    .service-modal-item-name {
+        font-size: 14px !important;
+        padding-right: 4px;
+    }
+    
+    .service-modal-header {
+        margin-bottom: 4px !important;
+        gap: 4px;
+    }
+}
+
+.service-modal-item-number {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.8px;
+    font-size: 9.9px !important;
+    padding: 1.8px 4.5px;
+    border-radius: 3.6px;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+    background: rgba(142, 125, 77, 0.1);
+    color: var(--service-icon);
+    border: 1px solid rgba(142, 125, 77, 0.3);
+}
+
+/* Desktop item number */
+@media (min-width: 768px) {
+    .service-modal-item-number {
+        font-size: 11px !important;
+        padding: 2px 5px;
+        gap: 2px;
+        border-radius: 4px;
+    }
+}
+
+/* Pricing */
+.service-modal-pricing {
+    margin-bottom: 1px !important;
+    padding: 0;
+    padding-right: 2px;
+}
+
+.service-modal-discount-row {
+    display: flex;
+    align-items: center;
+    gap: 5.4px;
+    margin-bottom: 1px !important;
+    position: relative;
+    top: -2px;
+}
+
+.service-modal-original-price {
+    color: var(--service-title);
+    text-decoration: line-through;
+    font-size: 9.9px !important;
+    font-weight: 500;
+}
+
+.service-modal-discount-badge {
+    background: linear-gradient(135deg, #d98324 0%, #b86d1a 100%);
+    color: var(--creamy-white);
+    padding: 1.8px 5.4px;
+    border-radius: 9px;
+    font-size: 9px !important;
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    border: 1px solid #d98324;
+}
+
+.service-modal-final-price {
+    display: flex;
+    align-items: baseline;
+    gap: 1.8px;
+    position: relative;
+    top: -2px;
+}
+
+.service-modal-rupee {
+    color: var(--service-icon);
+    font-size: 15.4px !important;
+    font-weight: 800;
+    margin-right: 0.9px;
+}
+
+.service-modal-price-value {
+    font-weight: 900;
+    color: #d4af37;
+    font-size: 17.6px !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+
+/* Desktop price styles */
+@media (min-width: 768px) {
+    .service-modal-rupee {
+        font-size: 16px !important;
+        font-weight: 900;
+    }
+    
+    .service-modal-price-value {
+        font-size: 19px !important;
+        font-weight: 1000;
+    }
+    
+    .service-modal-final-price {
+        gap: 2px;
+    }
+    
+    .service-modal-discount-row {
+        top: -3px;
+    }
+    
+    .service-modal-final-price {
+        top: -3px;
+    }
+    
+    .service-modal-pricing {
+        padding-right: 4px;
+    }
+}
+
+/* ✅ Action Buttons with Professional Styling */
+.service-modal-actions {
+    display: flex;
+    gap: 7.2px;
+    margin-top: -2px !important;
+    width: 100%;
+    margin-bottom: 0;
+    position: relative;
+    top: -4px;
+    padding-right: 2px;
+}
+
+/* ✅ Service Details Button (Secondary) */
+.btn-service-modal-details {
+    flex: 1;
+    background: transparent;
+    color: var(--service-icon);
+    border: 1px solid var(--service-icon);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 10.8px !important;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3.6px;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    min-width: 0;
+    white-space: nowrap;
+    height: 32px !important;
+    font-family: var(--sans-font);
+}
+
+.btn-service-modal-details:hover {
+    background: rgba(142, 125, 77, 0.1);
+    box-shadow: 0 0 10px rgba(142, 125, 77, 0.2);
+    color: var(--service-icon);
+    border-color: var(--service-icon);
+    transform: translateY(-1px);
+}
+
+/* ✅ Book Service Button (Primary) */
+.btn-service-modal-book {
+    flex: 1;
+    background: linear-gradient(135deg, var(--service-icon), #6e5d3d);
+    color: #000000;
+    border: none;
+    font-weight: bold;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 10.8px !important;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3.6px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    min-width: 0;
+    white-space: nowrap;
+    height: 32px !important;
+    font-family: var(--sans-font);
+}
+
+.btn-service-modal-book:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(142, 125, 77, 0.3);
+    background: linear-gradient(135deg, #9e8d6d, #5e4d2d);
+}
+
+/* Desktop button styles */
+@media (min-width: 768px) {
+    .service-modal-actions {
+        gap: 8px;
+        margin-top: 0px !important;
+        top: -6px;
+        padding-right: 4px;
+    }
+    
+    .btn-service-modal-details,
+    .btn-service-modal-book {
+        height: 34px !important;
+        padding: 8px 12px !important;
+        font-size: 11.5px !important;
+        border-radius: 8px;
+        gap: 4px;
+    }
+    
+    .btn-service-modal-details i,
+    .btn-service-modal-book i {
+        font-size: 12px;
+    }
+}
+
+/* ✅ Mobile Responsive Button Adjustments */
+@media (max-width: 767px) {
+    .btn-service-modal-details,
+    .btn-service-modal-book {
+        height: 30px !important;
+        padding: 6px 10px !important;
+        font-size: 10px !important;
+        border-radius: 6px;
+    }
+    
+    .service-modal-actions {
+        margin-top: -2px !important;
+        top: -4px;
+        gap: 6px !important;
+        padding-right: 2px;
+    }
+}
+
+/* ✅ Extra Small Mobile Button Adjustments */
+@media (max-width: 480px) {
+    .btn-service-modal-details,
+    .btn-service-modal-book {
+        height: 28px !important;
+        padding: 5px 8px !important;
+        font-size: 9px !important;
+        border-radius: 5px;
+    }
+    
+    .service-modal-actions {
+        gap: 5px !important;
+    }
+}
+
+/* ✅ Book Service Button Glow Effect */
+.btn-service-modal-book::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.2), 
+        transparent);
+    transition: left 0.6s;
+    z-index: 1;
+}
+
+.btn-service-modal-book:hover::before {
+    left: 100%;
+}
+
+/* ✅ Button Icons Styling */
+.btn-service-modal-details i {
+    color: var(--service-icon);
+    font-size: 11px;
+    transition: all 0.3s ease;
+}
+
+.btn-service-modal-details:hover i {
+    color: #9e8d6d;
+}
+
+.btn-service-modal-book i {
+    color: #000000;
+    font-size: 11px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-service-modal-book:hover i {
+    color: #000000;
+}
+
+/* ========== SERVICE ITEM DETAILS MODAL - WITH SCROLLABLE AREA ========== */
+.service-item-details-content {
+    text-align: center;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 100%;
+    padding-right: 4px !important;
+}
+
+/* ✅ Details Image Container - 40% ZYADA VIBRANT */
+.details-image-container {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+    border-radius: 0 0 12px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--service-card-base);
+    border-bottom: 1px solid rgba(142, 125, 77, 0.3);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+    flex-shrink: 0;
+}
+
+.details-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0 0 12px 12px;
+    filter: brightness(1.05) contrast(1.1) saturate(1.4); /* ✅ 40% zyada vibrant */
+    transition: filter 0.3s ease;
+}
+
+/* ✅ ITEM NAME - SILVER MIST TITLE */
+.service-item-name {
+    text-align: center;
+    margin: 10px 0 !important;
+    padding: 0 13.5px;
+    color: var(--service-title);
+    font-size: 16.2px !important;
+    font-weight: 800;
+    line-height: 1.3;
+    font-family: var(--sans-font);
+    flex-shrink: 0;
+    position: relative;
+    padding-bottom: 10px;
+    padding-right: 17.5px !important;
+}
+
+.service-item-name::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 2px;
+    background: rgba(142, 125, 77, 0.5);
+    border-radius: 2px;
+}
+
+/* ✅ FIX: SCROLLABLE CONTENT AREA - IMPROVED */
+.scrollable-details {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 13.5px 10px 13.5px;
+    max-height: calc(80vh - 320px);
+    min-height: 150px;
+    padding-right: 17.5px !important;
+}
+
+/* ✅ Service details ke liye bhi scrollbar gap - BRONZE THEME */
+.scrollable-details::-webkit-scrollbar {
+    width: 8px;
+}
+
+.scrollable-details::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 4px 0;
+    border-radius: 10px;
+}
+
+.scrollable-details::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--service-icon) 0%, #6e5d3d 100%);
+    border-radius: 10px;
+    border: 2px solid var(--service-card-base);
+}
+
+.scrollable-details::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #9e8d6d 0%, #5e4d2d 100%);
+}
+
+/* ✅ DESCRIPTION SECTION - SILVER MIST TEXT */
+.details-section {
+    text-align: left;
+    background: rgba(26, 26, 26, 0.7);
+    padding: 10.125px !important;
+    border-radius: 6.75px;
+    margin: 0 0 10.125px 0 !important;
+    border-left: 3px solid var(--service-icon);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2), 
+                0 2.025px 5.4px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--service-border-detail);
+}
+
+.details-section h4 {
+    display: flex;
+    align-items: center;
+    gap: 5.4px;
+    margin-bottom: 6.75px !important;
+    color: var(--creamy-white);
+    font-size: 12.6px !important;
+    font-family: var(--serif-font);
+}
+
+/* ✅ DESCRIPTION TEXT - SILVER MIST (Readable but professional) */
+.description-text {
+    text-align: left;
+    line-height: 1.5;
+    font-size: 10.8px !important;
+    color: var(--service-title);
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 3.375px;
+    font-family: var(--sans-font);
+    letter-spacing: 0.2px;
+}
+
+/* ✅ PRICING SECTION - BRONZE FOCUS */
+.details-price {
+    padding: 10.125px !important;
+    background: rgba(26, 26, 26, 0.7);
+    border-radius: 6.75px;
+    border: 1px solid var(--service-border-detail);
+    box-shadow: 0 2.025px 5.4px rgba(0, 0, 0, 0.05), 
+                inset 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 10.125px !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.details-price::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(142, 125, 77, 0.3) 50%, 
+        transparent 100%);
+}
+
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5.4px !important;
+    padding-bottom: 5.4px !important;
+    border-bottom: 1px solid var(--service-border-detail);
+    font-family: var(--sans-font);
+}
+
+.final-price-row {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    background: rgba(142, 125, 77, 0.05);
+    border-radius: 4px;
+    padding: 8px 10px !important;
+    margin-top: 8px !important;
+}
+
+.price-row span:first-child {
+    color: var(--service-title);
+    font-weight: 500;
+    font-size: 10.8px !important;
+    font-family: var(--sans-font);
+}
+
+.original {
+    color: #8B8B8B;
+    text-decoration: line-through;
+    font-weight: 500;
+    font-size: 10.8px !important;
+}
+
+/* ✅ DISCOUNT BADGE - ORANGE ACCENT */
+.discount {
+    color: #d98324;
+    font-weight: 700;
+    font-size: 10.8px !important;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(217, 131, 36, 0.1);
+    border: 1px solid rgba(217, 131, 36, 0.3);
+}
+
+/* ✅ FINAL PRICE - GOLD ACCENT */
+.final {
+    font-size: 16.2px !important;
+    font-weight: 900;
+    color: #d4af37;
+    font-family: var(--serif-font);
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* ✅ CURRENCY SYMBOL - ANTIQUE BRONZE */
+.final::before {
+    content: '₹';
+    color: var(--service-icon);
+    font-size: 14px;
+    margin-right: 2px;
+    font-weight: 700;
+}
+
+/* ✅ BOOK SERVICE BUTTON - PROFESSIONAL ELEMENT */
+.btn-book-service-large {
+    margin: 0 10.8px 10.8px 10.8px !important;
+    background: linear-gradient(135deg, var(--service-icon), #6e5d3d);
+    color: #000000;
+    border: 1px solid rgba(142, 125, 77, 0.5);
+    padding: 9.45px !important;
+    border-radius: 6.75px;
+    font-size: 12.15px !important;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6.75px;
+    width: calc(100% - 21.6px) !important;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3),
+                0 0 10px rgba(142, 125, 77, 0.2);
+    flex-shrink: 0;
+    font-family: var(--sans-font);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+/* ✅ BUTTON HOVER EFFECT - BRONZE SHINE */
+.btn-book-service-large::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.2), 
+        transparent);
+    transition: left 0.6s;
+    z-index: -1;
+}
+
+.btn-book-service-large:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4),
+                0 0 15px rgba(142, 125, 77, 0.3);
+    background: linear-gradient(135deg, #9e8d6d, #5e4d2d);
+    border-color: rgba(158, 141, 109, 0.7);
+}
+
+.btn-book-service-large:hover::before {
+    left: 100%;
+}
+
+/* ✅ BUTTON ICON - BLACK FOR CONTRAST */
+.btn-book-service-large i {
+    color: #000000;
+    font-size: 13px;
+}
+
+/* ✅ Description text scrollbar - BRONZE THEME */
+.description-text::-webkit-scrollbar {
+    width: 3px;
+}
+
+.description-text::-webkit-scrollbar-track {
+    background: #2A2A2A;
+    border-radius: 5px;
+}
+
+.description-text::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--service-icon) 0%, #6e5d3d 100%);
+    border-radius: 5px;
+}
+
+.description-text::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #9e8d6d 0%, #5e4d2d 100%);
+}
+
+/* ========== NOTIFICATION WITH BRONZE THEME ========== */
+.booking-notification-fixed {
+    position: fixed;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    max-width: 400px;
+    background: var(--service-card-base);
+    border-radius: 12px;
+    border: 1px solid var(--service-icon);
+    z-index: 99999;
+    transition: top 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: var(--modal-glow);
+    overflow: hidden;
+}
+
+.booking-notification-fixed.show {
+    top: 15px;
+}
+
+.notification-fixed-content {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    gap: 15px;
+}
+
+.notification-fixed-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--service-icon) 0%, #6e5d3d 100%);
+    color: #000000;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.notification-fixed-text {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.notification-fixed-text strong {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--creamy-white);
+    margin-bottom: 4px;
+    font-family: var(--serif-font);
+}
+
+.notification-fixed-text span {
+    font-size: 13px;
+    color: var(--service-title);
+    font-family: var(--sans-font);
+}
+
+.notification-fixed-actions {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.btn-view-cart-fixed {
+    background: linear-gradient(135deg, var(--service-icon) 0%, #6e5d3d 100%);
+    color: #000000;
+    border: 1px solid var(--service-icon);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.3s;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+    font-family: var(--sans-font);
+}
+
+.btn-view-cart-fixed:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--bronze-glow);
+    background: linear-gradient(135deg, #9e8d6d 0%, #5e4d2d 100%);
+    border-color: #9e8d6d;
+}
+
+.btn-close-fixed {
+    background: #2A2A2A;
+    color: var(--service-title);
+    border: 1px solid var(--service-border-detail);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.btn-close-fixed:hover {
+    background: #333;
+    border-color: var(--service-icon);
+    color: var(--service-icon);
+    box-shadow: 0 3px 8px rgba(142, 125, 77, 0.2);
+}
+
+/* ========== ✅ DESKTOP RESPONSIVE - TABLET & DESKTOP ========== */
+@media (min-width: 768px) {
+    /* Header Desktop */
+    .dashboard-header.services-header {
+        padding: 16px 24px;
+        height: 70px;
+    }
+    
+    .dashboard-header .header-title {
+        font-size: 22px;
+    }
+    
+    .dashboard-header .welcome-text {
+        font-size: 14px;
+    }
+    
+    .dashboard-header .profile-container {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .dashboard-header .profile-status {
+        width: 12px;
+        height: 12px;
+    }
+    
+    /* Bottom Navigation Desktop */
+    .bottom-nav.services-bottom-nav {
+        position: relative;
+        bottom: auto;
+        border-top: none;
+        border-bottom: 1px solid var(--service-border-detail);
+        box-shadow: var(--header-shadow);
+        height: 70px;
+        padding: 12px 0;
+        justify-content: center;
+        gap: 20px;
+    }
+    
+    .bottom-nav .nav-item {
+        flex: 0 0 auto;
+        padding: 8px 16px;
+        border-radius: 8px;
+        margin: 0 5px;
+        min-width: 80px;
+    }
+    
+    .bottom-nav .nav-icon-container {
+        width: 28px;
+        height: 28px;
+        margin-bottom: 6px;
+    }
+    
+    .bottom-nav .nav-item i {
+        font-size: 20px;
+    }
+    
+    .bottom-nav .nav-label {
+        font-size: 12px;
+    }
+    
+    .bottom-nav .nav-active-indicator {
+        width: 8px;
+        height: 8px;
+    }
+    
+    .cart-count-badge {
+        width: 18px;
+        height: 18px;
+        font-size: 11px;
+        top: -8px;
+        right: -8px;
+    }
+    
+    /* Categories Desktop */
+    .categories-container {
+        padding: 20px;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 20px;
+        padding-bottom: 30px; /* Less padding since nav is top */
+    }
+    
+    .category-item {
+        height: 200px;
+    }
+    
+    .category-square-photo {
+        height: 120px;
+    }
+    
+    .category-title {
+        font-size: 15px;
+    }
+    
+    .item-count-badge-btn {
+        min-width: 22px;
+        height: 18px;
+        font-size: 11px;
+    }
+}
+
+/* ========== ✅ MOBILE RESPONSIVE ========== */
+@media (max-width: 767px) {
+    .categories-container {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 12px;
+        padding: 12px;
+        padding-bottom: 70px; /* Bottom nav height + spacing */
+    }
+    
+    .category-item {
+        height: 170px;
+    }
+    
+    .category-square-photo {
+        height: 100px;
+    }
+    
+    /* Category number square ko mobile ke liye chhota karo */
+    .category-number {
+        width: 18px !important;
+        height: 18px !important;
+        font-size: 9px !important;
+        top: 2px !important;
+        left: 2px !important;
+        border: 1.5px solid var(--service-card-base) !important;
+    }
+    
+    /* Status indicator mobile me aur chhota */
+    .category-status-indicator {
+        width: 6px !important;
+        height: 6px !important;
+        top: 3px !important;
+        right: 3px !important;
+    }
+    
+    .category-modal .modal-container {
+        width: 95%;
+        height: 85vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    
+    /* ✅ Service details modal mobile fix */
+    .service-modal .modal-container {
+        width: 95%;
+        height: 85vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    
+    /* ✅ MOBILE FIX: Switch to 1-column grid on mobile */
+    .service-two-column-grid {
+        grid-template-columns: 1fr !important;
+        gap: 2px !important;
+        padding: 0 !important;
+        overflow-y: auto;
+        max-height: none;
+        padding-right: 4px !important;
+    }
+    
+    /* ✅ Mobile पर modal content को scrollable बनाएं */
+    .modal-content {
+        overflow-y: auto !important;
+        max-height: calc(85vh - 58px) !important;
+        flex: 1;
+        padding-right: 4px !important;
+    }
+    
+    /* Adjust service cards for mobile */
+    .service-modal-item-card {
+        height: 100px !important;
+        min-height: 100px !important;
+        gap: 2px !important;
+        border: 1px solid var(--service-border-detail) !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        margin-right: 4px !important;
+    }
+    
+    /* Sabhi borders ko reset karo mobile ke liye */
+    .service-modal-item-card:nth-child(odd),
+    .service-modal-item-card:nth-child(even) {
+        border: 1px solid var(--service-border-detail) !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+    }
+    
+    .service-modal-item-card:first-child {
+        border-top: 1px solid var(--service-border-detail) !important;
+    }
+    
+    .service-modal-item-card:last-child {
+        border-bottom: 1px solid var(--service-border-detail) !important;
+    }
+    
+    /* Photo square ko adjust karo mobile ke liye */
+    .service-modal-photo-square {
+        flex: 0 0 95px !important;
+        width: 95px !important;
+        height: 95px !important;
+        margin: 2px 0 !important;
+    }
+    
+    /* Details square ko adjust karo */
+    .service-modal-details-square {
+        height: 95px !important;
+        margin: 2px 0 !important;
+        padding-right: 2px !important;
+    }
+    
+    /* Mobile font sizes */
+    .service-modal-item-name {
+        font-size: 12.6px !important;
+        padding-right: 2px;
+    }
+    
+    .service-modal-price-value {
+        font-size: 17.6px !important;
+    }
+    
+    .service-modal-rupee {
+        font-size: 15.4px !important;
+    }
+    
+    .btn-service-modal-details,
+    .btn-service-modal-book {
+        height: 30px !important;
+        padding: 6px 10px !important;
+        font-size: 10px !important;
+        border-radius: 6px;
+    }
+    
+    /* Mobile me buttons spacing */
+    .service-modal-actions {
+        margin-top: -2px !important;
+        top: -4px;
+        gap: 6px !important;
+        padding-right: 2px;
+    }
+    
+    .service-modal-pricing {
+        margin-bottom: 1px !important;
+        padding-right: 2px;
+    }
+    
+    /* Mobile me aur compact sizes */
+    .service-modal-item-number {
+        font-size: 9.9px !important;
+        padding: 1.8px 4.5px !important;
+        gap: 1.8px !important;
+    }
+    
+    .service-modal-original-price {
+        font-size: 9.9px !important;
+    }
+    
+    .service-modal-discount-badge {
+        font-size: 9px !important;
+        padding: 1.8px 5.4px !important;
+    }
+    
+    /* View Services button mobile me aur chhota */
+    .btn-view-category {
+        padding: 4px 6px !important;
+        font-size: 9px !important;
+        height: 26px !important;
+    }
+    
+    .item-count-badge-btn {
+        height: 12px !important;
+        min-width: 16px !important;
+        font-size: 8px !important;
+    }
+    
+    .count-number {
+        font-size: 8px !important;
+    }
+    
+    /* ✅ Mobile me service details modal adjustments */
+    .details-image-container {
+        height: 180px;
+        flex-shrink: 0;
+    }
+    
+    .scrollable-details {
+        max-height: calc(85vh - 300px) !important;
+        min-height: 120px;
+        padding-right: 13.5px !important;
+    }
+    
+    .service-item-name {
+        flex-shrink: 0;
+        margin: 8px 0 !important;
+        font-size: 15px !important;
+        padding-bottom: 8px;
+        padding-right: 13.5px !important;
+    }
+    
+    .service-item-name::after {
+        width: 40px;
+    }
+    
+    .btn-book-service-large {
+        margin: 0 10px 10px 10px !important;
+        padding: 8px !important;
+        font-size: 11px !important;
+        flex-shrink: 0;
+    }
+    
+    .service-item-details-content {
+        padding-right: 4px !important;
+    }
+}
+
+/* ✅ Extra Small Mobile ke liye aur optimizations */
+@media (max-width: 480px) {
+    /* Header adjustments for extra small */
+    .dashboard-header.services-header {
+        padding: 10px 12px;
+        height: 56px;
+    }
+    
+    .dashboard-header .header-title {
+        font-size: 16px;
+    }
+    
+    .dashboard-header .welcome-text {
+        font-size: 11px;
+        margin-top: 2px;
+    }
+    
+    .dashboard-header .profile-container {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .dashboard-header .profile-status {
+        width: 8px;
+        height: 8px;
+    }
+    
+    /* Bottom nav extra small */
+    .bottom-nav.services-bottom-nav {
+        height: 56px;
+        padding: 6px 0;
+    }
+    
+    .bottom-nav .nav-icon-container {
+        width: 22px;
+        height: 22px;
+        margin-bottom: 3px;
+    }
+    
+    .bottom-nav .nav-item i {
+        font-size: 16px;
+    }
+    
+    .bottom-nav .nav-label {
+        font-size: 9px;
+    }
+    
+    .cart-count-badge {
+        width: 14px;
+        height: 14px;
+        font-size: 9px;
+        top: -5px;
+        right: -5px;
+    }
+    
+    /* Categories extra small */
+    .service-modal-item-card {
+        height: 94px !important;
+        min-height: 94px;
+    }
+    
+    .service-modal-photo-square {
+        flex: 0 0 90px !important;
+        width: 90px !important;
+        height: 90px !important;
+    }
+    
+    .service-modal-details-square {
+        height: 90px !important;
+    }
+    
+    /* Extra small mobile me aur compact */
+    .service-modal-item-name {
+        font-size: 11.34px !important;
+    }
+    
+    .service-modal-price-value {
+        font-size: 15.84px !important;
+    }
+    
+    .service-modal-rupee {
+        font-size: 13.86px !important;
+    }
+    
+    .btn-service-modal-details,
+    .btn-service-modal-book {
+        height: 28px !important;
+        padding: 5px 8px !important;
+        font-size: 9px !important;
+        border-radius: 5px;
+    }
+    
+    .service-modal-actions {
+        margin-top: -3px !important;
+        top: -3px;
+        gap: 6.48px !important;
+    }
+    
+    /* Category number aur bhi chhota karo */
+    .category-number {
+        width: 16px !important;
+        height: 16px !important;
+        font-size: 8px !important;
+        top: 2px !important;
+        left: 2px !important;
+        border: 1px solid var(--service-card-base) !important;
+    }
+    
+    /* Status indicator aur bhi chhota */
+    .category-status-indicator {
+        width: 5px !important;
+        height: 5px !important;
+        top: 3px !important;
+        right: 3px !important;
+    }
+    
+    /* ✅ Extra small mobile me service details fix */
+    .scrollable-details {
+        max-height: calc(85vh - 280px) !important;
+        min-height: 100px;
+    }
+    
+    .details-image-container {
+        height: 150px;
+    }
+    
+    .service-item-name {
+        font-size: 14px !important;
+        margin: 6px 0 !important;
+        padding-bottom: 6px;
+    }
+    
+    .service-item-name::after {
+        width: 30px;
+        height: 1.5px;
+    }
+}
+
+/* ========== NO SERVICES STATE ========== */
+.no-services {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--service-title);
+    padding-bottom: 100px; /* Extra padding for bottom nav */
+}
+
+.no-services i {
+    margin-bottom: 20px;
+    color: var(--service-border-detail);
+}
+
+.no-services h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: var(--service-title);
+    font-family: var(--serif-font);
+}
+
+.no-services p {
+    font-size: 14px;
+    font-family: var(--sans-font);
+}
+</style>
+{% endblock %}
