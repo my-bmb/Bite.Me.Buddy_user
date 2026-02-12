@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful - Bite Me Buddy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0D0D0D;
+            --bg-secondary: #111111;
+            --accent: #8e7d4d;
+            --accent-light: rgba(142, 125, 77, 0.1);
+            --text-primary: #FFFFFF;
+            --text-secondary: #A0A0A0;
+            --border: #2A2A2A;
+            --success: #2E7D32;
+            --success-light: rgba(46, 125, 50, 0.1);
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            background: var(--bg-primary);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 440px;
+            width: 100%;
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            padding: 40px 32px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .icon {
+            width: 64px;
+            height: 64px;
+            background: var(--success-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            color: var(--success);
+            font-size: 28px;
+            border: 1px solid rgba(46, 125, 50, 0.2);
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            letter-spacing: -0.01em;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 15px;
+            font-weight: 400;
+            margin-bottom: 32px;
+        }
+
+        .card {
+            background: var(--bg-primary);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .row:first-child {
+            padding-top: 0;
+        }
+
+        .label {
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        .value {
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .value.highlight {
+            color: var(--success);
+            background: var(--success-light);
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid rgba(46, 125, 50, 0.2);
+        }
+
+        .amount {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000000;
+        }
+
+        .btn-primary:hover {
+            background: #9e8d6d;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border-color: var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-primary);
+            border-color: var(--accent);
+        }
+
+        .redirect-timer {
+            color: var(--text-secondary);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .timer-badge {
+            background: var(--accent-light);
+            color: var(--accent);
+            padding: 4px 10px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(142, 125, 77, 0.2);
+        }
+
+        .footer {
+            color: var(--text-secondary);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 16px;
+        }
+
+        .footer i {
+            color: var(--accent);
+            font-size: 12px;
+        }
+
+        .mono {
+            font-family: monospace;
+            letter-spacing: -0.01em;
+        }
+
+        @media (max-width: 480px) {
+            body { padding: 16px; }
+            .container { padding: 32px 24px; }
+            .actions { flex-direction: column; }
+            h1 { font-size: 26px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Success Icon -->
+        <div class="icon">
+            <i class="fas fa-check"></i>
+        </div>
+
+        <!-- Header -->
+        <h1>Payment successful</h1>
+        <p class="subtitle">Thank you for your order</p>
+
+        <!-- Order Details -->
+        <div class="card">
+            <div class="row">
+                <span class="label">Payment ID</span>
+                <span class="value mono">{{ payment_id }}</span>
+            </div>
+            <div class="row">
+                <span class="label">Amount</span>
+                <span class="value amount">₹{{ "%.2f"|format(amount) }}</span>
+            </div>
+            <div class="row">
+                <span class="label">Method</span>
+                <span class="value">{{ method }}</span>
+            </div>
+            <div class="row">
+                <span class="label">Status</span>
+                <span class="value highlight">
+                    <i class="fas fa-check-circle" style="margin-right: 4px;"></i>
+                    {{ status|upper }}
+                </span>
+            </div>
+            <div class="row">
+                <span class="label">Date & Time</span>
+                <span class="value">{{ format_ist_time(ist_now(), "%d %b %Y, %I:%M %p") }}</span>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions">
+            <a href="/order/{{ order_id }}" class="btn btn-primary">
+                View Order Details
+            </a>
+            <a href="/order_history" class="btn btn-secondary">
+                Order History
+            </a>
+        </div>
+
+        <!-- Redirect Timer - Exactly like original -->
+        <div class="redirect-timer" id="timer">
+            Redirecting to order details in <span class="timer-badge" id="countdown">10</span> seconds...
+        </div>
+
+        <!-- Footer Note -->
+        <div class="footer">
+            <i class="fas fa-circle-check"></i>
+            <span>Confirmation sent to your email</span>
+        </div>
+    </div>
+
+    <script>
+        // Original jaisa exact redirect with 10 seconds countdown
+        let countdown = 10;
+        const countdownElement = document.getElementById('countdown');
+        const timerElement = document.getElementById('timer');
+        
+        const countdownInterval = setInterval(() => {
+            countdown--;
+            countdownElement.textContent = countdown;
+            
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                window.location.href = "/order/{{ order_id }}";
+            }
+            
+            // Original jaisa blink effect for last 3 seconds
+            if (countdown <= 3) {
+                timerElement.style.color = timerElement.style.color === '#dc2626' ? 'var(--text-secondary)' : '#dc2626';
+            }
+        }, 1000);
+
+        // Original jaisa confetti on load
+        window.addEventListener('load', function() {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+</body>
+</html>
