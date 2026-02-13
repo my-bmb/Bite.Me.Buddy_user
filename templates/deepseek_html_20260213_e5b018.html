@@ -1,0 +1,983 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Top Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1>Hello, {{ session.full_name }}</h1>
+            <p class="welcome-text">Welcome to your dashboard</p>
+        </div>
+        <div class="header-right">
+            <!-- ✅ LINE 12 UPDATED FOR CLOUDINARY -->
+            <img src="{{ session.profile_pic }}" 
+                 alt="Profile" class="profile-pic" 
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+    </header>
+
+    <!-- Header ke just niche chhota welcome message - ORIGINAL SIZE -->
+    <div class="welcome-banner">
+        <div class="welcome-message">
+            <i class="fas fa-smile"></i>
+            <span>Good to see you again, {{ session.full_name.split()[0] }}! Ready to explore?</span>
+        </div>
+        <div class="date-badge">
+            <i class="fas fa-calendar-alt"></i>
+            <span id="currentDate"></span>
+        </div>
+    </div>
+
+    <!-- Main Content - Professional Dashboard -->
+    <main class="main-content" id="mainContent">
+        <!-- Quick Stats Row - 4 Columns Always - Perfectly Fit for Mobile -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Active Orders</span>
+                    <span class="stat-value">{{ session.active_orders|default(0) }}</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Menu Items</span>
+                    <span class="stat-value">{{ session.total_menu_items|default(24) }}</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-concierge-bell"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Services</span>
+                    <span class="stat-value">{{ session.total_services|default(8) }}</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Last Order</span>
+                    <span class="stat-value">{% if session.last_order_date %}{{ session.last_order_date }}{% else %}-{% endif %}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions - Full Width -->
+        <div class="quick-actions-full">
+            <div class="dashboard-card full-width">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-bolt"></i>
+                        <h3>Quick Actions</h3>
+                    </div>
+                    <span class="card-badge">Today</span>
+                </div>
+                <div class="card-content">
+                    <div class="action-buttons-grid">
+                        <a href="{{ url_for('services') }}" class="action-button">
+                            <div class="action-icon">
+                                <i class="fas fa-concierge-bell"></i>
+                            </div>
+                            <span>Book Service</span>
+                        </a>
+                        <a href="{{ url_for('menu') }}" class="action-button">
+                            <div class="action-icon">
+                                <i class="fas fa-pizza-slice"></i>
+                            </div>
+                            <span>Order Food</span>
+                        </a>
+                        <a href="{{ url_for('cart') }}" class="action-button">
+                            <div class="action-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <span>View Cart</span>
+                        </a>
+                        <a href="{{ url_for('order_history') }}" class="action-button">
+                            <div class="action-icon">
+                                <i class="fas fa-history"></i>
+                            </div>
+                            <span>Reorder</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Continue Exploring Section -->
+        <div class="continue-shopping">
+            <div class="dashboard-card full-width">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-compass"></i>
+                        <h3>Continue Exploring</h3>
+                    </div>
+                    <span class="card-badge">{{ session.full_name.split()[0] }}</span>
+                </div>
+                <div class="card-content">
+                    <div class="explore-grid">
+                        <a href="{{ url_for('services') }}" class="explore-card">
+                            <div class="explore-icon">
+                                <i class="fas fa-concierge-bell"></i>
+                            </div>
+                            <div class="explore-info">
+                                <h4>Services</h4>
+                                <p>Book professional services</p>
+                                <span class="explore-link">Explore <i class="fas fa-arrow-right"></i></span>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('menu') }}" class="explore-card">
+                            <div class="explore-icon">
+                                <i class="fas fa-utensils"></i>
+                            </div>
+                            <div class="explore-info">
+                                <h4>Menu</h4>
+                                <p>Delicious food & drinks</p>
+                                <span class="explore-link">Order now <i class="fas fa-arrow-right"></i></span>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('cart') }}" class="explore-card">
+                            <div class="explore-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="explore-info">
+                                <h4>Cart</h4>
+                                <p>View your selected items</p>
+                                <span class="explore-link">Check cart <i class="fas fa-arrow-right"></i></span>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('order_history') }}" class="explore-card">
+                            <div class="explore-icon">
+                                <i class="fas fa-clock-rotate-left"></i>
+                            </div>
+                            <div class="explore-info">
+                                <h4>Orders</h4>
+                                <p>Track your orders</p>
+                                <span class="explore-link">View history <i class="fas fa-arrow-right"></i></span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation - Style style.css se aayega -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item" data-page="services">
+            <i class="fas fa-concierge-bell"></i>
+            <span>Services</span>
+        </a>
+        <a href="{{ url_for('menu') }}" class="nav-item" data-page="menu">
+            <i class="fas fa-utensils"></i>
+            <span>Menu</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item" data-page="cart">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item" data-page="orders">
+            <i class="fas fa-history"></i>
+            <span>Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item" data-page="profile">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+</div>
+
+<style>
+:root {
+    --service-card-base: #0D0D0D;
+    --service-title: #A0A0A0;
+    --service-icon: #8e7d4d;
+    --golden-vivid: #D4AF37;
+    --golden-metallic: #C0B283;
+    --golden-glow: rgba(212, 175, 55, 0.4);
+    --service-border-detail: #333333;
+    --service-status-available: #2E7D32;
+    --creamy-white: #F4F1E1;
+    --silver-mist: #A0A0A0;
+    --matte-black: #0D0D0D;
+    --serif-font: 'Playfair Display', Georgia, serif;
+    --sans-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --bronze-glow: 0 0 15px rgba(142, 125, 77, 0.3);
+    --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    --rupee-color: #D4AF37;
+    --rupee-bg: rgba(212, 175, 55, 0.1);
+    --gradient-bronze: linear-gradient(135deg, rgba(142, 125, 77, 0.1), rgba(142, 125, 77, 0.05));
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--service-card-base);
+    color: var(--creamy-white);
+    font-family: var(--sans-font);
+    margin: 0;
+    padding: 0;
+    line-height: 1.5;
+}
+
+.dashboard {
+    padding-top: 85px;
+    position: relative;
+    background: var(--service-card-base);
+    min-height: 100vh;
+}
+
+/* ========== DASHBOARD HEADER ========== */
+.dashboard-header {
+    background: var(--service-card-base);
+    border-bottom: 1px solid var(--service-border-detail);
+}
+
+.header-left h1 {
+    color: var(--creamy-white);
+    font-family: var(--serif-font);
+}
+
+.welcome-text {
+    color: var(--service-title);
+}
+
+.profile-pic {
+    border: 2px solid var(--service-icon);
+    box-shadow: var(--bronze-glow);
+}
+
+.profile-pic:hover {
+    border-color: var(--golden-vivid);
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+}
+
+/* ========== HEADER KE NICHE CHHOTA WELCOME MESSAGE - ORIGINAL SIZE ========== */
+.welcome-banner {
+    max-width: 1200px;
+    margin: 8px auto 12px;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.welcome-message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--service-title);
+    font-size: 0.85rem;
+    background: rgba(20, 20, 20, 0.4);
+    padding: 6px 14px;
+    border-radius: 30px;
+    border: 1px solid var(--service-border-detail);
+    backdrop-filter: blur(5px);
+}
+
+.welcome-message i {
+    color: var(--service-icon);
+    font-size: 0.9rem;
+}
+
+.welcome-message span {
+    font-weight: 400;
+    letter-spacing: 0.2px;
+}
+
+.date-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--service-title);
+    font-size: 0.75rem;
+    background: rgba(20, 20, 20, 0.4);
+    padding: 6px 14px;
+    border-radius: 30px;
+    border: 1px solid var(--service-border-detail);
+    backdrop-filter: blur(5px);
+}
+
+.date-badge i {
+    color: var(--service-icon);
+    font-size: 0.75rem;
+}
+
+/* ========== PROFESSIONAL DASHBOARD STYLES ========== */
+.main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px 24px;
+}
+
+/* Stats Grid - ALWAYS 4 COLUMNS - PERFECTLY FIT FOR MOBILE */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.stat-card {
+    background: rgba(20, 20, 20, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--service-border-detail);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    border-color: var(--service-icon);
+    background: rgba(142, 125, 77, 0.08);
+    transform: translateY(-2px);
+    box-shadow: var(--bronze-glow);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--gradient-bronze);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(142, 125, 77, 0.3);
+    flex-shrink: 0;
+}
+
+.stat-icon i {
+    font-size: 24px;
+    color: var(--service-icon);
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--service-title);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--creamy-white);
+    font-family: var(--serif-font);
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Quick Actions Full Width */
+.quick-actions-full {
+    margin-bottom: 32px;
+}
+
+.dashboard-card {
+    background: rgba(20, 20, 20, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--service-border-detail);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.dashboard-card:hover {
+    border-color: var(--service-icon);
+    box-shadow: var(--bronze-glow);
+}
+
+.dashboard-card.full-width {
+    width: 100%;
+}
+
+.card-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--service-border-detail);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.card-title i {
+    color: var(--service-icon);
+    font-size: 1.2rem;
+}
+
+.card-title h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--creamy-white);
+    margin: 0;
+    font-family: var(--sans-font);
+    letter-spacing: 0.3px;
+}
+
+.card-badge {
+    background: rgba(142, 125, 77, 0.15);
+    border: 1px solid rgba(142, 125, 77, 0.3);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--service-icon);
+    white-space: nowrap;
+}
+
+.card-content {
+    padding: 24px;
+}
+
+/* Action Buttons Grid */
+.action-buttons-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+.action-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px 16px;
+    background: rgba(13, 13, 13, 0.8);
+    border: 1px solid var(--service-border-detail);
+    border-radius: 16px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.action-button:hover {
+    border-color: var(--service-icon);
+    background: rgba(142, 125, 77, 0.1);
+    transform: translateY(-2px);
+}
+
+.action-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--gradient-bronze);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    border: 1px solid rgba(142, 125, 77, 0.3);
+    flex-shrink: 0;
+}
+
+.action-icon i {
+    font-size: 24px;
+    color: var(--service-icon);
+}
+
+.action-button span {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--creamy-white);
+}
+
+/* Continue Shopping / Explore Grid */
+.continue-shopping {
+    margin-bottom: 32px;
+}
+
+.explore-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+.explore-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: rgba(13, 13, 13, 0.6);
+    border: 1px solid var(--service-border-detail);
+    border-radius: 16px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.explore-card:hover {
+    border-color: var(--service-icon);
+    background: rgba(142, 125, 77, 0.08);
+    transform: translateY(-2px);
+}
+
+.explore-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--gradient-bronze);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(142, 125, 77, 0.3);
+    flex-shrink: 0;
+}
+
+.explore-icon i {
+    font-size: 24px;
+    color: var(--service-icon);
+}
+
+.explore-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.explore-info h4 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--creamy-white);
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.explore-info p {
+    font-size: 0.7rem;
+    color: var(--service-title);
+    margin: 0 0 6px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.explore-link {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--service-icon);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.explore-link i {
+    font-size: 0.65rem;
+    transition: transform 0.2s ease;
+}
+
+.explore-card:hover .explore-link i {
+    transform: translateX(4px);
+}
+
+/* ========== RESPONSIVE - 4 COLUMNS ALWAYS PERFECTLY FIT ========== */
+@media (max-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 16px;
+    }
+    
+    .action-buttons-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }
+    
+    .explore-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    .welcome-banner {
+        padding: 0 16px;
+        margin: 8px auto 12px;
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .welcome-message {
+        font-size: 0.8rem;
+        padding: 5px 12px;
+    }
+    
+    .date-badge {
+        font-size: 0.7rem;
+        padding: 5px 12px;
+    }
+    
+    .main-content {
+        padding: 0 16px 20px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 10px;
+        margin-bottom: 24px;
+    }
+    
+    .stat-card {
+        padding: 12px 8px;
+        gap: 8px;
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .stat-icon {
+        width: 36px;
+        height: 36px;
+        margin-bottom: 2px;
+    }
+    
+    .stat-icon i {
+        font-size: 18px;
+    }
+    
+    .stat-label {
+        font-size: 0.6rem;
+        margin-bottom: 2px;
+        letter-spacing: 0.3px;
+    }
+    
+    .stat-value {
+        font-size: 1rem;
+    }
+    
+    .action-buttons-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    
+    .explore-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px;
+    }
+    
+    .explore-card {
+        padding: 12px;
+        gap: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .welcome-banner {
+        padding: 0 12px;
+        margin: 8px auto 12px;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .welcome-message {
+        font-size: 0.7rem;
+        padding: 4px 10px;
+        gap: 6px;
+    }
+    
+    .welcome-message i {
+        font-size: 0.7rem;
+    }
+    
+    .date-badge {
+        font-size: 0.6rem;
+        padding: 4px 10px;
+        gap: 4px;
+    }
+    
+    .date-badge i {
+        font-size: 0.6rem;
+    }
+    
+    .main-content {
+        padding: 0 12px 16px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 6px;
+        margin-bottom: 20px;
+    }
+    
+    .stat-card {
+        padding: 10px 4px;
+        gap: 4px;
+        border-radius: 12px;
+    }
+    
+    .stat-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+    }
+    
+    .stat-icon i {
+        font-size: 16px;
+    }
+    
+    .stat-label {
+        font-size: 0.55rem;
+        letter-spacing: 0.2px;
+        margin-bottom: 1px;
+    }
+    
+    .stat-value {
+        font-size: 0.85rem;
+    }
+    
+    .card-header {
+        padding: 16px 18px;
+    }
+    
+    .card-title h3 {
+        font-size: 0.9rem;
+    }
+    
+    .card-badge {
+        padding: 3px 10px;
+        font-size: 0.65rem;
+    }
+    
+    .card-content {
+        padding: 18px;
+    }
+    
+    .action-buttons-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .action-button {
+        padding: 14px 10px;
+    }
+    
+    .action-icon {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .action-icon i {
+        font-size: 18px;
+    }
+    
+    .action-button span {
+        font-size: 0.7rem;
+    }
+    
+    .explore-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px;
+    }
+    
+    .explore-card {
+        padding: 10px;
+        gap: 10px;
+    }
+    
+    .explore-icon {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .explore-icon i {
+        font-size: 18px;
+    }
+    
+    .explore-info h4 {
+        font-size: 0.75rem;
+        margin-bottom: 2px;
+    }
+    
+    .explore-info p {
+        font-size: 0.6rem;
+        margin-bottom: 4px;
+    }
+    
+    .explore-link {
+        font-size: 0.6rem;
+    }
+}
+
+@media (max-width: 374px) {
+    .welcome-banner {
+        padding: 0 10px;
+        margin: 8px auto 12px;
+        gap: 6px;
+    }
+    
+    .welcome-message {
+        font-size: 0.65rem;
+        padding: 4px 8px;
+    }
+    
+    .date-badge {
+        font-size: 0.55rem;
+        padding: 4px 8px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 4px;
+    }
+    
+    .stat-card {
+        padding: 8px 2px;
+        border-radius: 10px;
+    }
+    
+    .stat-icon {
+        width: 26px;
+        height: 26px;
+    }
+    
+    .stat-icon i {
+        font-size: 14px;
+    }
+    
+    .stat-label {
+        font-size: 0.5rem;
+        letter-spacing: 0.1px;
+    }
+    
+    .stat-value {
+        font-size: 0.75rem;
+    }
+    
+    .action-buttons-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .explore-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px;
+    }
+    
+    .explore-card {
+        padding: 8px;
+        gap: 8px;
+    }
+    
+    .explore-icon {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .explore-icon i {
+        font-size: 16px;
+    }
+    
+    .explore-info h4 {
+        font-size: 0.7rem;
+    }
+    
+    .explore-info p {
+        font-size: 0.55rem;
+    }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--service-card-base);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--service-border-detail);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--service-icon);
+}
+
+::selection {
+    background: var(--service-icon);
+    color: #000000;
+}
+</style>
+
+<script>
+// Handle navigation and load content via AJAX
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+        if (this.getAttribute('href').startsWith('#')) {
+            e.preventDefault();
+            const page = this.getAttribute('data-page');
+            loadPage(page);
+        }
+    });
+});
+
+function loadPage(page) {
+    const mainContent = document.getElementById('mainContent');
+    
+    // Remove active class from all nav items
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Add active class to clicked item
+    event.target.closest('.nav-item').classList.add('active');
+    
+    // You can implement AJAX loading here if needed
+    // For now, we'll rely on full page loads from Flask routes
+}
+
+// Add active class to current page based on URL
+document.addEventListener('DOMContentLoaded', function() {
+    const currentPath = window.location.pathname;
+    const navItems = document.querySelectorAll('.nav-item');
+    
+    navItems.forEach(item => {
+        const href = item.getAttribute('href');
+        if (href === currentPath || (currentPath === '/' && href === '/services')) {
+            item.classList.add('active');
+        }
+    });
+    
+    // Current date for welcome banner
+    const dateElement = document.getElementById('currentDate');
+    if (dateElement) {
+        const now = new Date();
+        const options = { day: 'numeric', month: 'short', year: 'numeric' };
+        dateElement.textContent = now.toLocaleDateString('en-IN', options);
+    }
+});
+</script>
+{% endblock %}
