@@ -1,0 +1,750 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block head_meta %}
+<!-- Browser & Mobile UI Theme Colors -->
+<meta name="theme-color" content="#0D0D0D" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0D0D0D" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Dashboard">
+<meta name="msapplication-TileColor" content="#0D0D0D">
+<meta name="msapplication-navbutton-color" content="#0D0D0D">
+<meta name="mobile-web-app-capable" content="yes">
+<!-- For Chrome on Android - status bar color -->
+<meta name="color-scheme" content="dark light">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Top Header - CSS style.css se aayega -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1>Hello, {{ session.full_name }}</h1>
+            <p class="welcome-text">Welcome to your dashboard</p>
+        </div>
+        <div class="header-right">
+            <!-- ✅ LINE 12 UPDATED FOR CLOUDINARY -->
+            <img src="{{ session.profile_pic }}" 
+                 alt="Profile" class="profile-pic" 
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+    </header>
+
+    <!-- Main Content - Card Centered -->
+    <main class="main-content" id="mainContent">
+        <div class="content-card">
+            <!-- Icon Section - Home Icon with Bronze Color -->
+            <div class="card-icon-wrapper">
+                <div class="card-icon-circle">
+                    <i class="fas fa-home" style="color: #8e7d4d !important;"></i>
+                </div>
+                <div class="icon-glow-subtle"></div>
+            </div>
+            
+            <!-- Content Section -->
+            <div class="card-content">
+                <h2 class="card-title">Welcome to Your Dashboard!</h2>
+                <div class="user-name-tag">
+                    <i class="fas fa-user"></i>
+                    <span>{{ session.full_name }}</span>
+                </div>
+                <p class="card-description">
+                    Use the bottom navigation to explore services, menu, cart, orders, and profile.
+                </p>
+                
+                <!-- Quick Stats Row with Links -->
+                <div class="quick-stats">
+                    <a href="{{ url_for('services') }}" class="stat-item-link">
+                        <div class="stat-item">
+                            <i class="fas fa-concierge-bell"></i>
+                            <span>Services</span>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('menu') }}" class="stat-item-link">
+                        <div class="stat-item">
+                            <i class="fas fa-utensils"></i>
+                            <span>Menu</span>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('cart') }}" class="stat-item-link">
+                        <div class="stat-item">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>Cart</span>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('order_history') }}" class="stat-item-link">
+                        <div class="stat-item">
+                            <i class="fas fa-history"></i>
+                            <span>Orders</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation - CSS style.css se aayega -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item" data-page="services">
+            <i class="fas fa-concierge-bell"></i>
+            <span>Services</span>
+        </a>
+        <a href="{{ url_for('menu') }}" class="nav-item" data-page="menu">
+            <i class="fas fa-utensils"></i>
+            <span>Menu</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item" data-page="cart">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item" data-page="orders">
+            <i class="fas fa-history"></i>
+            <span>Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item" data-page="profile">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+</div>
+
+<!-- Confetti Canvas -->
+<canvas id="confetti-canvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999;"></canvas>
+
+<!-- Add to homescreen prompt styling for iOS -->
+<style>
+/* Additional CSS for browser UI and mobile bottom navigation */
+:root {
+    /* Ensure theme colors are consistent */
+    --browser-ui-color: #0D0D0D;
+}
+
+/* For iOS home screen apps */
+@media (display-mode: standalone) {
+    body {
+        padding-top: constant(safe-area-inset-top);
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: constant(safe-area-inset-bottom);
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    
+    .dashboard-header {
+        padding-top: calc(16px + constant(safe-area-inset-top));
+        padding-top: calc(16px + env(safe-area-inset-top));
+    }
+    
+    .bottom-nav {
+        padding-bottom: calc(16px + constant(safe-area-inset-bottom));
+        padding-bottom: calc(16px + env(safe-area-inset-bottom));
+    }
+}
+
+/* Ensure bottom navigation matches theme on all pages */
+.bottom-nav {
+    background: rgba(15, 15, 15, 0.98) !important;
+    border-top: 1px solid rgba(192, 178, 131, 0.2) !important;
+}
+
+/* For browsers that support color-scheme */
+:root {
+    color-scheme: dark light;
+}
+
+/* Ensure the browser's default UI elements match our theme */
+html {
+    background: #0D0D0D;
+}
+
+body {
+    background: linear-gradient(135deg, #0A0A0A 0%, #0F0F0F 100%);
+}
+
+/* ========== COMPACT MOBILE CARD - LUXURY BRONZE THEME ========== */
+:root {
+    --service-card-base: #0D0D0D;
+    --service-title: #A0A0A0;
+    --service-icon: #8e7d4d;
+    --golden-vivid: #D4AF37;
+    --golden-metallic: #C0B283;
+    --golden-glow: rgba(212, 175, 55, 0.4);
+    --service-border-detail: #333333;
+    --service-status-available: #2E7D32;
+    --creamy-white: #F4F1E1;
+    --silver-mist: #A0A0A0;
+    --matte-black: #0D0D0D;
+    --serif-font: 'Playfair Display', Georgia, serif;
+    --sans-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --bronze-glow: 0 0 15px rgba(142, 125, 77, 0.3);
+    --card-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+    --rupee-color: #D4AF37;
+    --rupee-bg: rgba(212, 175, 55, 0.1);
+    --bronze-color: #8e7d4d;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+.dashboard {
+    padding-top: 85px;
+    position: relative;
+    background: var(--service-card-base);
+    min-height: 100vh;
+}
+
+.main-content {
+    background: var(--service-card-base);
+    padding: 0 12px;
+    margin: 0;
+    min-height: calc(100vh - 85px - 70px);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    position: relative;
+}
+
+/* Card - 3% compact kiya */
+.content-card {
+    background: linear-gradient(145deg, #0F0F0F, #0A0A0A);
+    border-radius: 27px;
+    padding: 31px 19px 27px 19px;
+    width: 100%;
+    max-width: 369px;
+    margin: 23px auto 0 auto;
+    border: 1px solid rgba(142, 125, 77, 0.2);
+    box-shadow: var(--card-shadow);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.content-card:hover {
+    border-color: var(--service-icon);
+    box-shadow: var(--bronze-glow);
+    transform: translateY(-3px);
+}
+
+.card-icon-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 19px;
+}
+
+.card-icon-circle {
+    width: 116px;
+    height: 116px;
+    background: linear-gradient(135deg, rgba(142, 125, 77, 0.2), rgba(212, 175, 55, 0.1));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3.4px solid var(--service-icon);
+    position: relative;
+    z-index: 2;
+}
+
+.card-icon-circle i {
+    font-size: 52px;
+    color: var(--bronze-color) !important;
+    text-shadow: 0 0 8px rgba(142, 125, 77, 0.5);
+}
+
+.icon-glow-subtle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 126px;
+    height: 126px;
+    background: radial-gradient(circle, rgba(142, 125, 77, 0.2) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: pulseGlowSubtle 3s infinite;
+}
+
+@keyframes pulseGlowSubtle {
+    0% { opacity: 0.2; transform: translate(-50%, -50%) scale(0.95); }
+    50% { opacity: 0.4; transform: translate(-50%, -50%) scale(1.05); }
+    100% { opacity: 0.2; transform: translate(-50%, -50%) scale(0.95); }
+}
+
+.card-content {
+    text-align: center;
+    position: relative;
+    z-index: 2;
+}
+
+.card-title {
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--creamy-white);
+    margin-bottom: 13.5px;
+    font-family: var(--serif-font);
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #F4F1E1, #D4AF37);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.user-name-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(142, 125, 77, 0.15);
+    padding: 8px 17px;
+    border-radius: 29px;
+    border: 1px solid rgba(142, 125, 77, 0.3);
+    margin-bottom: 17px;
+    backdrop-filter: blur(5px);
+}
+
+.user-name-tag i {
+    color: var(--service-icon);
+    font-size: 0.87rem;
+}
+
+.user-name-tag span {
+    color: var(--creamy-white);
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.card-description {
+    font-size: 0.87rem;
+    color: var(--service-title);
+    margin-bottom: 25px;
+    line-height: 1.5;
+    max-width: 291px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 10px;
+}
+
+/* Quick Stats Row with Links */
+.quick-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    background: rgba(10, 10, 10, 0.6);
+    padding: 13.5px 8px;
+    border-radius: 19px;
+    border: 1px solid var(--service-border-detail);
+    backdrop-filter: blur(5px);
+}
+
+.stat-item-link {
+    text-decoration: none;
+    display: block;
+    transition: all 0.3s ease;
+}
+
+.stat-item-link:hover {
+    transform: translateY(-3px);
+}
+
+.stat-item-link:hover .stat-item {
+    background: rgba(142, 125, 77, 0.2);
+    border-radius: 12px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 4px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.stat-item i {
+    font-size: 1.1rem;
+    color: var(--service-icon);
+    margin-bottom: 2px;
+    transition: all 0.3s ease;
+}
+
+.stat-item-link:hover i {
+    color: var(--golden-vivid);
+    transform: scale(1.1);
+    text-shadow: 0 0 10px var(--golden-vivid);
+}
+
+.stat-item span {
+    font-size: 0.65rem;
+    color: var(--service-title);
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.stat-item-link:hover span {
+    color: var(--creamy-white);
+}
+
+/* Mobile Responsive - 3% compact */
+@media (max-width: 768px) {
+    .content-card {
+        padding: 27px 15.5px 23px 15.5px;
+        max-width: 100%;
+    }
+    .card-icon-circle {
+        width: 107px;
+        height: 107px;
+    }
+    .card-icon-circle i {
+        font-size: 48.5px;
+    }
+    .icon-glow-subtle {
+        width: 116px;
+        height: 116px;
+    }
+    .card-title {
+        font-size: 1.26rem;
+    }
+    .card-description {
+        max-width: 272px;
+    }
+    .stat-item i {
+        font-size: 1rem;
+    }
+    .stat-item span {
+        font-size: 0.6rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .content-card {
+        padding: 23px 13.5px 19px 13.5px;
+    }
+    .card-icon-circle {
+        width: 97px;
+        height: 97px;
+    }
+    .card-icon-circle i {
+        font-size: 44.5px;
+    }
+    .icon-glow-subtle {
+        width: 107px;
+        height: 107px;
+    }
+    .card-title {
+        font-size: 1.16rem;
+    }
+    .card-description {
+        max-width: 252px;
+    }
+    .quick-stats {
+        padding: 12px 6px;
+        gap: 6px;
+    }
+    .stat-item i {
+        font-size: 0.95rem;
+    }
+    .stat-item span {
+        font-size: 0.55rem;
+    }
+}
+
+/* Small Height Devices */
+@media (max-height: 600px) {
+    .content-card {
+        padding: 19px 13.5px 15.5px 13.5px;
+    }
+    .card-icon-circle {
+        width: 92px;
+        height: 92px;
+    }
+    .card-icon-circle i {
+        font-size: 42.5px;
+    }
+    .icon-glow-subtle {
+        width: 102px;
+        height: 102px;
+    }
+    .card-title {
+        font-size: 1.16rem;
+        margin-bottom: 7.5px;
+    }
+    .card-description {
+        max-width: 252px;
+        margin-bottom: 15.5px;
+    }
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+::selection {
+    background: var(--service-icon);
+    color: #000000;
+}
+
+::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--service-card-base);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--service-border-detail);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--service-icon);
+}
+</style>
+
+<script>
+// Professional Confetti Boom - Controlled Speed
+(function() {
+    // Confetti colors - Bronze/Gold theme
+    const colors = [
+        '#D4AF37', // Golden Vivid
+        '#C0B283', // Golden Metallic
+        '#8e7d4d', // Service Icon Bronze
+        '#F4F1E1', // Creamy White
+        '#CDA434', // Medium Gold
+        '#CFB53B'  // Old Gold
+    ];
+    
+    // Canvas setup
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let particles = [];
+    let animationId = null;
+    let isRunning = false;
+    let confettiTimeout = null;
+    
+    // Resize canvas to window size
+    function resizeCanvas() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+    }
+    
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    
+    // Particle class - Moderate speed for elegant effect
+    class Particle {
+        constructor(x, y, corner) {
+            this.x = x;
+            this.y = y;
+            this.size = Math.random() * 7 + 3; // 3-10px
+            
+            // Professional bronze/gold colors only
+            const colorIndex = Math.floor(Math.random() * colors.length);
+            this.color = colors[colorIndex];
+            
+            // Moderate speed for elegant float
+            if (corner === 'left') {
+                // Left corner se - right aur up
+                this.speedX = Math.random() * 3 + 1.5; // 1.5-4.5 right
+                this.speedY = Math.random() * -7 - 5; // -12 to -5 (moderate up)
+            } else {
+                // Right corner se - left aur up
+                this.speedX = Math.random() * -3 - 1.5; // -4.5 to -1.5 left
+                this.speedY = Math.random() * -7 - 5; // -12 to -5 (moderate up)
+            }
+            
+            this.rotation = Math.random() * 360;
+            this.rotationSpeed = Math.random() * 8 - 4; // -4 to 4
+            this.opacity = 0.9 + Math.random() * 0.2;
+            this.fadeSpeed = Math.random() * 0.01 + 0.005; // 0.005-0.015 (slow fade)
+            this.shape = Math.random() > 0.5 ? 'circle' : 'square';
+        }
+        
+        update() {
+            this.x += this.speedX;
+            this.y += this.speedY;
+            
+            // Gentle gravity
+            this.speedY += 0.1; // Light gravity
+            
+            this.rotation += this.rotationSpeed;
+            this.opacity -= this.fadeSpeed;
+        }
+        
+        draw() {
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            ctx.rotate((this.rotation * Math.PI) / 180);
+            ctx.globalAlpha = Math.max(0, this.opacity);
+            ctx.fillStyle = this.color;
+            
+            // Subtle glow
+            if (Math.random() > 0.96) {
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 6;
+            }
+            
+            if (this.shape === 'circle') {
+                ctx.beginPath();
+                ctx.arc(0, 0, this.size / 2, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+            }
+            
+            ctx.shadowBlur = 0;
+            ctx.restore();
+        }
+        
+        isAlive() {
+            return this.opacity > 0.02 && this.y > -150;
+        }
+    }
+    
+    // Create explosion from specific corner
+    function createCornerExplosion(corner, intensity = 1) {
+        let x, y;
+        
+        // Card ke bottom corners - exact position
+        const cardElement = document.querySelector('.content-card');
+        if (cardElement) {
+            const rect = cardElement.getBoundingClientRect();
+            
+            if (corner === 'left') {
+                // Bottom left corner
+                x = rect.left + 15;
+                y = rect.bottom - 15;
+            } else {
+                // Bottom right corner
+                x = rect.right - 15;
+                y = rect.bottom - 15;
+            }
+        } else {
+            // Fallback positions
+            x = corner === 'left' ? width * 0.2 : width * 0.8;
+            y = height * 0.7;
+        }
+        
+        const count = Math.floor(20 * intensity); // 20 particles per corner
+        
+        for (let i = 0; i < count; i++) {
+            particles.push(new Particle(
+                x + (Math.random() - 0.5) * 35,
+                y + (Math.random() - 0.5) * 20,
+                corner
+            ));
+        }
+    }
+    
+    // Animation loop
+    function animate() {
+        if (!isRunning) return;
+        
+        ctx.clearRect(0, 0, width, height);
+        
+        // Draw all particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+            const particle = particles[i];
+            particle.update();
+            particle.draw();
+            
+            if (!particle.isAlive()) {
+                particles.splice(i, 1);
+            }
+        }
+        
+        if (particles.length === 0) {
+            stopConfetti();
+        } else {
+            animationId = requestAnimationFrame(animate);
+        }
+    }
+    
+    // Start confetti from both bottom corners
+    function startCornerConfetti() {
+        stopConfetti();
+        
+        isRunning = true;
+        
+        // First wave - main burst
+        createCornerExplosion('left', 1.2);
+        createCornerExplosion('right', 1.2);
+        
+        // Second wave after 200ms
+        setTimeout(() => {
+            if (isRunning) {
+                createCornerExplosion('left', 1);
+                createCornerExplosion('right', 1);
+            }
+        }, 200);
+        
+        animate();
+        
+        // Auto stop after 4 seconds
+        confettiTimeout = setTimeout(() => {
+            stopConfetti();
+        }, 4000);
+    }
+    
+    // Stop confetti
+    function stopConfetti() {
+        isRunning = false;
+        if (animationId) {
+            cancelAnimationFrame(animationId);
+            animationId = null;
+        }
+        if (confettiTimeout) {
+            clearTimeout(confettiTimeout);
+            confettiTimeout = null;
+        }
+        ctx.clearRect(0, 0, width, height);
+        particles = [];
+    }
+    
+    // Har refresh par confetti dikhao
+    function showConfettiOnLoad() {
+        setTimeout(() => {
+            startCornerConfetti();
+        }, 400);
+    }
+    
+    window.addEventListener('load', showConfettiOnLoad);
+    
+    window.addEventListener('beforeunload', function() {
+        stopConfetti();
+    });
+})();
+
+// Handle navigation
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+        if (this.getAttribute('href').startsWith('#')) {
+            e.preventDefault();
+            const page = this.getAttribute('data-page');
+            loadPage(page);
+        }
+    });
+});
+
+function loadPage(page) {
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    event.target.closest('.nav-item').classList.add('active');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const currentPath = window.location.pathname;
+    const navItems = document.querySelectorAll('.nav-item');
+    
+    navItems.forEach(item => {
+        const href = item.getAttribute('href');
+        if (href === currentPath || (currentPath === '/' && href === '/services')) {
+            item.classList.add('active');
+        }
+    });
+});
+</script>
+{% endblock %}
