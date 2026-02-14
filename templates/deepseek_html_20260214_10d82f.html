@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>{% block title %}Flask App{% endblock %}</title>
+    
+    <!-- Browser & Mobile UI Theme Colors -->
+    <meta name="theme-color" content="#0D0D0D" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0D0D0D" media="(prefers-color-scheme: dark)">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Flask App">
+    <meta name="msapplication-TileColor" content="#0D0D0D">
+    <meta name="msapplication-navbutton-color" content="#0D0D0D">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="color-scheme" content="dark light">
+    
+    {% block head_meta %}{% endblock %}
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    
+    {% block content %}{% endblock %}
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
