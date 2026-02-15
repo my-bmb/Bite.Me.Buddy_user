@@ -1,0 +1,1038 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- FontAwesome CDN for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts - Playfair Display & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --service-card-base: #0D0D0D;
+            --service-title: #A0A0A0;
+            --service-icon: #8e7d4d;
+            --golden-vivid: #D4AF37;
+            --golden-metallic: #C0B283;
+            --golden-glow: rgba(212, 175, 55, 0.4);
+            --service-border-detail: #333333;
+            --service-status-available: #2E7D32;
+            --white: #FFFFFF;
+            --silver-mist: #A0A0A0;
+            --matte-black: #0D0D0D;
+            --blue-grey: #64748b;
+            --serif-font: 'Playfair Display', Georgia, serif;
+            --sans-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --bronze-glow: 0 0 15px rgba(142, 125, 77, 0.3);
+            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            --rupee-color: #D4AF37;
+            --rupee-bg: rgba(212, 175, 55, 0.1);
+            --danger-color: #ef4444;
+            --danger-light: rgba(239, 68, 68, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--sans-font);
+        }
+
+        /* Main container */
+        .login-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            background: var(--service-card-base);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .login-wrapper::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.08) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(212, 175, 55, 0.08) 0%, transparent 20%),
+                radial-gradient(circle at 50% 30%, rgba(212, 175, 55, 0.05) 0%, transparent 30%);
+            z-index: 0;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        /* Floating animation */
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(-10px, -10px) rotate(1deg); }
+            66% { transform: translate(10px, 10px) rotate(-1deg); }
+        }
+
+        /* Login card */
+        .login-box {
+            width: 100%;
+            max-width: 440px;
+            background: var(--service-card-base);
+            backdrop-filter: blur(12px);
+            border-radius: 18px;
+            box-shadow: 
+                0 12px 40px rgba(0, 0, 0, 0.07),
+                0 6px 20px rgba(212, 175, 55, 0.05),
+                0 3px 10px rgba(212, 175, 55, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            padding: 32px;
+            border: 1px solid var(--service-border-detail);
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.5s ease-out;
+            margin-top: -10px;
+        }
+
+        /* Card animation */
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Decorative corner */
+        .login-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, transparent 50%, rgba(142, 125, 77, 0.05) 50%);
+            border-radius: 0 18px 0 0;
+            z-index: -1;
+        }
+
+        /* LOGIN Heading */
+        .login-heading {
+            text-align: center;
+            color: var(--golden-vivid);
+            margin-bottom: 28px;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: none;
+            -webkit-text-fill-color: var(--golden-vivid);
+            text-shadow: none;
+            position: relative;
+            padding-bottom: 14px;
+            font-family: var(--serif-font);
+        }
+
+        /* Straight line below LOGIN */
+        .login-heading::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 2px;
+            background: var(--golden-vivid);
+            border-radius: 1px;
+        }
+
+        /* Form groups */
+        .input-group {
+            margin-bottom: 18px;
+            position: relative;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--white);
+            font-weight: 600;
+            font-size: 15px;
+            letter-spacing: 0.3px;
+            font-family: var(--sans-font);
+        }
+
+        /* Input fields - White Background */
+        .form-input {
+            width: 100%;
+            padding: 15px 16px;
+            border: 1px solid var(--golden-vivid);
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            background: var(--white);
+            color: var(--matte-black);
+            position: relative;
+            z-index: 1;
+            font-family: var(--sans-font);
+        }
+
+        /* Focus state */
+        .form-input:focus {
+            outline: none;
+            border-color: var(--golden-vivid);
+            border-width: 1.5px;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+        }
+
+        /* Placeholder text - Blue Grey */
+        .form-input::placeholder {
+            color: var(--blue-grey);
+            font-size: 15px;
+            font-family: var(--sans-font);
+            opacity: 0.8;
+        }
+
+        /* Validation states */
+        .form-input.validation-valid {
+            border-color: var(--service-status-available) !important;
+            border-width: 1.5px;
+        }
+
+        .form-input.validation-invalid {
+            border-color: var(--danger-color) !important;
+            border-width: 1.5px;
+        }
+
+        /* Password wrapper for eye toggle */
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .password-wrapper .form-input {
+            padding-right: 48px;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--service-icon);
+            font-size: 1.3rem;
+            z-index: 5;
+            background: transparent;
+            transition: color 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+        }
+        .toggle-password:hover {
+            color: var(--golden-vivid);
+        }
+        .toggle-password:active {
+            opacity: 0.8;
+        }
+        .toggle-password i {
+            pointer-events: none;
+        }
+
+        /* LOGIN Button */
+        .submit-btn {
+            width: 100%;
+            padding: 17px;
+            background: linear-gradient(135deg, var(--golden-vivid), var(--golden-metallic));
+            color: var(--matte-black);
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.5px;
+            margin-top: 12px;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3), 0 2px 8px rgba(212, 175, 55, 0.2);
+            font-family: var(--sans-font);
+            z-index: 1;
+        }
+
+        /* Shimmer effect */
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.3), 
+                transparent);
+            transition: 0.5s;
+            z-index: 1;
+        }
+
+        .submit-btn:hover::before {
+            left: 100%;
+        }
+
+        /* Glowing effect */
+        .submit-btn::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            background: linear-gradient(135deg, 
+                var(--golden-vivid), 
+                var(--golden-metallic), 
+                var(--golden-vivid),
+                var(--service-icon));
+            border-radius: 14px;
+            z-index: -1;
+            opacity: 0.6;
+            filter: blur(12px);
+            transition: all 0.3s ease;
+            animation: buttonGlow 2s infinite alternate;
+        }
+
+        /* Glow animation */
+        @keyframes buttonGlow {
+            0% {
+                opacity: 0.4;
+                filter: blur(10px);
+            }
+            100% {
+                opacity: 0.7;
+                filter: blur(14px);
+            }
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(135deg, var(--golden-metallic), var(--service-icon));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5), 0 4px 12px rgba(212, 175, 55, 0.3);
+        }
+
+        .submit-btn:hover::after {
+            opacity: 0.8;
+            filter: blur(14px);
+            animation: buttonGlowHover 1.5s infinite alternate;
+        }
+
+        @keyframes buttonGlowHover {
+            0% {
+                opacity: 0.6;
+                filter: blur(12px);
+            }
+            100% {
+                opacity: 0.9;
+                filter: blur(16px);
+            }
+        }
+
+        .submit-btn:active {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4);
+            transition: all 0.1s ease;
+        }
+
+        .submit-btn:active::after {
+            opacity: 0.5;
+            filter: blur(8px);
+        }
+
+        /* Button text styling */
+        .submit-btn span {
+            position: relative;
+            z-index: 2;
+            display: block;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            color: var(--matte-black);
+            font-weight: 700;
+        }
+
+        /* Forgot Password Section */
+        .forgot-section {
+            text-align: center;
+            margin: 22px 0;
+            padding: 16px;
+            background: rgba(20, 20, 20, 0.8);
+            border-radius: 10px;
+            border: 1px solid rgba(142, 125, 77, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            backdrop-filter: blur(5px);
+        }
+
+        .forgot-text {
+            color: var(--silver-mist);
+            font-size: 15px;
+            margin-right: 8px;
+            font-family: var(--sans-font);
+        }
+
+        .forgot-link {
+            color: var(--golden-vivid);
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 15px;
+            padding: 7px 14px;
+            border-radius: 6px;
+            background: rgba(142, 125, 77, 0.1);
+            transition: all 0.2s ease;
+            display: inline-block;
+            box-shadow: 0 1px 4px rgba(212, 175, 55, 0.1);
+            font-family: var(--sans-font);
+        }
+
+        .forgot-link:hover {
+            background: rgba(142, 125, 77, 0.15);
+            color: var(--golden-metallic);
+            text-decoration: none;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(212, 175, 55, 0.15);
+        }
+
+        /* Footer */
+        .login-footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--service-border-detail);
+            color: var(--silver-mist);
+            font-size: 15px;
+            position: relative;
+            font-family: var(--sans-font);
+        }
+
+        .login-footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--golden-vivid), transparent);
+        }
+
+        .register-link {
+            color: var(--golden-vivid);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            margin-left: 6px;
+            position: relative;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: var(--sans-font);
+        }
+
+        .register-link:hover {
+            color: var(--golden-metallic);
+            text-decoration: underline;
+            background: rgba(142, 125, 77, 0.08);
+        }
+
+        /* Loading Spinner */
+        .fa-spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ====================== */
+        /* RESPONSIVE DESIGN - SAME SIZES */
+        /* ====================== */
+
+        @media (max-width: 768px) {
+            .login-wrapper {
+                padding: 12px;
+            }
+            
+            .login-box {
+                padding: 26px;
+                max-width: 90vw;
+                width: 90vw;
+                border-radius: 16px;
+                margin-top: -8px;
+            }
+            
+            .login-heading {
+                font-size: 26px;
+                margin-bottom: 24px;
+                padding-bottom: 12px;
+            }
+            
+            .login-heading::after {
+                width: 70px;
+            }
+            
+            .input-group {
+                margin-bottom: 16px;
+            }
+            
+            .input-label {
+                font-size: 14px;
+                margin-bottom: 5px;
+            }
+            
+            .form-input {
+                padding: 13px 14px;
+                font-size: 15px;
+                border-radius: 9px;
+            }
+
+            .password-wrapper .form-input {
+                padding-right: 44px;
+            }
+            .toggle-password {
+                right: 14px;
+                font-size: 1.2rem;
+            }
+            
+            .form-input::placeholder {
+                font-size: 14px;
+                color: var(--blue-grey);
+            }
+            
+            .submit-btn {
+                padding: 15px;
+                font-size: 15px;
+                margin-top: 10px;
+                border-radius: 9px;
+            }
+            
+            .submit-btn::after {
+                border-radius: 12px;
+                filter: blur(11px);
+            }
+            
+            .forgot-section {
+                margin: 18px 0;
+                padding: 14px;
+                border-radius: 9px;
+            }
+            
+            .forgot-text {
+                font-size: 14px;
+            }
+            
+            .forgot-link {
+                font-size: 14px;
+                padding: 6px 12px;
+                border-radius: 5px;
+            }
+            
+            .login-footer {
+                margin-top: 18px;
+                padding-top: 14px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-wrapper {
+                padding: 8px;
+            }
+            
+            .login-box {
+                padding: 22px;
+                border-radius: 14px;
+                max-width: 90vw;
+                width: 90vw;
+                margin-top: -5px;
+            }
+            
+            .login-heading {
+                font-size: 24px;
+                margin-bottom: 20px;
+                padding-bottom: 10px;
+            }
+            
+            .login-heading::after {
+                width: 60px;
+            }
+            
+            .input-group {
+                margin-bottom: 14px;
+            }
+            
+            .input-label {
+                font-size: 13px;
+                margin-bottom: 4px;
+            }
+            
+            .form-input {
+                padding: 12px 13px;
+                font-size: 14px;
+                border-radius: 8px;
+            }
+            .password-wrapper .form-input {
+                padding-right: 40px;
+            }
+            .toggle-password {
+                right: 12px;
+                font-size: 1.1rem;
+            }
+            
+            .form-input::placeholder {
+                font-size: 13px;
+                color: var(--blue-grey);
+            }
+            
+            .submit-btn {
+                padding: 14px;
+                font-size: 14px;
+                border-radius: 8px;
+                margin-top: 8px;
+            }
+            
+            .submit-btn::after {
+                border-radius: 11px;
+                filter: blur(10px);
+            }
+            
+            .forgot-section {
+                margin: 16px 0;
+                padding: 12px;
+                border-radius: 8px;
+            }
+            
+            .forgot-text {
+                font-size: 13px;
+            }
+            
+            .forgot-link {
+                font-size: 13px;
+                padding: 5px 10px;
+                border-radius: 5px;
+            }
+            
+            .login-footer {
+                margin-top: 16px;
+                padding-top: 12px;
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .login-box {
+                padding: 20px;
+                margin-top: -3px;
+            }
+            
+            .login-heading {
+                font-size: 22px;
+                margin-bottom: 18px;
+                padding-bottom: 8px;
+            }
+            
+            .login-heading::after {
+                width: 50px;
+            }
+            
+            .input-group {
+                margin-bottom: 12px;
+            }
+            
+            .input-label {
+                font-size: 12px;
+                margin-bottom: 3px;
+            }
+            
+            .form-input {
+                padding: 11px 12px;
+                font-size: 13px;
+                border-radius: 7px;
+            }
+            .password-wrapper .form-input {
+                padding-right: 36px;
+            }
+            .toggle-password {
+                right: 10px;
+                font-size: 1rem;
+            }
+            
+            .form-input::placeholder {
+                font-size: 12px;
+                color: var(--blue-grey);
+            }
+            
+            .submit-btn {
+                padding: 13px;
+                font-size: 13px;
+                border-radius: 7px;
+                margin-top: 6px;
+            }
+            
+            .submit-btn::after {
+                border-radius: 10px;
+                filter: blur(9px);
+            }
+            
+            .forgot-section {
+                margin: 14px 0;
+                padding: 10px;
+                border-radius: 7px;
+            }
+            
+            .login-footer {
+                margin-top: 14px;
+                padding-top: 10px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-height: 600px) and (orientation: landscape) {
+            .login-wrapper {
+                align-items: flex-start;
+                padding-top: 12px;
+                padding-bottom: 12px;
+            }
+            
+            .login-box {
+                margin: 8px 0;
+                padding: 20px;
+                overflow-y: auto;
+                margin-top: 0;
+            }
+            
+            .login-heading {
+                margin-bottom: 18px;
+                font-size: 22px;
+                padding-bottom: 10px;
+            }
+            
+            .input-group {
+                margin-bottom: 10px;
+            }
+            
+            .submit-btn {
+                margin-top: 8px;
+            }
+            
+            .forgot-section {
+                margin: 14px 0;
+                padding: 12px;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .login-box {
+                max-width: 460px;
+                padding: 36px;
+                margin-top: -15px;
+            }
+            
+            .login-heading {
+                font-size: 30px;
+                margin-bottom: 32px;
+            }
+            
+            .input-label {
+                font-size: 16px;
+            }
+            
+            .form-input {
+                padding: 16px 18px;
+                font-size: 17px;
+                border-radius: 11px;
+            }
+            .password-wrapper .form-input {
+                padding-right: 52px;
+            }
+            .toggle-password {
+                right: 18px;
+                font-size: 1.4rem;
+            }
+            
+            .form-input::placeholder {
+                font-size: 16px;
+                color: var(--blue-grey);
+            }
+            
+            .submit-btn {
+                padding: 18px;
+                font-size: 17px;
+                border-radius: 11px;
+            }
+            
+            .submit-btn::after {
+                filter: blur(14px);
+                border-radius: 15px;
+            }
+            
+            .forgot-section {
+                margin: 24px 0;
+                padding: 18px;
+                border-radius: 11px;
+            }
+            
+            .forgot-text {
+                font-size: 16px;
+            }
+            
+            .forgot-link {
+                font-size: 16px;
+                padding: 8px 16px;
+            }
+            
+            .login-footer {
+                font-size: 16px;
+            }
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+            .submit-btn:hover {
+                transform: none;
+                box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3), 0 2px 8px rgba(212, 175, 55, 0.2);
+            }
+            
+            .submit-btn:active {
+                transform: scale(0.98);
+                box-shadow: 0 2px 10px rgba(212, 175, 55, 0.4);
+                background: linear-gradient(135deg, var(--golden-metallic), var(--service-icon));
+            }
+            
+            .forgot-link:hover {
+                transform: none;
+                box-shadow: none;
+            }
+            
+            .submit-btn::after {
+                animation: buttonGlow 2s infinite alternate;
+            }
+            
+            .submit-btn:active::after {
+                opacity: 0.8;
+                filter: blur(10px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-box">
+            <h1 class="login-heading">LOGIN</h1>
+
+            <form method="POST" class="login-form">
+                <div class="input-group">
+                    <label for="phone" class="input-label">Mobile Number</label>
+                    <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        class="form-input"
+                        placeholder="Enter 10-digit mobile number"
+                        required
+                        pattern="[0-9]{10}"
+                        inputmode="numeric"
+                        maxlength="10">
+                </div>
+
+                <div class="input-group">
+                    <label for="password" class="input-label">Password</label>
+                    <!-- Password wrapper with eye toggle -->
+                    <div class="password-wrapper">
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            class="form-input"
+                            placeholder="Enter your password"
+                            required
+                            minlength="6">
+                        <span class="toggle-password" id="togglePassword" aria-label="Toggle password visibility">
+                            <i class="fa-regular fa-eye"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <span>LOGIN</span>
+                </button>
+
+                <!-- Forgot Password -->
+                <div class="forgot-section">
+                    <span class="forgot-text">Forgot your password?</span>
+                    <a href="https://bite-me-buddy-user.onrender.com" target="_blank" class="forgot-link">
+                        Reset Here
+                    </a>
+                </div>
+
+                <!-- Register Link -->
+                <div class="login-footer">
+                    Don't have an account?
+                    <a href="{{ url_for('register') }}" class="register-link">Create Account</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    // Phone number validation & password toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        const phoneInput = document.getElementById('phone');
+        const passwordInput = document.getElementById('password');
+        const form = document.querySelector('.login-form');
+        const inputs = document.querySelectorAll('.form-input');
+        
+        // --- Password Toggle Functionality ---
+        const togglePassword = document.getElementById('togglePassword');
+        if (togglePassword && passwordInput) {
+            togglePassword.addEventListener('click', function() {
+                // Toggle the type attribute
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                
+                // Toggle the eye icon (open / closed)
+                const icon = this.querySelector('i');
+                if (type === 'password') {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-regular', 'fa-eye');
+                } else {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-regular', 'fa-eye-slash');
+                }
+            });
+        }
+        
+        // Phone number formatting (digits only)
+        if (phoneInput) {
+            phoneInput.addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '');
+                
+                if (this.value.length >= 10) {
+                    this.style.borderColor = '#2E7D32';
+                } else if (this.value.length > 0) {
+                    this.style.borderColor = '#D4AF37';
+                } else {
+                    this.style.borderColor = '#D4AF37';
+                }
+            });
+        }
+        
+        // Add focus/blur effects for inputs
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.style.border = '1.5px solid #D4AF37';
+                this.style.boxShadow = '0 0 0 3px rgba(212, 175, 55, 0.1)';
+                this.classList.remove('validation-valid', 'validation-invalid');
+            });
+            
+            input.addEventListener('blur', function() {
+                this.style.boxShadow = 'none';
+                validateInputOnBlur(this);
+            });
+        });
+        
+        // Validation function
+        function validateInputOnBlur(input) {
+            input.classList.remove('validation-valid', 'validation-invalid');
+            
+            // Check if input has value
+            if (input.value.trim() === '') {
+                input.style.border = '1px solid #D4AF37';
+                return;
+            }
+            
+            // Phone number validation
+            if (input.id === 'phone') {
+                if (input.value.length === 10 && /^\d{10}$/.test(input.value)) {
+                    input.classList.add('validation-valid');
+                    input.style.border = '1.5px solid #2E7D32';
+                } else {
+                    input.classList.add('validation-invalid');
+                    input.style.border = '1.5px solid #ef4444';
+                }
+            }
+            
+            // Password validation
+            if (input.id === 'password') {
+                if (input.value.length >= 6) {
+                    input.classList.add('validation-valid');
+                    input.style.border = '1.5px solid #2E7D32';
+                } else {
+                    input.classList.add('validation-invalid');
+                    input.style.border = '1.5px solid #ef4444';
+                }
+            }
+        }
+        
+        // Form submission validation
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                let isValid = true;
+                
+                // Validate phone number
+                if (phoneInput) {
+                    if (phoneInput.value.length !== 10 || !/^\d{10}$/.test(phoneInput.value)) {
+                        isValid = false;
+                        phoneInput.classList.add('validation-invalid');
+                        phoneInput.style.border = '1.5px solid #ef4444';
+                    } else {
+                        phoneInput.classList.add('validation-valid');
+                        phoneInput.style.border = '1.5px solid #2E7D32';
+                    }
+                }
+                
+                // Validate password length
+                if (passwordInput) {
+                    if (passwordInput.value.length < 6) {
+                        isValid = false;
+                        passwordInput.classList.add('validation-invalid');
+                        passwordInput.style.border = '1.5px solid #ef4444';
+                    } else {
+                        passwordInput.classList.add('validation-valid');
+                        passwordInput.style.border = '1.5px solid #2E7D32';
+                    }
+                }
+                
+                // Show alert if invalid
+                if (!isValid) {
+                    e.preventDefault();
+                    
+                    // Check which field is invalid
+                    if (phoneInput && phoneInput.value.length !== 10) {
+                        alert('Please enter a valid 10-digit mobile number');
+                        phoneInput.focus();
+                    } else if (passwordInput && passwordInput.value.length < 6) {
+                        alert('Password must be at least 6 characters long');
+                        passwordInput.focus();
+                    }
+                    
+                    return false;
+                }
+                
+                // All validations passed
+                return true;
+            });
+        }
+        
+        // Auto-focus on phone input for better UX
+        setTimeout(() => {
+            if (phoneInput && window.innerWidth <= 768) {
+                phoneInput.focus();
+            }
+        }, 300);
+    });
+    </script>
+</body>
+</html>
+{% endblock %}
