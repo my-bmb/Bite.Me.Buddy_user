@@ -7,8 +7,8 @@
     <!-- Top Header -->
     <header class="dashboard-header">
         <div class="header-left">
-            <a href="{{ url_for('service_categories') }}" class="back-link">
-                <i class="fas fa-arrow-left"></i> Back to Categories
+            <a href="{{ url_for('services') }}" class="back-link">
+                <i class="fas fa-arrow-left"></i> Back to Services
             </a>
             <h1>{{ category.name }}</h1>
             <p class="welcome-text">{{ category.description or 'Premium services in this category' }}</p>

@@ -7,7 +7,7 @@
     <!-- Top Header -->
     <header class="dashboard-header">
         <div class="header-left">
-            <a href="{{ url_for('service_category_items', category_id=category.id) if category else url_for('service_categories') }}" class="back-link">
+            <a href="{{ url_for('service_category_items', category_id=category.id) if category else url_for('services') }}" class="back-link">
                 <i class="fas fa-arrow-left"></i> Back to Services
             </a>
             <h1>{{ service.name }}</h1>
