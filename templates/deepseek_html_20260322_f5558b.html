@@ -1,0 +1,595 @@
+{% extends "base.html" %}
+
+{% block title %}Menu Categories{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Top Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1>Menu Categories</h1>
+            <p class="welcome-text">Explore our delicious categories</p>
+        </div>
+        <div class="header-right">
+            <img src="{{ session.profile_pic }}" alt="Profile" class="profile-pic"
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+    </header>
+
+    <!-- Categories Content -->
+    <main class="main-content">
+        {% if categories %}
+            <div class="categories-container">
+                {% for category in categories %}
+                <a href="{{ url_for('menu_category_items', category_id=category.id) }}" class="category-card">
+                    <div class="card-image-wrapper">
+                        <img class="category-image" 
+                             src="{{ category.category_photo }}" 
+                             alt="{{ category.name }}"
+                             onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/default_category.jpg'">
+                        <div class="category-badge">
+                            <span class="badge-number">{{ loop.index }}</span>
+                        </div>
+                        <div class="item-count-chip">
+                            <i class="fas fa-utensils"></i>
+                            <span>{{ category.item_count or 0 }} items</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-content">
+                        <h3 class="category-name">{{ category.name }}</h3>
+                        {% if category.description %}
+                        <p class="category-description">{{ category.description }}</p>
+                        {% endif %}
+                        <div class="view-button">
+                            <span>View Items</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-services">
+                <i class="fas fa-utensils fa-3x"></i>
+                <h3>No Categories Available</h3>
+                <p>Check back soon for delicious options!</p>
+            </div>
+        {% endif %}
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item">
+            <i class="fas fa-concierge-bell"></i><span>Services</span>
+        </a>
+        <a href="{{ url_for('menu') }}" class="nav-item active">
+            <i class="fas fa-utensils"></i><span>Menu</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item">
+            <i class="fas fa-shopping-cart"></i><span>Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item">
+            <i class="fas fa-history"></i><span>Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item">
+            <i class="fas fa-user"></i><span>Profile</span>
+        </a>
+    </nav>
+</div>
+
+<style>
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Premium Dark & Gold Theme */
+:root {
+    --matte-black: #0D0D0D;
+    --champagne-gold: #C0B283;
+    --onyx-black: #1A1A1A;
+    --vivid-gold: #D4AF37;
+    --creamy-white: #F4F1E1;
+    --dark-border: #333333;
+    --silver-mist: #A0A0A0;
+    --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    --hover-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+/* Categories Container */
+.categories-container {
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    background: var(--matte-black);
+}
+
+/* Modern Category Card */
+.category-card {
+    background: var(--onyx-black);
+    border-radius: 16px;
+    border: 1px solid var(--dark-border);
+    overflow: hidden;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.25s ease;
+    box-shadow: var(--card-shadow);
+}
+
+.category-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--champagne-gold);
+    box-shadow: var(--hover-shadow);
+}
+
+/* Image Wrapper */
+.card-image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    overflow: hidden;
+    background: var(--matte-black);
+}
+
+.category-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.category-card:hover .category-image {
+    transform: scale(1.05);
+}
+
+/* Category Badge */
+.category-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: linear-gradient(135deg, var(--champagne-gold), var(--vivid-gold));
+    border-radius: 10px;
+    padding: 5px 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border: 1.5px solid rgba(255, 255, 255, 0.2);
+}
+
+.badge-number {
+    color: #000;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Item Count Chip */
+.item-count-chip {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    border-radius: 20px;
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--champagne-gold);
+}
+
+.item-count-chip i {
+    color: var(--champagne-gold);
+    font-size: 12px;
+}
+
+.item-count-chip span {
+    color: var(--creamy-white);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Card Content */
+.card-content {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.category-name {
+    margin: 0;
+    color: var(--creamy-white);
+    font-size: 18px;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.3px;
+    line-height: 1.3;
+}
+
+.category-description {
+    color: var(--silver-mist);
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* View Button */
+.view-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 4px;
+    padding: 8px 0 4px;
+    color: var(--champagne-gold);
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    border-top: 1px solid var(--dark-border);
+    width: 100%;
+}
+
+.view-button span {
+    font-size: 13px;
+    letter-spacing: 0.3px;
+}
+
+.view-button i {
+    font-size: 13px;
+    transition: transform 0.2s ease;
+}
+
+.category-card:hover .view-button i {
+    transform: translateX(4px);
+}
+
+/* No Items State */
+.no-services {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--silver-mist);
+}
+
+/* ========== RESPONSIVE STYLES - NOTHING HIDDEN ========== */
+
+/* Tablet (768px and below) */
+@media (max-width: 768px) {
+    .categories-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        padding: 16px;
+    }
+    
+    .card-image-wrapper {
+        height: 160px;
+    }
+    
+    .card-content {
+        padding: 14px;
+        gap: 8px;
+    }
+    
+    .category-name {
+        font-size: 16px;
+    }
+    
+    .category-description {
+        font-size: 12px;
+        -webkit-line-clamp: 2;
+        display: -webkit-box;
+    }
+    
+    .view-button {
+        padding: 6px 0 2px;
+    }
+    
+    .view-button span,
+    .view-button i {
+        font-size: 12px;
+    }
+    
+    .item-count-chip {
+        padding: 5px 10px;
+    }
+    
+    .item-count-chip span {
+        font-size: 11px;
+    }
+    
+    .badge-number {
+        font-size: 13px;
+    }
+}
+
+/* Mobile (600px and below) */
+@media (max-width: 600px) {
+    .categories-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+        padding: 14px;
+    }
+    
+    .card-image-wrapper {
+        height: 150px;
+    }
+    
+    .card-content {
+        padding: 12px;
+        gap: 8px;
+    }
+    
+    .category-name {
+        font-size: 15px;
+    }
+    
+    .category-description {
+        font-size: 11px;
+        -webkit-line-clamp: 2;
+        display: -webkit-box;
+        line-height: 1.4;
+    }
+    
+    .view-button {
+        padding: 5px 0 2px;
+    }
+    
+    .view-button span,
+    .view-button i {
+        font-size: 11px;
+    }
+    
+    .item-count-chip {
+        padding: 4px 9px;
+        bottom: 10px;
+        right: 10px;
+    }
+    
+    .item-count-chip span {
+        font-size: 10px;
+    }
+    
+    .item-count-chip i {
+        font-size: 10px;
+    }
+    
+    .category-badge {
+        top: 10px;
+        left: 10px;
+        padding: 4px 10px;
+    }
+    
+    .badge-number {
+        font-size: 12px;
+    }
+}
+
+/* Small Mobile (480px and below) */
+@media (max-width: 480px) {
+    .categories-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        padding: 12px;
+    }
+    
+    .card-image-wrapper {
+        height: 140px;
+    }
+    
+    .card-content {
+        padding: 10px 12px;
+        gap: 6px;
+    }
+    
+    .category-name {
+        font-size: 14px;
+    }
+    
+    .category-description {
+        font-size: 10px;
+        -webkit-line-clamp: 2;
+        display: -webkit-box;
+        line-height: 1.35;
+    }
+    
+    .view-button {
+        padding: 4px 0 2px;
+        margin-top: 2px;
+    }
+    
+    .view-button span,
+    .view-button i {
+        font-size: 10px;
+    }
+    
+    .item-count-chip {
+        padding: 3px 8px;
+        bottom: 8px;
+        right: 8px;
+    }
+    
+    .item-count-chip span {
+        font-size: 9px;
+    }
+    
+    .item-count-chip i {
+        font-size: 9px;
+    }
+    
+    .category-badge {
+        top: 8px;
+        left: 8px;
+        padding: 3px 8px;
+        border-radius: 8px;
+    }
+    
+    .badge-number {
+        font-size: 11px;
+    }
+}
+
+/* Very Small Mobile (380px and below) - Still shows everything */
+@media (max-width: 380px) {
+    .categories-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        padding: 10px;
+    }
+    
+    .card-image-wrapper {
+        height: 130px;
+    }
+    
+    .card-content {
+        padding: 8px 10px;
+        gap: 5px;
+    }
+    
+    .category-name {
+        font-size: 13px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .category-description {
+        font-size: 9px;
+        -webkit-line-clamp: 2;
+        display: -webkit-box;
+        line-height: 1.3;
+    }
+    
+    .view-button {
+        padding: 3px 0 2px;
+        margin-top: 1px;
+    }
+    
+    .view-button span,
+    .view-button i {
+        font-size: 9px;
+    }
+    
+    .item-count-chip {
+        padding: 2px 6px;
+        bottom: 6px;
+        right: 6px;
+    }
+    
+    .item-count-chip span {
+        font-size: 8px;
+    }
+    
+    .item-count-chip i {
+        font-size: 8px;
+    }
+    
+    .category-badge {
+        top: 6px;
+        left: 6px;
+        padding: 2px 6px;
+        border-radius: 6px;
+    }
+    
+    .badge-number {
+        font-size: 10px;
+    }
+}
+
+/* Extreme Small (320px and below) */
+@media (max-width: 320px) {
+    .categories-container {
+        gap: 8px;
+        padding: 8px;
+    }
+    
+    .card-image-wrapper {
+        height: 120px;
+    }
+    
+    .card-content {
+        padding: 6px 8px;
+        gap: 4px;
+    }
+    
+    .category-name {
+        font-size: 12px;
+    }
+    
+    .category-description {
+        font-size: 8px;
+        -webkit-line-clamp: 1; /* Only 1 line on extremely small screens */
+    }
+    
+    .view-button {
+        padding: 2px 0;
+    }
+    
+    .view-button span,
+    .view-button i {
+        font-size: 8px;
+    }
+    
+    .item-count-chip span {
+        font-size: 7px;
+    }
+    
+    .badge-number {
+        font-size: 9px;
+    }
+}
+
+/* Landscape Mode */
+@media (max-height: 500px) and (orientation: landscape) {
+    .categories-container {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        padding: 12px;
+    }
+    
+    .card-image-wrapper {
+        height: 120px;
+    }
+    
+    .card-content {
+        padding: 10px;
+    }
+    
+    .category-description {
+        -webkit-line-clamp: 1;
+    }
+}
+
+/* Large Desktop */
+@media (min-width: 1200px) {
+    .categories-container {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 24px;
+        padding: 24px;
+    }
+    
+    .card-image-wrapper {
+        height: 200px;
+    }
+    
+    .category-name {
+        font-size: 20px;
+    }
+    
+    .category-description {
+        font-size: 14px;
+    }
+}
+
+/* Touch Device Optimization */
+@media (hover: none) and (pointer: coarse) {
+    .category-card:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+}
+</style>
+{% endblock %}
