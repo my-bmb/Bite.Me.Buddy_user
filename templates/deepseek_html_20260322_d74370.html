@@ -1,0 +1,603 @@
+{% extends "base.html" %}
+
+{% block title %}{{ service.name }} - Service Details{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Top Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <a href="{{ url_for('service_category_items', category_id=category.id) if category else url_for('service_categories') }}" class="back-link">
+                <i class="fas fa-arrow-left"></i> Back to Services
+            </a>
+            <h1>{{ service.name }}</h1>
+            <p class="welcome-text">View details and book this service</p>
+        </div>
+        <div class="header-right">
+            <img src="{{ session.profile_pic }}" alt="Profile" class="profile-pic"
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+    </header>
+
+    <!-- Service Details Content -->
+    <main class="main-content">
+        <div class="service-detail-container">
+            <!-- Main Service Card -->
+            <div class="service-detail-card">
+                <div class="service-detail-image">
+                    <img src="{{ service.photo }}" 
+                         alt="{{ service.name }}"
+                         onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
+                </div>
+                
+                <div class="service-detail-info">
+                    {% if category %}
+                    <div class="category-badge">
+                        <i class="fas fa-tag"></i> {{ category.name }}
+                    </div>
+                    {% endif %}
+                    
+                    <h2 class="service-detail-name">{{ service.name }}</h2>
+                    
+                    <div class="service-detail-description">
+                        <i class="fas fa-align-left"></i> Description
+                        <p>{{ service.description or 'No description available' }}</p>
+                    </div>
+                    
+                    <div class="service-detail-price-section">
+                        {% if service.discount > 0 %}
+                        <div class="price-row">
+                            <span>Original Price:</span>
+                            <span class="original-price">₹{{ "%.2f"|format(service.price) }}</span>
+                        </div>
+                        <div class="price-row">
+                            <span>Discount:</span>
+                            <span class="discount-badge">{{ service.discount }}% OFF</span>
+                        </div>
+                        {% endif %}
+                        <div class="price-row final-price-row">
+                            <span>Final Price:</span>
+                            <span class="final-price">
+                                <span class="rupee">₹</span>
+                                <span class="price-value">{{ "%.2f"|format(service.final_price) }}</span>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <form action="{{ url_for('add_to_cart') }}" method="POST" class="add-to-cart-form">
+                        <input type="hidden" name="item_type" value="service">
+                        <input type="hidden" name="item_id" value="{{ service.id }}">
+                        <div class="quantity-selector">
+                            <label for="quantity">Quantity:</label>
+                            <input type="number" name="quantity" id="quantity" value="1" min="1" max="10" class="quantity-input">
+                        </div>
+                        <button type="submit" class="btn-add-to-cart">
+                            <i class="fas fa-cart-plus"></i> Add to Cart
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Recommended Services Section -->
+            {% if recommended_services %}
+            <div class="recommended-section">
+                <h3 class="section-title">
+                    <i class="fas fa-star"></i> You Might Also Like
+                </h3>
+                <div class="recommended-grid">
+                    {% for item in recommended_services %}
+                    <a href="{{ url_for('service_details', service_id=item.id) }}" class="recommended-card">
+                        <div class="recommended-image">
+                            <img src="{{ item.photo }}" alt="{{ item.name }}"
+                                 onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
+                        </div>
+                        <div class="recommended-info">
+                            <h4 class="recommended-name">{{ item.name }}</h4>
+                            <div class="recommended-price">
+                                ₹{{ "%.2f"|format(item.final_price) }}
+                                {% if item.discount > 0 %}
+                                <span class="recommended-original">₹{{ "%.2f"|format(item.price) }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Horizontal Scroll Categories -->
+            {% if all_categories %}
+            <div class="categories-scroll-section">
+                <h3 class="scroll-title">✨ Explore More Service Categories</h3>
+                <div class="scroll-container">
+                    {% for cat in all_categories %}
+                    <a href="{{ url_for('service_category_items', category_id=cat.id) }}" class="scroll-category-item">
+                        <img src="{{ cat.category_photo }}" alt="{{ cat.name }}" 
+                             onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/default_service_category.jpg'">
+                        <span class="scroll-category-name">{{ cat.name }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item active">
+            <i class="fas fa-concierge-bell"></i><span>Services</span>
+        </a>
+        <a href="{{ url_for('menu') }}" class="nav-item">
+            <i class="fas fa-utensils"></i><span>Menu</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item">
+            <i class="fas fa-shopping-cart"></i><span>Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item">
+            <i class="fas fa-history"></i><span>Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item">
+            <i class="fas fa-user"></i><span>Profile</span>
+        </a>
+    </nav>
+</div>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --matte-black: #0D0D0D;
+    --champagne-gold: #C0B283;
+    --onyx-black: #1A1A1A;
+    --vivid-gold: #D4AF37;
+    --creamy-white: #F4F1E1;
+    --gold-light: #D4C19C;
+    --gold-dark: #A8955E;
+    --dark-border: #333333;
+    --antique-bronze: #8e7d4d;
+    --silver-mist: #A0A0A0;
+    --burnt-orange: #D98324;
+    --serif-font: 'Playfair Display', Georgia, serif;
+    --sans-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --gold-glow: 0 0 15px rgba(192, 178, 131, 0.3);
+    --card-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+}
+
+/* Back Link */
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--champagne-gold);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    font-family: var(--sans-font);
+    transition: all 0.3s;
+}
+
+.back-link:hover {
+    color: var(--vivid-gold);
+    transform: translateX(-3px);
+}
+
+/* Service Detail Container */
+.service-detail-container {
+    padding: 20px;
+    background: var(--matte-black);
+}
+
+/* Main Service Card */
+.service-detail-card {
+    background: var(--onyx-black);
+    border-radius: 16px;
+    border: 1px solid var(--dark-border);
+    overflow: hidden;
+    margin-bottom: 40px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--card-shadow);
+}
+
+.service-detail-image {
+    width: 100%;
+    height: 400px;
+    overflow: hidden;
+    background: var(--matte-black);
+    border-bottom: 1px solid var(--dark-border);
+}
+
+.service-detail-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(1.4) contrast(1.2);
+}
+
+.service-detail-info {
+    padding: 30px;
+}
+
+.category-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(192, 178, 131, 0.1);
+    color: var(--champagne-gold);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    border: 1px solid rgba(192, 178, 131, 0.3);
+}
+
+.service-detail-name {
+    margin: 0 0 20px 0;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--creamy-white);
+    font-family: var(--serif-font);
+    letter-spacing: 0.02em;
+}
+
+.service-detail-description {
+    margin-bottom: 24px;
+    padding: 16px;
+    background: rgba(13, 13, 13, 0.6);
+    border-radius: 12px;
+    border-left: 3px solid var(--champagne-gold);
+}
+
+.service-detail-description i {
+    color: var(--champagne-gold);
+    margin-right: 8px;
+    font-size: 14px;
+}
+
+.service-detail-description p {
+    margin: 12px 0 0 0;
+    color: var(--silver-mist);
+    line-height: 1.6;
+    font-size: 14px;
+    font-family: var(--sans-font);
+}
+
+/* Price Section */
+.service-detail-price-section {
+    background: rgba(13, 13, 13, 0.6);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+    border: 1px solid var(--dark-border);
+}
+
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--dark-border);
+}
+
+.price-row:last-child {
+    border-bottom: none;
+}
+
+.price-row span:first-child {
+    color: var(--silver-mist);
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.original-price {
+    color: var(--silver-mist);
+    text-decoration: line-through;
+    font-size: 14px;
+}
+
+.discount-badge {
+    background: linear-gradient(135deg, var(--burnt-orange) 0%, #b86d1a 100%);
+    color: var(--creamy-white);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.final-price-row {
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 2px solid var(--champagne-gold);
+}
+
+.final-price {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+}
+
+.final-price .rupee {
+    color: var(--antique-bronze);
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.final-price .price-value {
+    font-weight: 900;
+    color: var(--vivid-gold);
+    font-size: 24px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+
+/* Quantity Selector */
+.quantity-selector {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.quantity-selector label {
+    color: var(--creamy-white);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.quantity-input {
+    width: 80px;
+    padding: 8px 12px;
+    background: var(--matte-black);
+    border: 1px solid var(--dark-border);
+    border-radius: 8px;
+    color: var(--creamy-white);
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.quantity-input:focus {
+    outline: none;
+    border-color: var(--champagne-gold);
+}
+
+/* Add to Cart Button */
+.btn-add-to-cart {
+    width: 100%;
+    background: linear-gradient(135deg, var(--champagne-gold), var(--antique-bronze));
+    color: #000000;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s;
+    font-family: var(--sans-font);
+}
+
+.btn-add-to-cart:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--gold-glow);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold-dark));
+}
+
+/* Recommended Section */
+.recommended-section {
+    margin-bottom: 40px;
+}
+
+.section-title {
+    margin: 0 0 20px 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--creamy-white);
+    font-family: var(--serif-font);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-title i {
+    color: var(--vivid-gold);
+}
+
+.recommended-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.recommended-card {
+    background: var(--onyx-black);
+    border-radius: 12px;
+    overflow: hidden;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1px solid var(--dark-border);
+    box-shadow: var(--card-shadow);
+}
+
+.recommended-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--champagne-gold);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), 0 0 15px rgba(192, 178, 131, 0.3);
+}
+
+.recommended-image {
+    width: 100%;
+    height: 150px;
+    overflow: hidden;
+}
+
+.recommended-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(1.4) contrast(1.2);
+    transition: transform 0.3s;
+}
+
+.recommended-card:hover .recommended-image img {
+    transform: scale(1.05);
+}
+
+.recommended-info {
+    padding: 12px;
+}
+
+.recommended-name {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--creamy-white);
+    font-family: var(--serif-font);
+}
+
+.recommended-price {
+    color: var(--vivid-gold);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.recommended-original {
+    color: var(--silver-mist);
+    text-decoration: line-through;
+    font-size: 12px;
+    margin-left: 8px;
+    font-weight: 400;
+}
+
+/* Horizontal Scroll Categories */
+.categories-scroll-section {
+    margin-top: 40px;
+    padding: 20px;
+    background: var(--onyx-black);
+    border-radius: 12px;
+    border: 1px solid var(--dark-border);
+}
+
+.scroll-title {
+    margin: 0 0 20px 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--creamy-white);
+    font-family: var(--serif-font);
+}
+
+.scroll-container {
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    padding: 10px 0;
+    scroll-behavior: smooth;
+}
+
+.scroll-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.scroll-container::-webkit-scrollbar-track {
+    background: var(--matte-black);
+    border-radius: 10px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--antique-bronze) 100%);
+    border-radius: 10px;
+}
+
+.scroll-category-item {
+    display: inline-block;
+    width: 100px;
+    margin-right: 20px;
+    text-align: center;
+    text-decoration: none;
+    transition: transform 0.3s;
+}
+
+.scroll-category-item:hover {
+    transform: translateY(-5px);
+}
+
+.scroll-category-item img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--champagne-gold);
+    filter: saturate(1.4) contrast(1.2);
+}
+
+.scroll-category-name {
+    display: block;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--creamy-white);
+    font-weight: 500;
+    font-family: var(--sans-font);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .service-detail-container {
+        padding: 15px;
+    }
+    
+    .service-detail-image {
+        height: 250px;
+    }
+    
+    .service-detail-info {
+        padding: 20px;
+    }
+    
+    .service-detail-name {
+        font-size: 22px;
+    }
+    
+    .final-price .price-value {
+        font-size: 20px;
+    }
+    
+    .recommended-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 15px;
+    }
+    
+    .recommended-image {
+        height: 120px;
+    }
+}
+
+@media (max-width: 480px) {
+    .service-detail-image {
+        height: 200px;
+    }
+    
+    .service-detail-name {
+        font-size: 18px;
+    }
+    
+    .recommended-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .scroll-category-item {
+        width: 80px;
+    }
+    
+    .scroll-category-item img {
+        width: 70px;
+        height: 70px;
+    }
+}
+</style>
+{% endblock %}
