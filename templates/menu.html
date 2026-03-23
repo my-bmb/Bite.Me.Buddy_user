@@ -26,10 +26,17 @@
                         <img class="category-image" 
                              src="{{ category.category_photo }}" 
                              alt="{{ category.name }}"
+                             loading="lazy"
                              onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/default_category.jpg'">
                         <div class="category-badge">
                             <span class="badge-number">{{ loop.index }}</span>
                         </div>
+                        {% if category.item_count and category.item_count > 0 %}
+                        <div class="item-count-badge">
+                            <i class="fas fa-utensils"></i>
+                            <span>{{ category.item_count }}</span>
+                        </div>
+                        {% endif %}
                     </div>
                     
                     <div class="card-content">
@@ -42,9 +49,8 @@
                                 <span>View Items</span>
                                 <i class="fas fa-arrow-right"></i>
                             </div>
-                            <div class="inline-item-count">
-                                <i class="fas fa-utensils"></i>
-                                <span>{{ category.item_count or 0 }} items</span>
+                            <div class="explore-badge">
+                                <span>Explore</span>
                             </div>
                         </div>
                     </div>
@@ -93,44 +99,67 @@
     --creamy-white: #F4F1E1;
     --dark-border: #333333;
     --silver-mist: #A0A0A0;
-    --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    --hover-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    --hover-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
-/* Categories Container - More columns on desktop */
+/* Main Content */
+.main-content {
+    flex: 1;
+    padding-bottom: 20px;
+}
+
+/* Categories Container */
 .categories-container {
     padding: 16px;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 14px;
     background: var(--matte-black);
 }
 
-/* Modern Category Card */
+/* Category Card - Enhanced */
 .category-card {
     background: var(--onyx-black);
-    border-radius: 12px;
+    border-radius: 16px;
     border: 1px solid var(--dark-border);
     overflow: hidden;
     cursor: pointer;
     text-decoration: none;
     display: flex;
     flex-direction: column;
-    transition: all 0.25s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: var(--card-shadow);
+    position: relative;
+}
+
+.category-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--champagne-gold), var(--vivid-gold));
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.category-card:hover::before {
+    transform: scaleX(1);
 }
 
 .category-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-4px);
     border-color: var(--champagne-gold);
     box-shadow: var(--hover-shadow);
 }
 
-/* Image Wrapper - Compact height */
+/* Image Wrapper */
 .card-image-wrapper {
     position: relative;
     width: 100%;
-    height: 140px;
+    height: 150px;
     overflow: hidden;
     background: var(--matte-black);
 }
@@ -139,14 +168,14 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s ease;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .category-card:hover .category-image {
-    transform: scale(1.05);
+    transform: scale(1.08);
 }
 
-/* Category Badge - Ultra Compact Square (same size for all devices) */
+/* Category Badge - Compact for all devices */
 .category-badge {
     position: absolute;
     top: 8px;
@@ -160,7 +189,6 @@
     justify-content: center;
     width: 22px;
     height: 22px;
-    padding: 0;
 }
 
 .badge-number {
@@ -172,7 +200,34 @@
     line-height: 1;
 }
 
-/* Card Content - Compact */
+/* Item Count Badge - Top Right */
+.item-count-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    border-radius: 16px;
+    padding: 2px 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid rgba(192, 178, 131, 0.3);
+}
+
+.item-count-badge i {
+    color: var(--champagne-gold);
+    font-size: 8px;
+}
+
+.item-count-badge span {
+    color: var(--creamy-white);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+/* Card Content */
 .card-content {
     padding: 10px;
     display: flex;
@@ -183,10 +238,10 @@
 .category-name {
     margin: 0;
     color: var(--creamy-white);
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
     font-family: 'Inter', sans-serif;
-    letter-spacing: 0.2px;
+    letter-spacing: 0.3px;
     line-height: 1.3;
     white-space: nowrap;
     overflow: hidden;
@@ -195,7 +250,7 @@
 
 .category-description {
     color: var(--silver-mist);
-    font-size: 11px;
+    font-size: 10px;
     line-height: 1.4;
     margin: 0;
     display: -webkit-box;
@@ -204,24 +259,23 @@
     overflow: hidden;
 }
 
-/* View Row - Contains View Button and Item Count Side by Side */
+/* View Row */
 .view-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-top: 2px;
-    padding-top: 5px;
+    margin-top: 4px;
+    padding-top: 6px;
     border-top: 1px solid var(--dark-border);
-    width: 100%;
 }
 
-/* View Button with Arrow - Compact */
+/* View Button */
 .view-button {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     color: var(--champagne-gold);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
     transition: all 0.2s ease;
     background: transparent;
@@ -229,13 +283,13 @@
 }
 
 .view-button span {
-    font-size: 11px;
-    letter-spacing: 0.2px;
+    font-size: 10px;
+    letter-spacing: 0.3px;
     font-weight: 600;
 }
 
 .view-button i {
-    font-size: 10px;
+    font-size: 9px;
     transition: transform 0.2s ease;
 }
 
@@ -243,27 +297,19 @@
     transform: translateX(3px);
 }
 
-/* Inline Item Count - Compact */
-.inline-item-count {
-    display: flex;
-    align-items: center;
-    gap: 3px;
-    background: rgba(192, 178, 131, 0.1);
-    padding: 2px 6px;
+/* Explore Badge */
+.explore-badge {
+    background: rgba(192, 178, 131, 0.15);
+    padding: 2px 8px;
     border-radius: 16px;
-    transition: all 0.2s;
+    border: 1px solid rgba(192, 178, 131, 0.3);
 }
 
-.inline-item-count i {
+.explore-badge span {
     color: var(--champagne-gold);
     font-size: 9px;
-}
-
-.inline-item-count span {
-    color: var(--creamy-white);
-    font-size: 10px;
     font-weight: 600;
-    letter-spacing: 0.2px;
+    letter-spacing: 0.3px;
 }
 
 /* No Items State */
@@ -275,20 +321,20 @@
 
 /* ========== RESPONSIVE STYLES ========== */
 
-/* Tablet (768px and above) - Increase columns */
+/* Tablet (768px and above) */
 @media (min-width: 768px) {
     .categories-container {
         grid-template-columns: repeat(3, 1fr);
-        gap: 14px;
-        padding: 16px;
+        gap: 16px;
+        padding: 20px;
     }
     
     .card-image-wrapper {
-        height: 150px;
+        height: 160px;
     }
     
     .card-content {
-        padding: 10px;
+        padding: 12px;
     }
     
     .category-name {
@@ -299,52 +345,50 @@
         font-size: 11px;
     }
     
-    /* Same compact badge size */
+    /* Slightly larger badge for tablet */
     .category-badge {
-        width: 22px;
-        height: 22px;
-        top: 8px;
-        left: 8px;
+        width: 24px;
+        height: 24px;
+        top: 10px;
+        left: 10px;
+        border-radius: 6px;
     }
     
     .badge-number {
+        font-size: 11px;
+    }
+    
+    .item-count-badge {
+        padding: 3px 8px;
+        top: 10px;
+        right: 10px;
+    }
+    
+    .item-count-badge i {
+        font-size: 9px;
+    }
+    
+    .item-count-badge span {
         font-size: 10px;
     }
-}
-
-/* Desktop (1024px and above) - More columns */
-@media (min-width: 1024px) {
-    .categories-container {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 16px;
-        padding: 20px;
-    }
     
-    .card-image-wrapper {
-        height: 160px;
-    }
-    
-    .category-name {
-        font-size: 15px;
-    }
-    
-    .category-description {
-        font-size: 12px;
+    .view-button {
+        font-size: 11px;
     }
     
     .view-button span {
         font-size: 11px;
     }
     
-    .inline-item-count span {
+    .explore-badge span {
         font-size: 10px;
     }
 }
 
-/* Large Desktop (1400px and above) - Maximum columns */
-@media (min-width: 1400px) {
+/* Desktop (1024px and above) */
+@media (min-width: 1024px) {
     .categories-container {
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(4, 1fr);
         gap: 18px;
         padding: 24px;
     }
@@ -354,14 +398,31 @@
     }
     
     .category-name {
-        font-size: 16px;
+        font-size: 15px;
+    }
+    
+    .category-description {
+        font-size: 11px;
+    }
+    
+    /* Slightly larger badge for desktop */
+    .category-badge {
+        width: 26px;
+        height: 26px;
+        top: 12px;
+        left: 12px;
+        border-radius: 6px;
+    }
+    
+    .badge-number {
+        font-size: 12px;
     }
 }
 
-/* Extra Large Desktop (1800px and above) */
-@media (min-width: 1800px) {
+/* Large Desktop (1400px and above) */
+@media (min-width: 1400px) {
     .categories-container {
-        grid-template-columns: repeat(6, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         gap: 20px;
         padding: 28px;
     }
@@ -369,13 +430,44 @@
     .card-image-wrapper {
         height: 180px;
     }
+    
+    .category-name {
+        font-size: 16px;
+    }
+    
+    .category-badge {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .badge-number {
+        font-size: 13px;
+    }
 }
 
-/* Small Mobile (600px and below) - Keep 2 columns but compact */
+/* Extra Large Desktop (1800px and above) */
+@media (min-width: 1800px) {
+    .categories-container {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 22px;
+        padding: 32px;
+    }
+    
+    .card-image-wrapper {
+        height: 190px;
+    }
+    
+    .category-badge {
+        width: 28px;
+        height: 28px;
+    }
+}
+
+/* Small Mobile (600px and below) - Extra compact */
 @media (max-width: 600px) {
     .categories-container {
-        gap: 10px;
-        padding: 10px;
+        gap: 12px;
+        padding: 12px;
     }
     
     .card-image-wrapper {
@@ -388,52 +480,67 @@
     }
     
     .category-name {
-        font-size: 13px;
+        font-size: 12px;
     }
     
     .category-description {
-        font-size: 10px;
+        font-size: 9px;
         -webkit-line-clamp: 2;
     }
     
-    .view-row {
-        padding-top: 4px;
+    /* Extra compact badge for small mobile */
+    .category-badge {
+        width: 20px;
+        height: 20px;
+        top: 6px;
+        left: 6px;
+        border-radius: 4px;
     }
     
-    .view-button span {
-        font-size: 10px;
-    }
-    
-    .view-button i {
+    .badge-number {
         font-size: 9px;
     }
     
-    .inline-item-count {
+    .item-count-badge {
         padding: 2px 5px;
+        top: 6px;
+        right: 6px;
     }
     
-    .inline-item-count span {
-        font-size: 9px;
+    .item-count-badge i {
+        font-size: 7px;
     }
     
-    .inline-item-count i {
+    .item-count-badge span {
         font-size: 8px;
     }
     
-    /* Same compact badge size */
-    .category-badge {
-        width: 22px;
-        height: 22px;
-        top: 6px;
-        left: 6px;
+    .view-button {
+        gap: 3px;
+    }
+    
+    .view-button span {
+        font-size: 9px;
+    }
+    
+    .view-button i {
+        font-size: 8px;
+    }
+    
+    .explore-badge {
+        padding: 2px 6px;
+    }
+    
+    .explore-badge span {
+        font-size: 8px;
     }
 }
 
-/* Very Small Mobile (480px and below) */
+/* Very Small Mobile (480px and below) - Ultra compact */
 @media (max-width: 480px) {
     .categories-container {
-        gap: 8px;
-        padding: 8px;
+        gap: 10px;
+        padding: 10px;
     }
     
     .card-image-wrapper {
@@ -446,7 +553,7 @@
     }
     
     .category-name {
-        font-size: 12px;
+        font-size: 11px;
     }
     
     .category-description {
@@ -454,68 +561,76 @@
         -webkit-line-clamp: 1;
     }
     
-    .view-row {
-        padding-top: 3px;
-    }
-    
-    .view-button span {
-        font-size: 9px;
-    }
-    
-    .view-button i {
-        font-size: 8px;
-    }
-    
-    .inline-item-count {
-        padding: 2px 4px;
-    }
-    
-    .inline-item-count span {
-        font-size: 8px;
-    }
-    
-    .inline-item-count i {
-        font-size: 7px;
-    }
-    
-    /* Same compact badge size */
+    /* Ultra compact badge for very small mobile */
     .category-badge {
-        width: 20px;
-        height: 20px;
+        width: 18px;
+        height: 18px;
         top: 5px;
         left: 5px;
-        border-radius: 4px;
+        border-radius: 3px;
     }
     
     .badge-number {
-        font-size: 9px;
+        font-size: 8px;
+    }
+    
+    .item-count-badge {
+        padding: 1px 4px;
+        top: 5px;
+        right: 5px;
+    }
+    
+    .item-count-badge i {
+        font-size: 6px;
+    }
+    
+    .item-count-badge span {
+        font-size: 7px;
+    }
+    
+    .view-button span {
+        font-size: 8px;
+    }
+    
+    .view-button i {
+        font-size: 7px;
+    }
+    
+    .explore-badge {
+        padding: 1px 5px;
+    }
+    
+    .explore-badge span {
+        font-size: 7px;
     }
 }
 
 /* Extreme Small (380px and below) */
 @media (max-width: 380px) {
     .categories-container {
-        gap: 6px;
-        padding: 6px;
+        gap: 8px;
+        padding: 8px;
     }
     
     .card-image-wrapper {
         height: 110px;
     }
     
+    /* Extreme compact badge */
     .category-badge {
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
         top: 4px;
         left: 4px;
+        border-radius: 3px;
     }
     
     .badge-number {
-        font-size: 8px;
+        font-size: 7px;
     }
 }
 
-/* Landscape Mode - Show more columns */
+/* Landscape Mode */
 @media (max-height: 500px) and (orientation: landscape) {
     .categories-container {
         grid-template-columns: repeat(4, 1fr);
@@ -529,6 +644,18 @@
     
     .category-description {
         -webkit-line-clamp: 1;
+    }
+    
+    /* Compact badge for landscape */
+    .category-badge {
+        width: 18px;
+        height: 18px;
+        top: 5px;
+        left: 5px;
+    }
+    
+    .badge-number {
+        font-size: 8px;
     }
 }
 
