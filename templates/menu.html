@@ -97,19 +97,19 @@
     --hover-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
 }
 
-/* Categories Container - Optimized for maximum visibility */
+/* Categories Container - More columns on desktop */
 .categories-container {
-    padding: 20px;
+    padding: 16px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
     background: var(--matte-black);
 }
 
 /* Modern Category Card */
 .category-card {
     background: var(--onyx-black);
-    border-radius: 16px;
+    border-radius: 12px;
     border: 1px solid var(--dark-border);
     overflow: hidden;
     cursor: pointer;
@@ -121,16 +121,16 @@
 }
 
 .category-card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-2px);
     border-color: var(--champagne-gold);
     box-shadow: var(--hover-shadow);
 }
 
-/* Image Wrapper */
+/* Image Wrapper - Compact height */
 .card-image-wrapper {
     position: relative;
     width: 100%;
-    height: 180px;
+    height: 140px;
     overflow: hidden;
     background: var(--matte-black);
 }
@@ -146,54 +146,57 @@
     transform: scale(1.05);
 }
 
-/* Category Badge - Consistent Square Shape Across All Devices */
+/* Category Badge - Ultra Compact Square (same size for all devices) */
 .category-badge {
     position: absolute;
-    top: 12px;
-    left: 12px;
+    top: 8px;
+    left: 8px;
     background: linear-gradient(135deg, var(--champagne-gold), var(--vivid-gold));
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 22px;
+    height: 22px;
     padding: 0;
 }
 
 .badge-number {
     color: #000;
     font-weight: 800;
-    font-size: 14px;
-    letter-spacing: 0.5px;
+    font-size: 10px;
+    letter-spacing: 0.3px;
     font-family: 'Inter', sans-serif;
     line-height: 1;
 }
 
-/* Card Content */
+/* Card Content - Compact */
 .card-content {
-    padding: 16px;
+    padding: 10px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 6px;
 }
 
 .category-name {
     margin: 0;
     color: var(--creamy-white);
-    font-size: 18px;
+    font-size: 14px;
     font-weight: 700;
     font-family: 'Inter', sans-serif;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.2px;
     line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .category-description {
     color: var(--silver-mist);
-    font-size: 13px;
-    line-height: 1.5;
+    font-size: 11px;
+    line-height: 1.4;
     margin: 0;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -206,19 +209,19 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-top: 4px;
-    padding-top: 8px;
+    margin-top: 2px;
+    padding-top: 5px;
     border-top: 1px solid var(--dark-border);
     width: 100%;
 }
 
-/* View Button with Arrow */
+/* View Button with Arrow - Compact */
 .view-button {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     color: var(--champagne-gold);
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 600;
     transition: all 0.2s ease;
     background: transparent;
@@ -226,39 +229,39 @@
 }
 
 .view-button span {
-    font-size: 13px;
-    letter-spacing: 0.3px;
+    font-size: 11px;
+    letter-spacing: 0.2px;
     font-weight: 600;
 }
 
 .view-button i {
-    font-size: 12px;
+    font-size: 10px;
     transition: transform 0.2s ease;
 }
 
 .category-card:hover .view-button i {
-    transform: translateX(4px);
+    transform: translateX(3px);
 }
 
-/* Inline Item Count */
+/* Inline Item Count - Compact */
 .inline-item-count {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 3px;
     background: rgba(192, 178, 131, 0.1);
-    padding: 4px 10px;
-    border-radius: 20px;
+    padding: 2px 6px;
+    border-radius: 16px;
     transition: all 0.2s;
 }
 
 .inline-item-count i {
     color: var(--champagne-gold);
-    font-size: 11px;
+    font-size: 9px;
 }
 
 .inline-item-count span {
     color: var(--creamy-white);
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.2px;
 }
@@ -272,84 +275,53 @@
 
 /* ========== RESPONSIVE STYLES ========== */
 
-/* Tablet (768px and below) */
-@media (max-width: 768px) {
+/* Tablet (768px and above) - Increase columns */
+@media (min-width: 768px) {
     .categories-container {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 16px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
         padding: 16px;
     }
     
     .card-image-wrapper {
-        height: 160px;
+        height: 150px;
     }
     
     .card-content {
-        padding: 14px;
-        gap: 8px;
+        padding: 10px;
     }
     
     .category-name {
-        font-size: 16px;
+        font-size: 14px;
     }
     
     .category-description {
-        font-size: 12px;
-    }
-    
-    .view-row {
-        padding-top: 6px;
-    }
-    
-    .view-button span {
-        font-size: 12px;
-    }
-    
-    .view-button i {
         font-size: 11px;
     }
     
-    .inline-item-count {
-        padding: 3px 8px;
-    }
-    
-    .inline-item-count span {
-        font-size: 11px;
-    }
-    
-    .inline-item-count i {
-        font-size: 10px;
-    }
-    
-    /* Tablet Badge Size */
+    /* Same compact badge size */
     .category-badge {
-        top: 10px;
-        left: 10px;
-        width: 28px;
-        height: 28px;
-        border-radius: 7px;
+        width: 22px;
+        height: 22px;
+        top: 8px;
+        left: 8px;
     }
     
     .badge-number {
-        font-size: 12px;
+        font-size: 10px;
     }
 }
 
-/* Mobile (600px and below) */
-@media (max-width: 600px) {
+/* Desktop (1024px and above) - More columns */
+@media (min-width: 1024px) {
     .categories-container {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-        padding: 12px;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        padding: 20px;
     }
     
     .card-image-wrapper {
-        height: 140px;
-    }
-    
-    .card-content {
-        padding: 12px;
-        gap: 8px;
+        height: 160px;
     }
     
     .category-name {
@@ -357,53 +329,51 @@
     }
     
     .category-description {
-        font-size: 11px;
-        line-height: 1.4;
-    }
-    
-    .view-row {
-        padding-top: 5px;
+        font-size: 12px;
     }
     
     .view-button span {
         font-size: 11px;
     }
     
-    .view-button i {
-        font-size: 10px;
-    }
-    
-    .inline-item-count {
-        padding: 2px 7px;
-    }
-    
     .inline-item-count span {
-        font-size: 10px;
-    }
-    
-    .inline-item-count i {
-        font-size: 9px;
-    }
-    
-    /* Mobile Badge Size */
-    .category-badge {
-        top: 8px;
-        left: 8px;
-        width: 24px;
-        height: 24px;
-        border-radius: 6px;
-        border-width: 1.2px;
-    }
-    
-    .badge-number {
         font-size: 10px;
     }
 }
 
-/* Small Mobile (480px and below) */
-@media (max-width: 480px) {
+/* Large Desktop (1400px and above) - Maximum columns */
+@media (min-width: 1400px) {
     .categories-container {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(5, 1fr);
+        gap: 18px;
+        padding: 24px;
+    }
+    
+    .card-image-wrapper {
+        height: 170px;
+    }
+    
+    .category-name {
+        font-size: 16px;
+    }
+}
+
+/* Extra Large Desktop (1800px and above) */
+@media (min-width: 1800px) {
+    .categories-container {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 20px;
+        padding: 28px;
+    }
+    
+    .card-image-wrapper {
+        height: 180px;
+    }
+}
+
+/* Small Mobile (600px and below) - Keep 2 columns but compact */
+@media (max-width: 600px) {
+    .categories-container {
         gap: 10px;
         padding: 10px;
     }
@@ -413,12 +383,12 @@
     }
     
     .card-content {
-        padding: 10px;
-        gap: 6px;
+        padding: 8px;
+        gap: 5px;
     }
     
     .category-name {
-        font-size: 14px;
+        font-size: 13px;
     }
     
     .category-description {
@@ -439,7 +409,7 @@
     }
     
     .inline-item-count {
-        padding: 2px 6px;
+        padding: 2px 5px;
     }
     
     .inline-item-count span {
@@ -450,25 +420,18 @@
         font-size: 8px;
     }
     
-    /* Small Mobile Badge Size */
+    /* Same compact badge size */
     .category-badge {
-        top: 6px;
-        left: 6px;
         width: 22px;
         height: 22px;
-        border-radius: 5px;
-        border-width: 1px;
-    }
-    
-    .badge-number {
-        font-size: 9px;
+        top: 6px;
+        left: 6px;
     }
 }
 
-/* Very Small Mobile (380px and below) */
-@media (max-width: 380px) {
+/* Very Small Mobile (480px and below) */
+@media (max-width: 480px) {
     .categories-container {
-        grid-template-columns: repeat(2, 1fr);
         gap: 8px;
         padding: 8px;
     }
@@ -479,19 +442,16 @@
     
     .card-content {
         padding: 8px;
-        gap: 5px;
+        gap: 4px;
     }
     
     .category-name {
-        font-size: 13px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        font-size: 12px;
     }
     
     .category-description {
         font-size: 9px;
-        -webkit-line-clamp: 2;
+        -webkit-line-clamp: 1;
     }
     
     .view-row {
@@ -507,7 +467,7 @@
     }
     
     .inline-item-count {
-        padding: 2px 5px;
+        padding: 2px 4px;
     }
     
     .inline-item-count span {
@@ -518,22 +478,22 @@
         font-size: 7px;
     }
     
-    /* Very Small Mobile Badge Size */
+    /* Same compact badge size */
     .category-badge {
-        top: 5px;
-        left: 5px;
         width: 20px;
         height: 20px;
+        top: 5px;
+        left: 5px;
         border-radius: 4px;
     }
     
     .badge-number {
-        font-size: 8px;
+        font-size: 9px;
     }
 }
 
-/* Extreme Small (320px and below) */
-@media (max-width: 320px) {
+/* Extreme Small (380px and below) */
+@media (max-width: 380px) {
     .categories-container {
         gap: 6px;
         padding: 6px;
@@ -543,103 +503,32 @@
         height: 110px;
     }
     
-    .card-content {
-        padding: 6px;
-        gap: 4px;
-    }
-    
-    .category-name {
-        font-size: 12px;
-    }
-    
-    .category-description {
-        font-size: 8px;
-        -webkit-line-clamp: 1;
-    }
-    
-    .view-row {
-        padding-top: 2px;
-    }
-    
-    .view-button span {
-        font-size: 8px;
-    }
-    
-    .view-button i {
-        font-size: 7px;
-    }
-    
-    .inline-item-count {
-        padding: 1px 4px;
-    }
-    
-    .inline-item-count span {
-        font-size: 7px;
-    }
-    
-    .inline-item-count i {
-        font-size: 6px;
-    }
-    
-    /* Extreme Small Badge Size */
     .category-badge {
         width: 18px;
         height: 18px;
-        border-radius: 4px;
+        top: 4px;
+        left: 4px;
     }
     
     .badge-number {
-        font-size: 7px;
+        font-size: 8px;
     }
 }
 
-/* Landscape Mode */
+/* Landscape Mode - Show more columns */
 @media (max-height: 500px) and (orientation: landscape) {
     .categories-container {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
-        padding: 12px;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        padding: 10px;
     }
     
     .card-image-wrapper {
-        height: 120px;
-    }
-    
-    .card-content {
-        padding: 10px;
+        height: 100px;
     }
     
     .category-description {
         -webkit-line-clamp: 1;
-    }
-}
-
-/* Large Desktop */
-@media (min-width: 1200px) {
-    .categories-container {
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 24px;
-        padding: 24px;
-    }
-    
-    .card-image-wrapper {
-        height: 200px;
-    }
-    
-    .category-name {
-        font-size: 20px;
-    }
-    
-    .category-description {
-        font-size: 14px;
-    }
-    
-    .inline-item-count {
-        padding: 5px 12px;
-    }
-    
-    .inline-item-count span {
-        font-size: 13px;
     }
 }
 
