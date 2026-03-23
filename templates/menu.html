@@ -30,10 +30,6 @@
                         <div class="category-badge">
                             <span class="badge-number">{{ loop.index }}</span>
                         </div>
-                        <div class="item-count-chip">
-                            <i class="fas fa-utensils"></i>
-                            <span>{{ category.item_count or 0 }} items</span>
-                        </div>
                     </div>
                     
                     <div class="card-content">
@@ -41,9 +37,15 @@
                         {% if category.description %}
                         <p class="category-description">{{ category.description }}</p>
                         {% endif %}
-                        <div class="view-button">
-                            <span>View Items</span>
-                            <i class="fas fa-arrow-right"></i>
+                        <div class="view-row">
+                            <div class="view-button">
+                                <span>View Items</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
+                            <div class="inline-item-count">
+                                <i class="fas fa-utensils"></i>
+                                <span>{{ category.item_count or 0 }} items</span>
+                            </div>
                         </div>
                     </div>
                 </a>
@@ -144,50 +146,28 @@
     transform: scale(1.05);
 }
 
-/* Category Badge */
+/* Category Badge - Compact Size */
 .category-badge {
     position: absolute;
     top: 12px;
     left: 12px;
     background: linear-gradient(135deg, var(--champagne-gold), var(--vivid-gold));
-    border-radius: 10px;
-    padding: 5px 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    border: 1.5px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    padding: 2px 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    min-width: 24px;
+    text-align: center;
 }
 
 .badge-number {
     color: #000;
     font-weight: 800;
-    font-size: 14px;
-    letter-spacing: 0.5px;
+    font-size: 11px;
+    letter-spacing: 0.3px;
     font-family: 'Inter', sans-serif;
-}
-
-/* Item Count Chip */
-.item-count-chip {
-    position: absolute;
-    bottom: 12px;
-    right: 12px;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(8px);
-    border-radius: 20px;
-    padding: 6px 12px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    border: 1px solid var(--champagne-gold);
-}
-
-.item-count-chip i {
-    color: var(--champagne-gold);
-    font-size: 12px;
-}
-
-.item-count-chip span {
-    color: var(--creamy-white);
-    font-size: 12px;
-    font-weight: 600;
+    display: inline-block;
+    line-height: 1.2;
 }
 
 /* Card Content */
@@ -219,33 +199,66 @@
     overflow: hidden;
 }
 
-/* View Button */
-.view-button {
-    display: inline-flex;
+/* View Row - Contains View Button and Item Count Side by Side on Same Line */
+.view-row {
+    display: flex;
     align-items: center;
     justify-content: space-between;
     margin-top: 4px;
-    padding: 8px 0 4px;
+    padding-top: 8px;
+    border-top: 1px solid var(--dark-border);
+    width: 100%;
+}
+
+/* View Button with Arrow */
+.view-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     color: var(--champagne-gold);
     font-size: 13px;
     font-weight: 600;
     transition: all 0.2s ease;
-    border-top: 1px solid var(--dark-border);
-    width: 100%;
+    background: transparent;
+    cursor: pointer;
 }
 
 .view-button span {
     font-size: 13px;
     letter-spacing: 0.3px;
+    font-weight: 600;
 }
 
 .view-button i {
-    font-size: 13px;
+    font-size: 12px;
     transition: transform 0.2s ease;
 }
 
 .category-card:hover .view-button i {
     transform: translateX(4px);
+}
+
+/* Inline Item Count - Placed Next to View Items on Same Line */
+.inline-item-count {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(192, 178, 131, 0.1);
+    padding: 4px 10px;
+    border-radius: 20px;
+    transition: all 0.2s;
+}
+
+.inline-item-count i {
+    color: var(--champagne-gold);
+    font-size: 11px;
+}
+
+.inline-item-count span {
+    color: var(--creamy-white);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
 }
 
 /* No Items State */
@@ -255,7 +268,7 @@
     color: var(--silver-mist);
 }
 
-/* ========== RESPONSIVE STYLES - NOTHING HIDDEN ========== */
+/* ========== RESPONSIVE STYLES ========== */
 
 /* Tablet (768px and below) */
 @media (max-width: 768px) {
@@ -284,25 +297,39 @@
         display: -webkit-box;
     }
     
-    .view-button {
-        padding: 6px 0 2px;
+    .view-row {
+        padding-top: 6px;
     }
     
-    .view-button span,
-    .view-button i {
+    .view-button span {
         font-size: 12px;
     }
     
-    .item-count-chip {
-        padding: 5px 10px;
-    }
-    
-    .item-count-chip span {
+    .view-button i {
         font-size: 11px;
     }
     
+    .inline-item-count {
+        padding: 3px 8px;
+    }
+    
+    .inline-item-count span {
+        font-size: 11px;
+    }
+    
+    .inline-item-count i {
+        font-size: 10px;
+    }
+    
+    .category-badge {
+        padding: 2px 5px;
+        border-radius: 5px;
+        top: 10px;
+        left: 10px;
+    }
+    
     .badge-number {
-        font-size: 13px;
+        font-size: 10px;
     }
 }
 
@@ -334,37 +361,39 @@
         line-height: 1.4;
     }
     
-    .view-button {
-        padding: 5px 0 2px;
+    .view-row {
+        padding-top: 5px;
     }
     
-    .view-button span,
-    .view-button i {
+    .view-button span {
         font-size: 11px;
     }
     
-    .item-count-chip {
-        padding: 4px 9px;
-        bottom: 10px;
-        right: 10px;
-    }
-    
-    .item-count-chip span {
+    .view-button i {
         font-size: 10px;
     }
     
-    .item-count-chip i {
+    .inline-item-count {
+        padding: 2px 7px;
+    }
+    
+    .inline-item-count span {
         font-size: 10px;
+    }
+    
+    .inline-item-count i {
+        font-size: 9px;
     }
     
     .category-badge {
         top: 10px;
         left: 10px;
-        padding: 4px 10px;
+        padding: 2px 5px;
+        border-radius: 5px;
     }
     
     .badge-number {
-        font-size: 12px;
+        font-size: 9px;
     }
 }
 
@@ -396,43 +425,43 @@
         line-height: 1.35;
     }
     
-    .view-button {
-        padding: 4px 0 2px;
-        margin-top: 2px;
+    .view-row {
+        padding-top: 4px;
     }
     
-    .view-button span,
-    .view-button i {
+    .view-button span {
         font-size: 10px;
     }
     
-    .item-count-chip {
-        padding: 3px 8px;
-        bottom: 8px;
-        right: 8px;
-    }
-    
-    .item-count-chip span {
+    .view-button i {
         font-size: 9px;
     }
     
-    .item-count-chip i {
+    .inline-item-count {
+        padding: 2px 6px;
+    }
+    
+    .inline-item-count span {
         font-size: 9px;
+    }
+    
+    .inline-item-count i {
+        font-size: 8px;
     }
     
     .category-badge {
         top: 8px;
         left: 8px;
-        padding: 3px 8px;
-        border-radius: 8px;
+        padding: 2px 4px;
+        border-radius: 4px;
     }
     
     .badge-number {
-        font-size: 11px;
+        font-size: 8px;
     }
 }
 
-/* Very Small Mobile (380px and below) - Still shows everything */
+/* Very Small Mobile (380px and below) */
 @media (max-width: 380px) {
     .categories-container {
         grid-template-columns: repeat(2, 1fr);
@@ -463,39 +492,40 @@
         line-height: 1.3;
     }
     
-    .view-button {
-        padding: 3px 0 2px;
-        margin-top: 1px;
+    .view-row {
+        padding-top: 3px;
     }
     
-    .view-button span,
-    .view-button i {
+    .view-button span {
         font-size: 9px;
     }
     
-    .item-count-chip {
-        padding: 2px 6px;
-        bottom: 6px;
-        right: 6px;
-    }
-    
-    .item-count-chip span {
+    .view-button i {
         font-size: 8px;
     }
     
-    .item-count-chip i {
+    .inline-item-count {
+        padding: 2px 5px;
+        gap: 3px;
+    }
+    
+    .inline-item-count span {
         font-size: 8px;
+    }
+    
+    .inline-item-count i {
+        font-size: 7px;
     }
     
     .category-badge {
         top: 6px;
         left: 6px;
-        padding: 2px 6px;
-        border-radius: 6px;
+        padding: 2px 4px;
+        border-radius: 4px;
     }
     
     .badge-number {
-        font-size: 10px;
+        font-size: 7px;
     }
 }
 
@@ -521,24 +551,35 @@
     
     .category-description {
         font-size: 8px;
-        -webkit-line-clamp: 1; /* Only 1 line on extremely small screens */
+        -webkit-line-clamp: 1;
     }
     
-    .view-button {
-        padding: 2px 0;
+    .view-row {
+        padding-top: 2px;
     }
     
-    .view-button span,
-    .view-button i {
+    .view-button span {
         font-size: 8px;
     }
     
-    .item-count-chip span {
+    .view-button i {
         font-size: 7px;
     }
     
+    .inline-item-count {
+        padding: 1px 4px;
+    }
+    
+    .inline-item-count span {
+        font-size: 7px;
+    }
+    
+    .inline-item-count i {
+        font-size: 6px;
+    }
+    
     .badge-number {
-        font-size: 9px;
+        font-size: 6px;
     }
 }
 
@@ -581,6 +622,14 @@
     
     .category-description {
         font-size: 14px;
+    }
+    
+    .inline-item-count {
+        padding: 5px 12px;
+    }
+    
+    .inline-item-count span {
+        font-size: 13px;
     }
 }
 
