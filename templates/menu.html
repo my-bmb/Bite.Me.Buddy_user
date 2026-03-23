@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}Menu Categories{% endblock %}
+{% block title %}Menu{% endblock %}
 
 {% block content %}
 <div class="dashboard">
-    <!-- Top Header -->
+    <!-- Top Header (ORIGINAL STYLE - UNCHANGED) -->
     <header class="dashboard-header">
         <div class="header-left">
-            <h1>Menu Categories</h1>
-            <p class="welcome-text">Explore our delicious categories</p>
+            <h1>Menu</h1>
+            <p class="welcome-text">Browse our premium offerings</p>
         </div>
         <div class="header-right">
             <img src="{{ session.profile_pic }}" alt="Profile" class="profile-pic"
@@ -16,57 +16,56 @@
         </div>
     </header>
 
-    <!-- Categories Content -->
+    <!-- Menu Content -->
     <main class="main-content">
         {% if categories %}
             <div class="categories-container">
                 {% for category in categories %}
-                <a href="{{ url_for('menu_category_items', category_id=category.id) }}" class="category-card">
-                    <div class="card-image-wrapper">
-                        <img class="category-image" 
-                             src="{{ category.category_photo }}" 
+                <div class="category-item" data-category-id="{{ category.id }}">
+                    <!-- SQUARE PHOTO -->
+                    <div class="category-square-photo">
+                        <img src="{{ category.category_photo }}" 
                              alt="{{ category.name }}"
-                             loading="lazy"
                              onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/default_category.jpg'">
-                        <div class="category-badge">
-                            <span class="badge-number">{{ loop.index }}</span>
+                        <!-- Number SQUARE with fixed position -->
+                        <div class="category-number">
+                            <span>{{ loop.index }}</span>
                         </div>
-                        {% if category.item_count and category.item_count > 0 %}
-                        <div class="item-count-badge">
-                            <i class="fas fa-utensils"></i>
-                            <span>{{ category.item_count }}</span>
-                        </div>
-                        {% endif %}
                     </div>
                     
-                    <div class="card-content">
-                        <h3 class="category-name">{{ category.name }}</h3>
-                        {% if category.description %}
-                        <p class="category-description">{{ category.description }}</p>
-                        {% endif %}
-                        <div class="view-row">
-                            <div class="view-button">
-                                <span>View Items</span>
-                                <i class="fas fa-arrow-right"></i>
-                            </div>
-                            <div class="explore-badge">
-                                <span>Explore</span>
-                            </div>
+                    <div class="category-details">
+                        <div class="category-header">
+                            <h3 class="category-title">{{ category.name }}</h3>
+                            <!-- Category Description - Only show if exists -->
+                            {% if category.description %}
+                            <p class="category-description">{{ category.description }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- VIEW BUTTON WITH COUNT BESIDE IT -->
+                        <div class="category-actions">
+                            <button class="btn-view-category" data-category-id="{{ category.id }}">
+                                <i class="fas fa-eye"></i> 
+                                <span class="btn-text">View Items</span>
+                                <span class="item-count-badge-btn">
+                                    <span class="count-number">{{ category.item_count }}</span>
+                                </span>
+                            </button>
                         </div>
                     </div>
-                </a>
+                </div>
                 {% endfor %}
             </div>
         {% else %}
             <div class="no-services">
                 <i class="fas fa-utensils fa-3x"></i>
-                <h3>No Categories Available</h3>
-                <p>Check back soon for delicious options!</p>
+                <h3>No Menu Categories Available</h3>
+                <p>Check back soon for premium selections!</p>
             </div>
         {% endif %}
     </main>
 
-    <!-- Bottom Navigation -->
+    <!-- Bottom Navigation (ORIGINAL STYLE - UNCHANGED) -->
     <nav class="bottom-nav">
         <a href="{{ url_for('services') }}" class="nav-item">
             <i class="fas fa-concierge-bell"></i><span>Services</span>
@@ -86,584 +85,491 @@
     </nav>
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle card click - whole category card
+    const categoryCards = document.querySelectorAll('.category-item');
+    categoryCards.forEach(card => {
+        card.addEventListener('click', function(e) {
+            // Don't trigger if clicked on button
+            if (e.target.closest('.btn-view-category')) {
+                return;
+            }
+            const categoryId = this.dataset.categoryId;
+            if (categoryId) {
+                window.location.href = `/menu-category/${categoryId}`;
+            }
+        });
+    });
+    
+    // Handle button click - View Items button
+    const viewButtons = document.querySelectorAll('.btn-view-category');
+    viewButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation(); // Stop event from bubbling to parent
+            const categoryId = this.dataset.categoryId;
+            if (categoryId) {
+                window.location.href = `/menu-category/${categoryId}`;
+            }
+        });
+    });
+});
+</script>
+
 <style>
-/* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* Import Google Fonts for premium typography */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* Premium Dark & Gold Theme */
+/* ✅ PREMIUM DARK & GOLD THEME - OPTIMIZED COLOR SYSTEM */
 :root {
+    /* ✅ Primary Base #0D0D0D - Matte Black: Background ke liye */
     --matte-black: #0D0D0D;
+    
+    /* ✅ Luxury Accent #C0B283 - Champagne Gold: Category badges, buttons */
     --champagne-gold: #C0B283;
+    
+    /* ✅ Card BG #1A1A1A - Onyx Black: Food cards ke liye (40% zyada vibrant) */
     --onyx-black: #1A1A1A;
+    
+    /* ✅ Price Highlight #D4AF37 - Vivid Gold: Price elements ke liye */
     --vivid-gold: #D4AF37;
+    
+    /* ✅ Item Name #F4F1E1 - Creamy White: Titles aur text ke liye */
     --creamy-white: #F4F1E1;
+    
+    /* ✅ Additional Colors */
+    --gold-light: #D4C19C;
+    --gold-dark: #A8955E;
     --dark-border: #333333;
+    --antique-bronze: #8e7d4d;
     --silver-mist: #A0A0A0;
-    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    --hover-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    --burnt-orange: #D98324;
+    --dark-overlay: rgba(0, 0, 0, 0.9);
+    
+    /* ✅ Card Shadow - 3D Depth */
+    --depth-shadow: rgba(0,0,0,0.6);
+    
+    /* Typography */
+    --serif-font: 'Playfair Display', Georgia, serif;
+    --sans-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    
+    /* Shadows */
+    --gold-glow: 0 0 15px rgba(192, 178, 131, 0.3);
+    --card-shadow: 0 6px 25px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Main Content */
-.main-content {
-    flex: 1;
-    padding-bottom: 20px;
-}
+/* ========== MENU SECTION STYLES ========== */
 
-/* Categories Container */
+/* ========== BASIC STYLES ========== */
 .categories-container {
-    padding: 16px;
+    padding: 12px;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 15px;
     background: var(--matte-black);
 }
 
-/* Category Card - Enhanced */
-.category-card {
+/* CATEGORY ITEM - Increased height for taller photo */
+.category-item {
     background: var(--onyx-black);
-    border-radius: 16px;
+    border-radius: 10px;
     border: 1px solid var(--dark-border);
+    transition: all 0.3s ease;
     overflow: hidden;
     cursor: pointer;
-    text-decoration: none;
+    height: auto;
+    min-height: 190px;
     display: flex;
     flex-direction: column;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: var(--card-shadow);
     position: relative;
+    box-shadow: var(--card-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-.category-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--champagne-gold), var(--vivid-gold));
-    transform: scaleX(0);
-    transition: transform 0.3s ease;
-}
-
-.category-card:hover::before {
-    transform: scaleX(1);
-}
-
-.category-card:hover {
-    transform: translateY(-4px);
+.category-item:hover {
     border-color: var(--champagne-gold);
-    box-shadow: var(--hover-shadow);
+    box-shadow: 
+        0 12px 35px rgba(0, 0, 0, 0.5),
+        0 4px 12px rgba(0, 0, 0, 0.3),
+        0 0 15px rgba(192, 178, 131, 0.3);
+    transform: translateY(-2px);
 }
 
-/* Image Wrapper */
-.card-image-wrapper {
-    position: relative;
+/* SQUARE PHOTO - Height increased, width same */
+.category-square-photo {
     width: 100%;
-    height: 150px;
+    height: 135px;
+    border-radius: 8px 8px 0 0;
     overflow: hidden;
+    position: relative;
+    border-bottom: 1px solid var(--dark-border);
     background: var(--matte-black);
+    flex-shrink: 0;
 }
 
-.category-image {
+.category-square-photo img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.3s ease, filter 0.3s ease;
+    border-radius: 8px 8px 0 0;
+    filter: saturate(1.4) contrast(1.2) brightness(1.05);
 }
 
-.category-card:hover .category-image {
-    transform: scale(1.08);
+.category-item:hover .category-square-photo img {
+    transform: scale(1.05);
+    filter: saturate(1.6) contrast(1.3) brightness(1.1);
 }
 
-/* Category Badge - Compact for all devices */
-.category-badge {
+/* Category number SQUARE with gold styling */
+.category-number {
     position: absolute;
-    top: 8px;
-    left: 8px;
-    background: linear-gradient(135deg, var(--champagne-gold), var(--vivid-gold));
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    top: 4px;
+    left: 4px;
+    width: 26px;
+    height: 26px;
+    background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--vivid-gold) 100%);
+    color: #000000;
+    border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 22px;
-    height: 22px;
+    font-weight: 900;
+    font-size: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4), 0 0 5px rgba(192, 178, 131, 0.5);
+    border: 2px solid var(--onyx-black);
+    z-index: 2;
+    font-family: var(--serif-font);
 }
 
-.badge-number {
-    color: #000;
-    font-weight: 800;
-    font-size: 10px;
-    letter-spacing: 0.3px;
-    font-family: 'Inter', sans-serif;
-    line-height: 1;
-}
-
-/* Item Count Badge - Top Right */
-.item-count-badge {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(8px);
-    border-radius: 16px;
-    padding: 2px 6px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    border: 1px solid rgba(192, 178, 131, 0.3);
-}
-
-.item-count-badge i {
-    color: var(--champagne-gold);
-    font-size: 8px;
-}
-
-.item-count-badge span {
-    color: var(--creamy-white);
-    font-size: 9px;
-    font-weight: 600;
-    letter-spacing: 0.3px;
-}
-
-/* Card Content */
-.card-content {
-    padding: 10px;
+.category-details {
+    padding: 4px 8px 3px 8px;
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    justify-content: space-between;
 }
 
-.category-name {
-    margin: 0;
+.category-header {
+    margin-bottom: 1px;
+}
+
+.category-title {
+    margin: 0 0 1px 0;
     color: var(--creamy-white);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
-    font-family: 'Inter', sans-serif;
-    letter-spacing: 0.3px;
-    line-height: 1.3;
-    white-space: nowrap;
+    line-height: 1.2;
+    text-align: center;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--serif-font);
+    letter-spacing: 0.02em;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
+/* Category Description - 2 lines with minimal gaps */
 .category-description {
+    margin: 0;
     color: var(--silver-mist);
     font-size: 10px;
-    line-height: 1.4;
-    margin: 0;
+    line-height: 1.25;
+    text-align: center;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: var(--sans-font);
+    letter-spacing: 0.2px;
+    min-height: 24px;
+    padding: 0 2px;
 }
 
-/* View Row */
-.view-row {
+.category-actions {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-top: 4px;
-    padding-top: 6px;
-    border-top: 1px solid var(--dark-border);
+    justify-content: center;
+    margin-top: 1px;
 }
 
-/* View Button */
-.view-button {
+/* VIEW ITEMS BUTTON - GOLD SOLID */
+.btn-view-category {
+    background: var(--champagne-gold);
+    color: #000000;
+    border: none;
+    padding: 4px 8px !important;
+    border-radius: 5px;
+    font-size: 10px !important;
+    font-weight: 600;
+    cursor: pointer;
     display: inline-flex;
     align-items: center;
+    justify-content: space-between;
     gap: 4px;
+    transition: all 0.3s;
+    width: 100%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+    height: 26px !important;
+    font-family: var(--sans-font);
+    z-index: 10;
+    position: relative;
+}
+
+.btn-view-category:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--gold-glow);
+    background: var(--antique-bronze);
+}
+
+.btn-view-category .btn-text {
+    flex: 1;
+    text-align: left;
+    font-weight: 600;
+}
+
+/* ITEM COUNT BADGE INSIDE BUTTON - WITH GOLD TINT */
+.item-count-badge-btn {
+    background: rgba(26, 26, 26, 0.8);
+    border: 1px solid var(--champagne-gold);
+    border-radius: 8px;
+    padding: 1px 4px !important;
+    font-size: 9px !important;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 16px !important;
+    backdrop-filter: blur(5px);
+    margin-left: 2px;
+}
+
+.count-number {
     color: var(--champagne-gold);
-    font-size: 10px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-    background: transparent;
-    cursor: pointer;
+    font-weight: 700;
+    font-size: 9px !important;
 }
 
-.view-button span {
-    font-size: 10px;
-    letter-spacing: 0.3px;
-    font-weight: 600;
-}
-
-.view-button i {
-    font-size: 9px;
-    transition: transform 0.2s ease;
-}
-
-.category-card:hover .view-button i {
-    transform: translateX(3px);
-}
-
-/* Explore Badge */
-.explore-badge {
-    background: rgba(192, 178, 131, 0.15);
-    padding: 2px 8px;
-    border-radius: 16px;
-    border: 1px solid rgba(192, 178, 131, 0.3);
-}
-
-.explore-badge span {
-    color: var(--champagne-gold);
-    font-size: 9px;
-    font-weight: 600;
-    letter-spacing: 0.3px;
-}
-
-/* No Items State */
+/* ========== NO ITEMS STATE ========== */
 .no-services {
     text-align: center;
-    padding: 80px 20px;
+    padding: 60px 20px;
     color: var(--silver-mist);
 }
 
-/* ========== RESPONSIVE STYLES ========== */
+.no-services i {
+    margin-bottom: 20px;
+    color: var(--dark-border);
+}
 
-/* Tablet (768px and above) */
+.no-services h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: var(--silver-mist);
+    font-family: var(--serif-font);
+}
+
+.no-services p {
+    font-size: 14px;
+    font-family: var(--sans-font);
+}
+
+/* ========== RESPONSIVE: TABLET & DESKTOP ========== */
 @media (min-width: 768px) {
     .categories-container {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 16px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
         padding: 20px;
     }
     
-    .card-image-wrapper {
-        height: 160px;
+    .category-item {
+        min-height: 200px;
     }
     
-    .card-content {
-        padding: 12px;
+    .category-square-photo {
+        height: 145px;
     }
     
-    .category-name {
-        font-size: 14px;
+    .category-details {
+        padding: 4px 10px 3px 10px;
     }
     
-    .category-description {
-        font-size: 11px;
-    }
-    
-    /* Slightly larger badge for tablet */
-    .category-badge {
-        width: 24px;
-        height: 24px;
-        top: 10px;
-        left: 10px;
-        border-radius: 6px;
-    }
-    
-    .badge-number {
-        font-size: 11px;
-    }
-    
-    .item-count-badge {
-        padding: 3px 8px;
-        top: 10px;
-        right: 10px;
-    }
-    
-    .item-count-badge i {
-        font-size: 9px;
-    }
-    
-    .item-count-badge span {
-        font-size: 10px;
-    }
-    
-    .view-button {
-        font-size: 11px;
-    }
-    
-    .view-button span {
-        font-size: 11px;
-    }
-    
-    .explore-badge span {
-        font-size: 10px;
-    }
-}
-
-/* Desktop (1024px and above) */
-@media (min-width: 1024px) {
-    .categories-container {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 18px;
-        padding: 24px;
-    }
-    
-    .card-image-wrapper {
-        height: 170px;
-    }
-    
-    .category-name {
+    .category-title {
         font-size: 15px;
+        margin-bottom: 1px;
     }
     
     .category-description {
         font-size: 11px;
+        min-height: 26px;
+        line-height: 1.25;
+        padding: 0 4px;
     }
     
-    /* Slightly larger badge for desktop */
-    .category-badge {
-        width: 26px;
-        height: 26px;
-        top: 12px;
-        left: 12px;
-        border-radius: 6px;
+    .category-header {
+        margin-bottom: 1px;
     }
     
-    .badge-number {
-        font-size: 12px;
+    .category-actions {
+        margin-top: 1px;
+    }
+    
+    .item-count-badge-btn {
+        min-width: 22px;
+        height: 18px;
+        font-size: 10px;
+    }
+    
+    .count-number {
+        font-size: 10px !important;
+    }
+    
+    .btn-view-category {
+        height: 28px !important;
+        font-size: 11px !important;
+        padding: 4px 10px !important;
     }
 }
 
-/* Large Desktop (1400px and above) */
-@media (min-width: 1400px) {
+/* ========== MOBILE RESPONSIVE ========== */
+@media (max-width: 767px) {
     .categories-container {
-        grid-template-columns: repeat(5, 1fr);
-        gap: 20px;
-        padding: 28px;
-    }
-    
-    .card-image-wrapper {
-        height: 180px;
-    }
-    
-    .category-name {
-        font-size: 16px;
-    }
-    
-    .category-badge {
-        width: 28px;
-        height: 28px;
-    }
-    
-    .badge-number {
-        font-size: 13px;
-    }
-}
-
-/* Extra Large Desktop (1800px and above) */
-@media (min-width: 1800px) {
-    .categories-container {
-        grid-template-columns: repeat(6, 1fr);
-        gap: 22px;
-        padding: 32px;
-    }
-    
-    .card-image-wrapper {
-        height: 190px;
-    }
-    
-    .category-badge {
-        width: 28px;
-        height: 28px;
-    }
-}
-
-/* Small Mobile (600px and below) - Extra compact */
-@media (max-width: 600px) {
-    .categories-container {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
         gap: 12px;
         padding: 12px;
     }
     
-    .card-image-wrapper {
-        height: 130px;
+    .category-item {
+        min-height: 180px;
     }
     
-    .card-content {
-        padding: 8px;
-        gap: 5px;
+    .category-square-photo {
+        height: 125px;
     }
     
-    .category-name {
-        font-size: 12px;
+    .category-details {
+        padding: 3px 6px 2px 6px;
+    }
+    
+    /* Category number square ko mobile ke liye chhota karo */
+    .category-number {
+        width: 20px !important;
+        height: 20px !important;
+        font-size: 10px !important;
+        top: 3px !important;
+        left: 3px !important;
+        border: 1.5px solid var(--onyx-black) !important;
+    }
+    
+    .category-title {
+        font-size: 13px;
+        margin-bottom: 0px;
     }
     
     .category-description {
         font-size: 9px;
-        -webkit-line-clamp: 2;
+        min-height: 22px;
+        line-height: 1.25;
+        padding: 0 2px;
     }
     
-    /* Extra compact badge for small mobile */
-    .category-badge {
-        width: 20px;
-        height: 20px;
-        top: 6px;
-        left: 6px;
-        border-radius: 4px;
+    .category-header {
+        margin-bottom: 0px;
     }
     
-    .badge-number {
-        font-size: 9px;
+    .category-actions {
+        margin-top: 0px;
     }
     
-    .item-count-badge {
-        padding: 2px 5px;
-        top: 6px;
-        right: 6px;
-    }
-    
-    .item-count-badge i {
-        font-size: 7px;
-    }
-    
-    .item-count-badge span {
-        font-size: 8px;
-    }
-    
-    .view-button {
+    /* View Items button mobile me aur chhota */
+    .btn-view-category {
+        padding: 3px 6px !important;
+        font-size: 9px !important;
+        height: 24px !important;
         gap: 3px;
     }
     
-    .view-button span {
-        font-size: 9px;
+    .item-count-badge-btn {
+        height: 12px !important;
+        min-width: 16px !important;
+        font-size: 8px !important;
+        padding: 0px 3px !important;
     }
     
-    .view-button i {
-        font-size: 8px;
-    }
-    
-    .explore-badge {
-        padding: 2px 6px;
-    }
-    
-    .explore-badge span {
-        font-size: 8px;
+    .count-number {
+        font-size: 8px !important;
     }
 }
 
-/* Very Small Mobile (480px and below) - Ultra compact */
+/* Extra Small Mobile ke liye aur optimizations */
 @media (max-width: 480px) {
     .categories-container {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         gap: 10px;
-        padding: 10px;
     }
     
-    .card-image-wrapper {
-        height: 120px;
+    .category-item {
+        min-height: 170px;
     }
     
-    .card-content {
-        padding: 8px;
-        gap: 4px;
+    .category-square-photo {
+        height: 115px;
     }
     
-    .category-name {
-        font-size: 11px;
+    .category-details {
+        padding: 2px 5px 1px 5px;
+    }
+    
+    /* Category number aur bhi chhota karo */
+    .category-number {
+        width: 18px !important;
+        height: 18px !important;
+        font-size: 9px !important;
+        top: 2px !important;
+        left: 2px !important;
+        border: 1px solid var(--onyx-black) !important;
+    }
+    
+    .category-title {
+        font-size: 12px;
+        margin-bottom: 0px;
     }
     
     .category-description {
-        font-size: 9px;
-        -webkit-line-clamp: 1;
-    }
-    
-    /* Ultra compact badge for very small mobile */
-    .category-badge {
-        width: 18px;
-        height: 18px;
-        top: 5px;
-        left: 5px;
-        border-radius: 3px;
-    }
-    
-    .badge-number {
         font-size: 8px;
+        min-height: 20px;
+        -webkit-line-clamp: 2;
+        line-height: 1.2;
     }
     
-    .item-count-badge {
-        padding: 1px 4px;
-        top: 5px;
-        right: 5px;
+    .category-header {
+        margin-bottom: 0px;
     }
     
-    .item-count-badge i {
-        font-size: 6px;
+    .category-actions {
+        margin-top: 0px;
     }
     
-    .item-count-badge span {
-        font-size: 7px;
+    .btn-view-category {
+        padding: 2px 4px !important;
+        font-size: 8px !important;
+        height: 22px !important;
+        gap: 2px;
     }
     
-    .view-button span {
-        font-size: 8px;
+    .item-count-badge-btn {
+        height: 10px !important;
+        min-width: 14px !important;
+        font-size: 7px !important;
+        padding: 0px 2px !important;
     }
     
-    .view-button i {
-        font-size: 7px;
-    }
-    
-    .explore-badge {
-        padding: 1px 5px;
-    }
-    
-    .explore-badge span {
-        font-size: 7px;
-    }
-}
-
-/* Extreme Small (380px and below) */
-@media (max-width: 380px) {
-    .categories-container {
-        gap: 8px;
-        padding: 8px;
-    }
-    
-    .card-image-wrapper {
-        height: 110px;
-    }
-    
-    /* Extreme compact badge */
-    .category-badge {
-        width: 16px;
-        height: 16px;
-        top: 4px;
-        left: 4px;
-        border-radius: 3px;
-    }
-    
-    .badge-number {
-        font-size: 7px;
-    }
-}
-
-/* Landscape Mode */
-@media (max-height: 500px) and (orientation: landscape) {
-    .categories-container {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 10px;
-        padding: 10px;
-    }
-    
-    .card-image-wrapper {
-        height: 100px;
-    }
-    
-    .category-description {
-        -webkit-line-clamp: 1;
-    }
-    
-    /* Compact badge for landscape */
-    .category-badge {
-        width: 18px;
-        height: 18px;
-        top: 5px;
-        left: 5px;
-    }
-    
-    .badge-number {
-        font-size: 8px;
-    }
-}
-
-/* Touch Device Optimization */
-@media (hover: none) and (pointer: coarse) {
-    .category-card:active {
-        transform: scale(0.98);
-        transition: transform 0.1s ease;
+    .count-number {
+        font-size: 7px !important;
     }
 }
 </style>
