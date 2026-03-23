@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}{{ category.name }} - Menu Items{% endblock %}
+{% block title %}Menu{% endblock %}
 
 {% block content %}
 <div class="dashboard">
     <!-- Top Header -->
     <header class="dashboard-header">
         <div class="header-left">
-            <h1>{{ category.name }}</h1>
-            <p class="welcome-text">{{ category.item_count|default(menu_items|length) }} items available</p>
+            <h1>Menu</h1>
+            <p class="welcome-text">Browse our premium offerings</p>
         </div>
         <div class="header-right">
             <img src="{{ session.profile_pic }}" alt="Profile" class="profile-pic"
@@ -16,12 +16,12 @@
         </div>
     </header>
 
-    <!-- Menu Content - 2-Column Grid Directly on Page -->
+    <!-- Menu Content - Direct 2-Column Grid with Modal Card Style -->
     <main class="main-content">
         {% if menu_items %}
-            <div class="menu-two-column-grid-page">
+            <div class="menu-two-column-grid-direct">
                 {% for item in menu_items %}
-                <div class="menu-modal-item-card" onclick="highlightCard(this)" 
+                <div class="menu-modal-item-card" 
                      data-item-id="{{ item.id }}"
                      data-item-name="{{ item.name }}"
                      data-item-desc="{{ item.description }}"
@@ -30,14 +30,14 @@
                      data-item-discount="{{ item.discount }}"
                      data-item-final="{{ item.final_price }}">
                     
-                    <!-- Left Column: Photo Square -->
+                    <!-- Left Column: Photo Square - 22% BIGGER -->
                     <div class="menu-modal-photo-square">
                         <img src="{% if item.photo and item.photo.startswith('http') %}{{ item.photo }}{% else %}{{ url_for('static', filename='uploads/' + item.photo) if item.photo else 'https://res.cloudinary.com/demo/image/upload/v1633427556/sample_food.jpg' }}{% endif %}" 
                              alt="{{ item.name }}"
                              onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_food.jpg'">
                     </div>
                     
-                    <!-- Right Column: Details Square -->
+                    <!-- Right Column: Details Square - 40% REDUCED GAPS -->
                     <div class="menu-modal-details-square">
                         <div class="menu-modal-header">
                             <h4 class="menu-modal-item-name">{{ item.name }}</h4>
@@ -47,7 +47,7 @@
                         </div>
                         
                         <div class="menu-modal-pricing">
-                            {% if item.discount > 0 %}
+                            {% if item.discount and item.discount > 0 %}
                             <div class="menu-modal-discount-row">
                                 <span class="menu-modal-original-price">₹{{ "%.2f"|format(item.price) }}</span>
                                 <span class="menu-modal-discount-badge">-{{ item.discount }}%</span>
@@ -79,28 +79,6 @@
             </div>
         {% endif %}
     </main>
-
-    <!-- Horizontal Categories Scroll (All Categories) -->
-    {% if all_categories and all_categories|length > 1 %}
-    <div class="categories-scroll-container">
-        <div class="categories-scroll-header">
-            <h3><i class="fas fa-th-large"></i> Browse Categories</h3>
-            <span class="scroll-hint"><i class="fas fa-arrow-right"></i> Scroll</span>
-        </div>
-        <div class="categories-scroll">
-            {% for cat in all_categories %}
-            <a href="{{ url_for('menu_category_items', category_id=cat.id) }}" 
-               class="category-scroll-item {% if cat.id == category.id %}active{% endif %}">
-                <div class="category-scroll-photo">
-                    <img src="{{ cat.category_photo }}" alt="{{ cat.name }}">
-                </div>
-                <div class="category-scroll-name">{{ cat.name }}</div>
-                <div class="category-scroll-count">{{ cat.item_count|default(0) }} items</div>
-            </a>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
 
     <!-- Bottom Navigation -->
     <nav class="bottom-nav">
@@ -136,12 +114,12 @@
             </button>
         </div>
         <div class="modal-content" id="menuItemDetailsContent">
-            <!-- Menu item details will be loaded here with scrollable area -->
+            <!-- Menu item details will be loaded here -->
         </div>
     </div>
 </div>
 
-<!-- BOOKING NOTIFICATION - HIDDEN BY DEFAULT -->
+<!-- BOOKING NOTIFICATION -->
 <div id="bookingNotification" class="booking-notification-fixed" style="display: none;">
     <div class="notification-fixed-content">
         <div class="notification-fixed-icon">
@@ -163,7 +141,7 @@
 </div>
 
 <script>
-// ✅ Show menu item details from card data
+// ✅ Show menu item details
 function showMenuItemDetails(buttonElement, itemId) {
     const card = buttonElement.closest('.menu-modal-item-card');
     if (!card) return;
@@ -199,7 +177,6 @@ function showMenuItemDetails(buttonElement, itemId) {
             
             <h2 class="menu-item-name">${itemName}</h2>
             
-            <!-- SCROLLABLE CONTENT AREA -->
             <div class="scrollable-details">
                 <div class="details-section">
                     <h4><i class="fas fa-align-left"></i> Description</h4>
@@ -227,24 +204,8 @@ function showMenuItemDetails(buttonElement, itemId) {
     document.getElementById('menuItemModal').classList.add('active');
     document.body.style.overflow = 'hidden';
     
-    // Enable scrolling for menu item details modal
     const serviceModalContent = document.getElementById('menuItemDetailsContent');
     serviceModalContent.style.overflowY = 'auto';
-}
-
-// Card highlight effect
-function highlightCard(card) {
-    // Remove highlight from all cards
-    const allCards = document.querySelectorAll('.menu-modal-item-card');
-    allCards.forEach(c => c.classList.remove('highlighted'));
-    
-    // Add highlight to clicked card
-    card.classList.add('highlighted');
-    
-    // Remove highlight after 1.5 seconds
-    setTimeout(() => {
-        card.classList.remove('highlighted');
-    }, 1500);
 }
 
 function closeMenuItemModal() {
@@ -264,7 +225,6 @@ function addMenuItemToCart(itemId) {
         if (data.success) {
             showBookingNotification();
         } else {
-            console.error("Add to cart failed:", data);
             showBookingNotification();
         }
     })
@@ -278,7 +238,6 @@ function addMenuItemToCart(itemId) {
 function showBookingNotification() {
     const notification = document.getElementById('bookingNotification');
     notification.style.display = 'block';
-    
     notification.offsetHeight;
     notification.classList.add('show');
     
@@ -312,10 +271,10 @@ document.addEventListener('keydown', function(e) {
 </script>
 
 <style>
-/* Import Google Fonts for premium typography */
+/* Import Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* ✅ PREMIUM DARK & GOLD THEME - OPTIMIZED COLOR SYSTEM */
+/* Premium Dark & Gold Theme */
 :root {
     --matte-black: #0D0D0D;
     --champagne-gold: #C0B283;
@@ -328,50 +287,48 @@ document.addEventListener('keydown', function(e) {
     --antique-bronze: #8e7d4d;
     --silver-mist: #A0A0A0;
     --burnt-orange: #D98324;
-    --dark-overlay: rgba(0, 0, 0, 0.9);
-    --depth-shadow: rgba(0,0,0,0.6);
-    --serif-font: 'Playfair Display', Georgia, serif;
-    --sans-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --price-glow: rgba(212, 175, 55, 0.3);
+    --card-shadow: 0 6px 25px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
     --gold-glow: 0 0 15px rgba(192, 178, 131, 0.3);
     --modal-glow: 0 0 30px rgba(0,0,0,0.8), 0 0 10px rgba(192, 178, 131, 0.1);
-    --card-shadow: 0 6px 25px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
-    --price-glow: rgba(212, 175, 55, 0.3);
+    --serif-font: 'Playfair Display', Georgia, serif;
+    --sans-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* ========== MENU SECTION STYLES ========== */
-
-/* 2-COLUMN GRID DIRECTLY ON PAGE */
-.menu-two-column-grid-page {
+/* ========== 2-COLUMN GRID DIRECT ON PAGE ========== */
+.menu-two-column-grid-direct {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    padding: 16px;
+    gap: 2px;
+    padding: 0;
+    margin: 0;
+    width: 100%;
     background: var(--matte-black);
 }
 
-/* MENU MODAL ITEM CARD (Same as before but for page) */
+/* MENU MODAL ITEM CARD - UPDATED HEIGHT FOR 22% BIGGER PHOTO */
 .menu-modal-item-card {
     display: flex;
-    gap: 12px;
-    padding: 12px;
+    gap: 2px !important;
+    padding: 0 !important;
     background: var(--onyx-black);
-    border-radius: 12px;
+    border-radius: 0;
     border: 1px solid var(--dark-border);
     transition: all 0.3s ease;
-    height: auto;
-    min-height: 120px;
+    height: 122px !important;
+    min-height: 122px;
     align-items: stretch;
-    box-shadow: var(--card-shadow);
+    box-shadow: none;
+    margin: 0;
     position: relative;
     overflow: hidden;
     cursor: pointer;
+    margin-right: 4px !important;
 }
 
 .menu-modal-item-card:hover {
     border-color: var(--champagne-gold);
     background: rgba(31, 31, 31, 0.9);
-    transform: translateY(-2px);
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), 0 0 15px rgba(192, 178, 131, 0.3);
 }
 
 .menu-modal-item-card.highlighted {
@@ -398,16 +355,42 @@ document.addEventListener('keydown', function(e) {
     }
 }
 
-/* Left Column: Photo Square */
+/* Desktop layout borders */
+@media (min-width: 768px) {
+    .menu-modal-item-card:nth-child(odd) {
+        border-left: none;
+    }
+    
+    .menu-modal-item-card:nth-child(even) {
+        border-right: none;
+    }
+    
+    .menu-modal-item-card:nth-child(1),
+    .menu-modal-item-card:nth-child(2) {
+        border-top: none;
+    }
+    
+    .menu-modal-item-card:nth-last-child(-n+2) {
+        border-bottom: none;
+    }
+    
+    .menu-modal-item-card {
+        height: 137px !important;
+        min-height: 137px;
+    }
+}
+
+/* Left Column: Photo Square - 22% BIGGER */
 .menu-modal-photo-square {
-    flex: 0 0 100px;
-    width: 100px;
-    height: 100px;
-    border-radius: 8px;
+    flex: 0 0 116px;
+    width: 116px;
+    height: 116px;
+    border-radius: 4px;
     overflow: hidden;
     border: 1px solid var(--dark-border);
     background: var(--matte-black);
     position: relative;
+    margin: 2px 0 !important;
 }
 
 .menu-modal-photo-square img {
@@ -415,7 +398,7 @@ document.addEventListener('keydown', function(e) {
     height: 100%;
     object-fit: cover;
     transition: transform 0.3s ease, filter 0.3s ease;
-    border-radius: 8px;
+    border-radius: 4px;
     filter: saturate(1.4) contrast(1.2) brightness(1.05);
 }
 
@@ -424,48 +407,85 @@ document.addEventListener('keydown', function(e) {
     filter: saturate(1.6) contrast(1.3) brightness(1.1);
 }
 
-/* Right Column: Details Square */
+/* Desktop photo size - 22% BIGGER */
+@media (min-width: 768px) {
+    .menu-modal-photo-square {
+        flex: 0 0 135px;
+        width: 135px;
+        height: 135px;
+        margin: 2px 0 !important;
+    }
+}
+
+/* Right Column: Details Square - 40% REDUCED GAPS */
 .menu-modal-details-square {
     flex: 1;
     min-width: 0;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    gap: 8px;
+    padding: 0 !important;
+    height: 95px;
+    background: transparent;
+    position: relative;
+    margin: 2px 0 !important;
+    padding-right: 2px !important;
 }
 
-/* Header */
+@media (min-width: 768px) {
+    .menu-modal-details-square {
+        height: 110px;
+        margin: 2px 0 !important;
+        padding-right: 4px !important;
+    }
+}
+
+/* Header - 40% REDUCED */
 .menu-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    margin-bottom: 0.6px !important;
     width: 100%;
-    gap: 8px;
+    gap: 1.2px;
 }
 
 .menu-modal-item-name {
     margin: 0;
-    font-size: 15px;
+    font-size: 12.6px !important;
     font-weight: 700;
     color: var(--creamy-white);
-    line-height: 1.3;
+    line-height: 1.15 !important;
     flex: 1;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    padding-right: 2px;
     font-family: var(--serif-font);
     letter-spacing: 0.02em;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
+@media (min-width: 768px) {
+    .menu-modal-item-name {
+        font-size: 14px !important;
+        padding-right: 4px;
+    }
+    
+    .menu-modal-header {
+        margin-bottom: 1.2px !important;
+        gap: 1.8px;
+    }
+}
+
 .menu-modal-item-number {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    font-size: 11px;
-    padding: 2px 6px;
-    border-radius: 4px;
+    gap: 1.1px;
+    font-size: 9.9px !important;
+    padding: 1.8px 4.5px;
+    border-radius: 3.6px;
     font-weight: 700;
     white-space: nowrap;
     flex-shrink: 0;
@@ -474,31 +494,44 @@ document.addEventListener('keydown', function(e) {
     border: 1px solid rgba(192, 178, 131, 0.3);
 }
 
-/* Pricing */
+@media (min-width: 768px) {
+    .menu-modal-item-number {
+        font-size: 11px !important;
+        padding: 2px 5px;
+        gap: 1.2px;
+        border-radius: 4px;
+    }
+}
+
+/* Pricing - 40% REDUCED */
 .menu-modal-pricing {
-    margin-bottom: 4px;
+    margin-bottom: 0px !important;
+    padding: 0;
+    padding-right: 2px;
 }
 
 .menu-modal-discount-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 4px;
+    gap: 2.4px;
+    margin-bottom: 0px !important;
+    position: relative;
+    top: -0.6px;
 }
 
 .menu-modal-original-price {
     color: var(--silver-mist);
     text-decoration: line-through;
-    font-size: 12px;
+    font-size: 9.9px !important;
     font-weight: 500;
 }
 
 .menu-modal-discount-badge {
     background: linear-gradient(135deg, var(--burnt-orange) 0%, #b86d1a 100%);
     color: var(--creamy-white);
-    padding: 2px 6px;
-    border-radius: 10px;
-    font-size: 10px;
+    padding: 1.8px 5.4px;
+    border-radius: 9px;
+    font-size: 9px !important;
     font-weight: 700;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
     border: 1px solid var(--burnt-orange);
@@ -507,19 +540,22 @@ document.addEventListener('keydown', function(e) {
 .menu-modal-final-price {
     display: flex;
     align-items: baseline;
-    gap: 2px;
+    gap: 1.1px;
+    position: relative;
+    top: -0.6px;
 }
 
 .menu-modal-rupee {
     color: var(--antique-bronze);
-    font-size: 16px;
+    font-size: 15.4px !important;
     font-weight: 800;
+    margin-right: 0.5px;
 }
 
 .menu-modal-price-value {
     font-weight: 900;
     color: var(--vivid-gold);
-    font-size: 20px;
+    font-size: 17.6px !important;
     text-shadow: 0 1px 2px rgba(0,0,0,0.15), 0 0 8px var(--price-glow);
     transition: text-shadow 0.3s ease;
 }
@@ -528,12 +564,43 @@ document.addEventListener('keydown', function(e) {
     text-shadow: 0 2px 4px rgba(0,0,0,0.3), 0 0 12px rgba(212, 175, 55, 0.5);
 }
 
-/* Action Buttons */
+@media (min-width: 768px) {
+    .menu-modal-rupee {
+        font-size: 16px !important;
+        font-weight: 900;
+    }
+    
+    .menu-modal-price-value {
+        font-size: 19px !important;
+        font-weight: 1000;
+    }
+    
+    .menu-modal-final-price {
+        gap: 1.2px;
+        top: -1.2px;
+    }
+    
+    .menu-modal-discount-row {
+        gap: 3px;
+        top: -1.2px;
+        margin-bottom: 0.6px !important;
+    }
+    
+    .menu-modal-pricing {
+        padding-right: 4px;
+    }
+}
+
+/* Action Buttons - 40% REDUCED */
 .menu-modal-actions {
     display: flex;
-    gap: 10px;
+    gap: 3px;
+    margin-top: -0.6px !important;
     width: 100%;
-    margin-top: 4px;
+    margin-bottom: 0;
+    position: relative;
+    top: -1.2px;
+    padding-right: 2px;
 }
 
 .btn-menu-modal-details {
@@ -541,23 +608,26 @@ document.addEventListener('keydown', function(e) {
     background: transparent;
     color: var(--champagne-gold);
     border: 1px solid var(--champagne-gold);
-    border-radius: 8px;
-    padding: 6px 12px;
-    font-size: 12px;
+    border-radius: 5px;
+    padding: 4px 6px;
+    font-size: 8.5px !important;
     font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 1.8px;
     transition: all 0.3s ease;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    min-width: 0;
+    white-space: nowrap;
+    height: 24px !important;
     font-family: var(--sans-font);
 }
 
 .btn-menu-modal-details:hover {
     background: rgba(192, 178, 131, 0.1);
-    box-shadow: 0 0 10px rgba(192, 178, 131, 0.2);
+    box-shadow: 0 0 8px rgba(192, 178, 131, 0.2);
     color: var(--champagne-gold);
     border-color: var(--champagne-gold);
     transform: translateY(-1px);
@@ -569,24 +639,27 @@ document.addEventListener('keydown', function(e) {
     color: #000000;
     border: none;
     font-weight: bold;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 12px;
+    padding: 4px 6px;
+    border-radius: 5px;
+    font-size: 8.5px !important;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 1.8px;
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    min-width: 0;
+    white-space: nowrap;
+    height: 24px !important;
     font-family: var(--sans-font);
 }
 
 .btn-menu-modal-add:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(192, 178, 131, 0.3);
+    box-shadow: 0 3px 8px rgba(192, 178, 131, 0.3);
     background: linear-gradient(135deg, var(--gold-light), var(--gold-dark));
 }
 
@@ -606,126 +679,44 @@ document.addEventListener('keydown', function(e) {
     left: 100%;
 }
 
-/* Horizontal Categories Scroll */
-.categories-scroll-container {
-    background: var(--matte-black);
-    padding: 20px 0;
-    border-top: 1px solid var(--dark-border);
-    border-bottom: 1px solid var(--dark-border);
-    margin: 0;
+.btn-menu-modal-details i,
+.btn-menu-modal-add i {
+    font-size: 8.5px;
 }
 
-.categories-scroll-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 16px 12px 16px;
-}
-
-.categories-scroll-header h3 {
-    margin: 0;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--creamy-white);
-    font-family: var(--serif-font);
-}
-
-.categories-scroll-header h3 i {
+.btn-menu-modal-details i {
     color: var(--champagne-gold);
-    margin-right: 8px;
 }
 
-.scroll-hint {
-    font-size: 11px;
-    color: var(--silver-mist);
-    display: flex;
-    align-items: center;
-    gap: 4px;
+.btn-menu-modal-add i {
+    color: #000000;
+    font-weight: bold;
 }
 
-.scroll-hint i {
-    font-size: 10px;
-}
-
-.categories-scroll {
-    display: flex;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    gap: 12px;
-    padding: 8px 16px;
-    -webkit-overflow-scrolling: touch;
-}
-
-.categories-scroll::-webkit-scrollbar {
-    height: 3px;
-}
-
-.categories-scroll::-webkit-scrollbar-track {
-    background: var(--dark-border);
-    border-radius: 10px;
-}
-
-.categories-scroll::-webkit-scrollbar-thumb {
-    background: var(--champagne-gold);
-    border-radius: 10px;
-}
-
-.category-scroll-item {
-    flex-shrink: 0;
-    width: 80px;
-    text-align: center;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    padding: 4px;
-    border-radius: 12px;
-}
-
-.category-scroll-item.active {
-    background: rgba(192, 178, 131, 0.1);
-    border: 1px solid var(--champagne-gold);
-}
-
-.category-scroll-photo {
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    overflow: hidden;
-    margin: 0 auto 6px;
-    border: 2px solid var(--dark-border);
-    transition: all 0.3s ease;
-}
-
-.category-scroll-item:hover .category-scroll-photo {
-    border-color: var(--champagne-gold);
-    transform: scale(1.05);
-}
-
-.category-scroll-photo img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    filter: saturate(1.2) contrast(1.1);
-}
-
-.category-scroll-name {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--creamy-white);
-    margin-bottom: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-family: var(--sans-font);
-}
-
-.category-scroll-count {
-    font-size: 9px;
-    color: var(--champagne-gold);
-    font-family: var(--sans-font);
+@media (min-width: 768px) {
+    .menu-modal-actions {
+        gap: 3.6px;
+        margin-top: 0px !important;
+        top: -1.8px;
+        padding-right: 4px;
+    }
+    
+    .btn-menu-modal-details,
+    .btn-menu-modal-add {
+        height: 28px !important;
+        padding: 5px 8px !important;
+        font-size: 9px !important;
+        border-radius: 6px;
+        gap: 2.4px;
+    }
+    
+    .btn-menu-modal-details i,
+    .btn-menu-modal-add i {
+        font-size: 9.5px;
+    }
 }
 
 /* MODAL STYLES for Item Details */
-.category-modal,
 .service-modal {
     display: none;
     position: fixed;
@@ -736,7 +727,6 @@ document.addEventListener('keydown', function(e) {
     height: 100%;
 }
 
-.category-modal.active,
 .service-modal.active {
     display: block;
 }
@@ -884,8 +874,6 @@ document.addEventListener('keydown', function(e) {
     position: relative;
     padding-bottom: 10px;
     padding-right: 17.5px !important;
-    letter-spacing: 0.02em;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .menu-item-name::after {
@@ -932,7 +920,6 @@ document.addEventListener('keydown', function(e) {
     border-radius: 6.75px;
     margin: 0 0 10.125px 0 !important;
     border-left: 3px solid var(--champagne-gold);
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2), 0 2.025px 5.4px rgba(0, 0, 0, 0.05);
     border: 1px solid var(--dark-border);
 }
 
@@ -955,7 +942,6 @@ document.addEventListener('keydown', function(e) {
     overflow-y: auto;
     padding: 3.375px;
     font-family: var(--sans-font);
-    letter-spacing: 0.2px;
 }
 
 .details-price {
@@ -963,20 +949,9 @@ document.addEventListener('keydown', function(e) {
     background: rgba(26, 26, 26, 0.7);
     border-radius: 6.75px;
     border: 1px solid var(--dark-border);
-    box-shadow: 0 2.025px 5.4px rgba(0, 0, 0, 0.05), inset 0 0 10px rgba(0, 0, 0, 0.1);
     margin-bottom: 10.125px !important;
     position: relative;
     overflow: hidden;
-}
-
-.details-price::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 1px;
-    background: linear-gradient(90deg, transparent 0%, rgba(192, 178, 131, 0.3) 50%, transparent 100%);
 }
 
 .price-row {
@@ -1003,7 +978,6 @@ document.addEventListener('keydown', function(e) {
     color: var(--silver-mist);
     font-weight: 500;
     font-size: 10.8px !important;
-    font-family: var(--sans-font);
 }
 
 .original {
@@ -1089,7 +1063,6 @@ document.addEventListener('keydown', function(e) {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(192, 178, 131, 0.3);
     background: linear-gradient(135deg, var(--gold-light), var(--gold-dark));
-    border-color: rgba(212, 193, 156, 0.7);
 }
 
 .btn-add-to-cart-large:hover::before {
@@ -1138,12 +1111,6 @@ document.addEventListener('keydown', function(e) {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
-.notification-fixed-text {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-}
-
 .notification-fixed-text strong {
     font-size: 15px;
     font-weight: 800;
@@ -1175,7 +1142,6 @@ document.addEventListener('keydown', function(e) {
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.3s;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
     font-family: var(--sans-font);
 }
 
@@ -1183,7 +1149,6 @@ document.addEventListener('keydown', function(e) {
     transform: translateY(-1px);
     box-shadow: var(--gold-glow);
     background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold-dark) 100%);
-    border-color: var(--gold-light);
 }
 
 .btn-close-fixed {
@@ -1199,46 +1164,42 @@ document.addEventListener('keydown', function(e) {
     align-items: center;
     justify-content: center;
     transition: all 0.2s;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .btn-close-fixed:hover {
     background: #333;
     border-color: var(--champagne-gold);
     color: var(--champagne-gold);
-    box-shadow: 0 3px 8px rgba(192, 178, 131, 0.2);
 }
 
-/* RESPONSIVE */
-@media (max-width: 768px) {
-    .menu-two-column-grid-page {
-        grid-template-columns: 1fr;
-        gap: 12px;
-        padding: 12px;
+/* MOBILE RESPONSIVE */
+@media (max-width: 767px) {
+    .menu-two-column-grid-direct {
+        grid-template-columns: 1fr !important;
+        gap: 2px !important;
+        padding: 0 !important;
     }
     
     .menu-modal-item-card {
-        min-height: 110px;
+        height: 122px !important;
+        min-height: 122px;
     }
     
     .menu-modal-photo-square {
-        flex: 0 0 85px;
-        width: 85px;
-        height: 85px;
+        flex: 0 0 116px !important;
+        width: 116px !important;
+        height: 116px !important;
     }
     
-    .menu-modal-item-name {
-        font-size: 14px;
-    }
-    
-    .menu-modal-price-value {
-        font-size: 18px;
+    .menu-modal-details-square {
+        height: 113px !important;
     }
     
     .btn-menu-modal-details,
     .btn-menu-modal-add {
-        padding: 5px 10px;
-        font-size: 11px;
+        height: 24px !important;
+        padding: 4px 6px !important;
+        font-size: 8px !important;
     }
     
     .service-modal .modal-container {
@@ -1262,38 +1223,35 @@ document.addEventListener('keydown', function(e) {
 }
 
 @media (max-width: 480px) {
+    .menu-modal-item-card {
+        height: 117px !important;
+        min-height: 117px;
+    }
+    
     .menu-modal-photo-square {
-        flex: 0 0 75px;
-        width: 75px;
-        height: 75px;
+        flex: 0 0 111px !important;
+        width: 111px !important;
+        height: 111px !important;
     }
     
-    .menu-modal-item-name {
-        font-size: 13px;
-    }
-    
-    .menu-modal-price-value {
-        font-size: 16px;
+    .menu-modal-details-square {
+        height: 108px !important;
     }
     
     .btn-menu-modal-details,
     .btn-menu-modal-add {
-        padding: 4px 8px;
-        font-size: 10px;
-        gap: 4px;
-    }
-    
-    .menu-modal-actions {
-        gap: 6px;
-    }
-    
-    .details-image-container {
-        height: 150px;
+        height: 22px !important;
+        padding: 3px 5px !important;
+        font-size: 7.5px !important;
     }
     
     .scrollable-details {
         max-height: calc(85vh - 280px) !important;
         min-height: 100px;
+    }
+    
+    .details-image-container {
+        height: 150px;
     }
 }
 
