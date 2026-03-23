@@ -42,7 +42,7 @@
                             {% endif %}
                         </div>
                         
-                        <!-- VIEW BUTTON WITH COUNT BESIDE IT -->
+                        <!-- VIEW BUTTON WITH COUNT AND ARROW -->
                         <div class="category-actions">
                             <button class="btn-view-category" data-category-id="{{ category.id }}">
                                 <i class="fas fa-eye"></i> 
@@ -50,6 +50,7 @@
                                 <span class="item-count-badge-btn">
                                     <span class="count-number">{{ category.item_count }}</span>
                                 </span>
+                                <i class="fas fa-arrow-right arrow-icon"></i>
                             </button>
                         </div>
                     </div>
@@ -169,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
     background: var(--matte-black);
 }
 
-/* CATEGORY ITEM - Increased height for taller photo */
+/* CATEGORY ITEM - Clickable card with visual indicators */
 .category-item {
     background: var(--onyx-black);
     border-radius: 10px;
@@ -183,6 +184,29 @@ document.addEventListener('DOMContentLoaded', function() {
     flex-direction: column;
     position: relative;
     box-shadow: var(--card-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    /* Click indicator - subtle shine effect */
+    position: relative;
+}
+
+/* Glossy overlay effect on hover - indicates clickability */
+.category-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(192, 178, 131, 0.1), 
+        transparent);
+    transition: left 0.5s ease;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.category-item:hover::before {
+    left: 100%;
 }
 
 .category-item:hover {
@@ -192,6 +216,12 @@ document.addEventListener('DOMContentLoaded', function() {
         0 4px 12px rgba(0, 0, 0, 0.3),
         0 0 15px rgba(192, 178, 131, 0.3);
     transform: translateY(-2px);
+}
+
+/* Add subtle scale effect to photo on hover */
+.category-item:hover .category-square-photo img {
+    transform: scale(1.05);
+    filter: saturate(1.6) contrast(1.3) brightness(1.1);
 }
 
 /* SQUARE PHOTO - Height increased, width same */
@@ -213,11 +243,6 @@ document.addEventListener('DOMContentLoaded', function() {
     transition: transform 0.3s ease, filter 0.3s ease;
     border-radius: 8px 8px 0 0;
     filter: saturate(1.4) contrast(1.2) brightness(1.05);
-}
-
-.category-item:hover .category-square-photo img {
-    transform: scale(1.05);
-    filter: saturate(1.6) contrast(1.3) brightness(1.1);
 }
 
 /* Category number SQUARE with gold styling */
@@ -247,6 +272,7 @@ document.addEventListener('DOMContentLoaded', function() {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    transition: transform 0.2s ease;
 }
 
 .category-header {
@@ -266,6 +292,12 @@ document.addEventListener('DOMContentLoaded', function() {
     font-family: var(--serif-font);
     letter-spacing: 0.02em;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    transition: color 0.3s ease;
+}
+
+/* Title subtle gold tint on hover - indicates clickability */
+.category-item:hover .category-title {
+    color: var(--champagne-gold);
 }
 
 /* Category Description - 2 lines with minimal gaps */
@@ -284,6 +316,12 @@ document.addEventListener('DOMContentLoaded', function() {
     letter-spacing: 0.2px;
     min-height: 24px;
     padding: 0 2px;
+    transition: color 0.3s ease;
+}
+
+/* Description subtle gold tint on hover */
+.category-item:hover .category-description {
+    color: var(--gold-light);
 }
 
 .category-actions {
@@ -293,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function() {
     margin-top: 1px;
 }
 
-/* VIEW ITEMS BUTTON - GOLD SOLID */
+/* VIEW ITEMS BUTTON - GOLD SOLID with arrow */
 .btn-view-category {
     background: var(--champagne-gold);
     color: #000000;
@@ -316,6 +354,17 @@ document.addEventListener('DOMContentLoaded', function() {
     font-family: var(--sans-font);
     z-index: 10;
     position: relative;
+}
+
+/* Arrow icon styling with animation */
+.btn-view-category .arrow-icon {
+    transition: transform 0.3s ease;
+    font-size: 10px;
+    margin-left: 2px;
+}
+
+.btn-view-category:hover .arrow-icon {
+    transform: translateX(3px);
 }
 
 .btn-view-category:hover {
@@ -433,6 +482,10 @@ document.addEventListener('DOMContentLoaded', function() {
         font-size: 11px !important;
         padding: 4px 10px !important;
     }
+    
+    .btn-view-category .arrow-icon {
+        font-size: 11px;
+    }
 }
 
 /* ========== MOBILE RESPONSIVE - FORCED 2 COLUMNS ========== */
@@ -493,6 +546,10 @@ document.addEventListener('DOMContentLoaded', function() {
         font-size: 9px !important;
         height: 24px !important;
         gap: 3px !important;
+    }
+    
+    .btn-view-category .arrow-icon {
+        font-size: 9px;
     }
     
     .item-count-badge-btn {
@@ -561,6 +618,10 @@ document.addEventListener('DOMContentLoaded', function() {
         font-size: 8px !important;
         height: 22px !important;
         gap: 2px !important;
+    }
+    
+    .btn-view-category .arrow-icon {
+        font-size: 8px;
     }
     
     .item-count-badge-btn {
