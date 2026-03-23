@@ -38,7 +38,9 @@
                             <h3 class="category-title">{{ category.name }}</h3>
                             <!-- Category Description - Only show if exists -->
                             {% if category.description %}
-                            <p class="category-description">{{ category.description }}</p>
+                            <div class="description-wrapper">
+                                <p class="category-description">{{ category.description }}</p>
+                            </div>
                             {% endif %}
                         </div>
                         
@@ -268,24 +270,61 @@ document.addEventListener('DOMContentLoaded', function() {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* Category Description - With added gap */
+/* Description Wrapper - Professional border styling */
+.description-wrapper {
+    position: relative;
+    margin: 6px 0 4px 0;
+    padding: 0;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(192, 178, 131, 0.1) 15%, 
+        rgba(192, 178, 131, 0.1) 85%, 
+        transparent 100%);
+    border-radius: 6px;
+}
+
+/* Professional gradient border - top and bottom */
+.description-wrapper::before,
+.description-wrapper::after {
+    content: '';
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        var(--champagne-gold) 20%, 
+        var(--champagne-gold) 80%, 
+        transparent 100%);
+}
+
+.description-wrapper::before {
+    top: 0;
+}
+
+.description-wrapper::after {
+    bottom: 0;
+}
+
+/* Category Description - Professional font styling */
 .category-description {
-    margin: 4px 0 2px 0;
+    margin: 8px 0;
     color: var(--silver-mist);
     font-size: 10px;
-    line-height: 1.3;
+    font-weight: 400;
+    line-height: 1.45;
     text-align: center;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-family: var(--sans-font);
-    letter-spacing: 0.2px;
-    min-height: 26px;
-    padding: 0 4px;
-    border-top: 1px dashed rgba(192, 178, 131, 0.2);
-    border-bottom: 1px dashed rgba(192, 178, 131, 0.2);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    letter-spacing: 0.3px;
+    min-height: 28px;
+    padding: 0 6px;
+    font-style: normal;
+    text-shadow: none;
 }
 
 .category-actions {
@@ -405,12 +444,17 @@ document.addEventListener('DOMContentLoaded', function() {
         margin-bottom: 3px;
     }
     
+    .description-wrapper {
+        margin: 8px 0 6px 0;
+    }
+    
     .category-description {
         font-size: 11px;
-        min-height: 28px;
-        line-height: 1.3;
-        padding: 0 6px;
-        margin: 5px 0 3px 0;
+        min-height: 30px;
+        line-height: 1.5;
+        padding: 0 8px;
+        margin: 10px 0;
+        letter-spacing: 0.35px;
     }
     
     .category-header {
@@ -469,12 +513,17 @@ document.addEventListener('DOMContentLoaded', function() {
         margin-bottom: 2px !important;
     }
     
+    .description-wrapper {
+        margin: 4px 0 3px 0 !important;
+    }
+    
     .category-description {
         font-size: 9px !important;
-        min-height: 24px !important;
-        line-height: 1.25 !important;
-        padding: 0 3px !important;
-        margin: 3px 0 2px 0 !important;
+        min-height: 26px !important;
+        line-height: 1.4 !important;
+        padding: 0 4px !important;
+        margin: 6px 0 !important;
+        letter-spacing: 0.25px !important;
     }
     
     .category-actions {
@@ -539,13 +588,18 @@ document.addEventListener('DOMContentLoaded', function() {
         margin-bottom: 1px !important;
     }
     
+    .description-wrapper {
+        margin: 3px 0 2px 0 !important;
+    }
+    
     .category-description {
         font-size: 8px !important;
-        min-height: 22px !important;
+        min-height: 24px !important;
         -webkit-line-clamp: 2 !important;
-        line-height: 1.2 !important;
-        padding: 0 2px !important;
-        margin: 2px 0 1px 0 !important;
+        line-height: 1.35 !important;
+        padding: 0 3px !important;
+        margin: 5px 0 !important;
+        letter-spacing: 0.2px !important;
     }
     
     .category-actions {
