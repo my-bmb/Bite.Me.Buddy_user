@@ -36,14 +36,10 @@
                     <div class="category-details">
                         <div class="category-header">
                             <h3 class="category-title">{{ category.name }}</h3>
-                            <!-- Category Description Container Card -->
+                            <!-- Category Description - Only show if exists -->
                             {% if category.description %}
-                            <div class="description-card">
-                                <div class="description-card-inner">
-                                    <i class="fas fa-quote-left quote-icon"></i>
-                                    <p class="category-description">{{ category.description }}</p>
-                                    <i class="fas fa-quote-right quote-icon"></i>
-                                </div>
+                            <div class="description-wrapper">
+                                <p class="category-description">{{ category.description }}</p>
                             </div>
                             {% endif %}
                         </div>
@@ -97,8 +93,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const categoryCards = document.querySelectorAll('.category-item');
     categoryCards.forEach(card => {
         card.addEventListener('click', function(e) {
-            // Don't trigger if clicked on button or description card
-            if (e.target.closest('.btn-view-category') || e.target.closest('.description-card')) {
+            // Don't trigger if clicked on button
+            if (e.target.closest('.btn-view-category')) {
                 return;
             }
             const categoryId = this.dataset.categoryId;
@@ -274,79 +270,92 @@ document.addEventListener('DOMContentLoaded', function() {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* Description Container Card */
-.description-card {
-    background: linear-gradient(135deg, 
-        rgba(26, 26, 26, 0.95) 0%,
-        rgba(31, 31, 31, 0.98) 100%);
-    border: 1px solid rgba(192, 178, 131, 0.3);
-    border-radius: 12px;
-    margin: 6px 0 4px 0;
-    padding: 8px;
+/* Description Wrapper - Premium Border Styling */
+.description-wrapper {
     position: relative;
-    overflow: hidden;
+    margin: 8px 0 6px 0;
+    padding: 0;
+    background: linear-gradient(135deg, 
+        rgba(192, 178, 131, 0.03) 0%, 
+        rgba(192, 178, 131, 0.08) 50%, 
+        rgba(192, 178, 131, 0.03) 100%);
+    border-radius: 12px;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-/* Premium Gold Glow Border Effect */
-.description-card::before {
+/* Premium Double Border Effect */
+.description-wrapper::before {
     content: '';
     position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    background: linear-gradient(135deg, 
-        var(--champagne-gold) 0%,
-        var(--gold-light) 25%,
-        var(--vivid-gold) 50%,
-        var(--gold-light) 75%,
-        var(--champagne-gold) 100%);
-    border-radius: 14px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    z-index: -1;
+    top: -1px;
+    left: 8%;
+    right: 8%;
+    height: 2px;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        var(--champagne-gold) 20%, 
+        var(--gold-light) 50%,
+        var(--champagne-gold) 80%, 
+        transparent 100%);
+    border-radius: 2px;
+    opacity: 0.7;
 }
 
-.description-card:hover::before {
-    opacity: 0.3;
+.description-wrapper::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 8%;
+    right: 8%;
+    height: 2px;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        var(--champagne-gold) 20%, 
+        var(--gold-light) 50%,
+        var(--champagne-gold) 80%, 
+        transparent 100%);
+    border-radius: 2px;
+    opacity: 0.7;
 }
 
-/* Inner container for content */
-.description-card-inner {
-    position: relative;
-    display: flex;
-    align-items: flex-start;
-    gap: 6px;
-    z-index: 1;
+/* Left and Right Vertical Accents */
+.description-wrapper .vertical-left {
+    position: absolute;
+    left: 4px;
+    top: 20%;
+    bottom: 20%;
+    width: 1px;
+    background: linear-gradient(180deg, 
+        transparent 0%, 
+        var(--champagne-gold) 30%, 
+        var(--gold-light) 50%,
+        var(--champagne-gold) 70%, 
+        transparent 100%);
+    opacity: 0.5;
 }
 
-/* Quote Icons */
-.quote-icon {
-    color: var(--champagne-gold);
-    font-size: 12px;
-    opacity: 0.6;
-    flex-shrink: 0;
-    margin-top: 2px;
+.description-wrapper .vertical-right {
+    position: absolute;
+    right: 4px;
+    top: 20%;
+    bottom: 20%;
+    width: 1px;
+    background: linear-gradient(180deg, 
+        transparent 0%, 
+        var(--champagne-gold) 30%, 
+        var(--gold-light) 50%,
+        var(--champagne-gold) 70%, 
+        transparent 100%);
+    opacity: 0.5;
 }
 
-.quote-icon:first-child {
-    align-self: flex-start;
-}
-
-.quote-icon:last-child {
-    align-self: flex-end;
-    margin-left: auto;
-}
-
-/* Category Description Text */
+/* Category Description - Professional font styling */
 .category-description {
-    margin: 0;
+    margin: 10px 12px;
     color: var(--silver-mist);
     font-size: 10px;
     font-weight: 400;
-    line-height: 1.45;
+    line-height: 1.5;
     text-align: center;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -355,7 +364,9 @@ document.addEventListener('DOMContentLoaded', function() {
     text-overflow: ellipsis;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     letter-spacing: 0.3px;
-    flex: 1;
+    min-height: 30px;
+    position: relative;
+    z-index: 1;
     font-style: normal;
     text-shadow: none;
 }
@@ -477,24 +488,22 @@ document.addEventListener('DOMContentLoaded', function() {
         margin-bottom: 3px;
     }
     
-    .description-card {
-        margin: 8px 0 6px 0;
-        padding: 10px;
-    }
-    
-    .description-card-inner {
-        gap: 8px;
-    }
-    
-    .quote-icon {
-        font-size: 14px;
+    .description-wrapper {
+        margin: 10px 0 8px 0;
     }
     
     .category-description {
         font-size: 11px;
-        min-height: 30px;
-        line-height: 1.5;
+        min-height: 32px;
+        line-height: 1.55;
+        margin: 12px 14px;
         letter-spacing: 0.35px;
+    }
+    
+    .description-wrapper::before,
+    .description-wrapper::after {
+        left: 10%;
+        right: 10%;
     }
     
     .category-header {
@@ -553,24 +562,22 @@ document.addEventListener('DOMContentLoaded', function() {
         margin-bottom: 2px !important;
     }
     
-    .description-card {
-        margin: 5px 0 4px 0 !important;
-        padding: 6px !important;
-    }
-    
-    .description-card-inner {
-        gap: 5px !important;
-    }
-    
-    .quote-icon {
-        font-size: 10px !important;
+    .description-wrapper {
+        margin: 6px 0 5px 0 !important;
     }
     
     .category-description {
         font-size: 9px !important;
         min-height: 28px !important;
-        line-height: 1.4 !important;
+        line-height: 1.45 !important;
+        margin: 8px 8px !important;
         letter-spacing: 0.25px !important;
+    }
+    
+    .description-wrapper::before,
+    .description-wrapper::after {
+        left: 5%;
+        right: 5%;
     }
     
     .category-actions {
@@ -635,25 +642,23 @@ document.addEventListener('DOMContentLoaded', function() {
         margin-bottom: 1px !important;
     }
     
-    .description-card {
+    .description-wrapper {
         margin: 4px 0 3px 0 !important;
-        padding: 5px !important;
-    }
-    
-    .description-card-inner {
-        gap: 4px !important;
-    }
-    
-    .quote-icon {
-        font-size: 9px !important;
     }
     
     .category-description {
         font-size: 8px !important;
         min-height: 26px !important;
         -webkit-line-clamp: 2 !important;
-        line-height: 1.35 !important;
+        line-height: 1.4 !important;
+        margin: 6px 6px !important;
         letter-spacing: 0.2px !important;
+    }
+    
+    .description-wrapper::before,
+    .description-wrapper::after {
+        left: 3%;
+        right: 3%;
     }
     
     .category-actions {
