@@ -97,12 +97,12 @@
     --hover-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
 }
 
-/* Categories Container */
+/* Categories Container - Optimized for maximum visibility */
 .categories-container {
-    padding: 20px;
+    padding: 16px;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
+    gap: 16px;
     background: var(--matte-black);
 }
 
@@ -126,11 +126,11 @@
     box-shadow: var(--hover-shadow);
 }
 
-/* Image Wrapper */
+/* Image Wrapper - Reduced height for mobile to show more categories */
 .card-image-wrapper {
     position: relative;
     width: 100%;
-    height: 180px;
+    height: 160px;
     overflow: hidden;
     background: var(--matte-black);
 }
@@ -146,52 +146,55 @@
     transform: scale(1.05);
 }
 
-/* Category Badge - Compact Size */
+/* Category Badge - Ultra Compact across all devices */
 .category-badge {
     position: absolute;
-    top: 12px;
-    left: 12px;
+    top: 10px;
+    left: 10px;
     background: linear-gradient(135deg, var(--champagne-gold), var(--vivid-gold));
-    border-radius: 6px;
+    border-radius: 5px;
     padding: 2px 6px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    min-width: 24px;
+    min-width: 22px;
     text-align: center;
 }
 
 .badge-number {
     color: #000;
     font-weight: 800;
-    font-size: 11px;
-    letter-spacing: 0.3px;
+    font-size: 10px;
+    letter-spacing: 0.2px;
     font-family: 'Inter', sans-serif;
     display: inline-block;
     line-height: 1.2;
 }
 
-/* Card Content */
+/* Card Content - Compact for mobile */
 .card-content {
-    padding: 16px;
+    padding: 12px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
 .category-name {
     margin: 0;
     color: var(--creamy-white);
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     font-family: 'Inter', sans-serif;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.2px;
     line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .category-description {
     color: var(--silver-mist);
-    font-size: 13px;
-    line-height: 1.5;
+    font-size: 12px;
+    line-height: 1.4;
     margin: 0;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -199,24 +202,24 @@
     overflow: hidden;
 }
 
-/* View Row - Contains View Button and Item Count Side by Side on Same Line */
+/* View Row - Contains View Button and Item Count Side by Side */
 .view-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-top: 4px;
-    padding-top: 8px;
+    padding-top: 6px;
     border-top: 1px solid var(--dark-border);
     width: 100%;
 }
 
-/* View Button with Arrow */
+/* View Button with Arrow - Compact */
 .view-button {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     color: var(--champagne-gold);
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     transition: all 0.2s ease;
     background: transparent;
@@ -224,13 +227,13 @@
 }
 
 .view-button span {
-    font-size: 13px;
-    letter-spacing: 0.3px;
+    font-size: 12px;
+    letter-spacing: 0.2px;
     font-weight: 600;
 }
 
 .view-button i {
-    font-size: 12px;
+    font-size: 11px;
     transition: transform 0.2s ease;
 }
 
@@ -238,25 +241,25 @@
     transform: translateX(4px);
 }
 
-/* Inline Item Count - Placed Next to View Items on Same Line */
+/* Inline Item Count - Compact */
 .inline-item-count {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
     background: rgba(192, 178, 131, 0.1);
-    padding: 4px 10px;
+    padding: 3px 8px;
     border-radius: 20px;
     transition: all 0.2s;
 }
 
 .inline-item-count i {
     color: var(--champagne-gold);
-    font-size: 11px;
+    font-size: 10px;
 }
 
 .inline-item-count span {
     color: var(--creamy-white);
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.2px;
 }
@@ -268,137 +271,10 @@
     color: var(--silver-mist);
 }
 
-/* ========== RESPONSIVE STYLES ========== */
+/* ========== MOBILE OPTIMIZED - MAXIMUM CATEGORIES VISIBLE ========== */
 
-/* Tablet (768px and below) */
+/* Mobile First - Default for all devices */
 @media (max-width: 768px) {
-    .categories-container {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 16px;
-        padding: 16px;
-    }
-    
-    .card-image-wrapper {
-        height: 160px;
-    }
-    
-    .card-content {
-        padding: 14px;
-        gap: 8px;
-    }
-    
-    .category-name {
-        font-size: 16px;
-    }
-    
-    .category-description {
-        font-size: 12px;
-        -webkit-line-clamp: 2;
-        display: -webkit-box;
-    }
-    
-    .view-row {
-        padding-top: 6px;
-    }
-    
-    .view-button span {
-        font-size: 12px;
-    }
-    
-    .view-button i {
-        font-size: 11px;
-    }
-    
-    .inline-item-count {
-        padding: 3px 8px;
-    }
-    
-    .inline-item-count span {
-        font-size: 11px;
-    }
-    
-    .inline-item-count i {
-        font-size: 10px;
-    }
-    
-    .category-badge {
-        padding: 2px 5px;
-        border-radius: 5px;
-        top: 10px;
-        left: 10px;
-    }
-    
-    .badge-number {
-        font-size: 10px;
-    }
-}
-
-/* Mobile (600px and below) */
-@media (max-width: 600px) {
-    .categories-container {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 14px;
-        padding: 14px;
-    }
-    
-    .card-image-wrapper {
-        height: 150px;
-    }
-    
-    .card-content {
-        padding: 12px;
-        gap: 8px;
-    }
-    
-    .category-name {
-        font-size: 15px;
-    }
-    
-    .category-description {
-        font-size: 11px;
-        -webkit-line-clamp: 2;
-        display: -webkit-box;
-        line-height: 1.4;
-    }
-    
-    .view-row {
-        padding-top: 5px;
-    }
-    
-    .view-button span {
-        font-size: 11px;
-    }
-    
-    .view-button i {
-        font-size: 10px;
-    }
-    
-    .inline-item-count {
-        padding: 2px 7px;
-    }
-    
-    .inline-item-count span {
-        font-size: 10px;
-    }
-    
-    .inline-item-count i {
-        font-size: 9px;
-    }
-    
-    .category-badge {
-        top: 10px;
-        left: 10px;
-        padding: 2px 5px;
-        border-radius: 5px;
-    }
-    
-    .badge-number {
-        font-size: 9px;
-    }
-}
-
-/* Small Mobile (480px and below) */
-@media (max-width: 480px) {
     .categories-container {
         grid-template-columns: repeat(2, 1fr);
         gap: 12px;
@@ -410,7 +286,7 @@
     }
     
     .card-content {
-        padding: 10px 12px;
+        padding: 10px;
         gap: 6px;
     }
     
@@ -419,10 +295,76 @@
     }
     
     .category-description {
+        font-size: 11px;
+        -webkit-line-clamp: 2;
+        line-height: 1.3;
+    }
+    
+    .view-row {
+        padding-top: 5px;
+        margin-top: 2px;
+    }
+    
+    .view-button span {
+        font-size: 11px;
+    }
+    
+    .view-button i {
+        font-size: 10px;
+    }
+    
+    .inline-item-count {
+        padding: 2px 6px;
+        gap: 3px;
+    }
+    
+    .inline-item-count span {
+        font-size: 10px;
+    }
+    
+    .inline-item-count i {
+        font-size: 9px;
+    }
+    
+    /* Ultra compact badge for all mobile */
+    .category-badge {
+        top: 8px;
+        left: 8px;
+        padding: 2px 5px;
+        border-radius: 4px;
+        min-width: 20px;
+    }
+    
+    .badge-number {
+        font-size: 9px;
+    }
+}
+
+/* Small Mobile (600px and below) - Even more compact */
+@media (max-width: 600px) {
+    .categories-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        padding: 10px;
+    }
+    
+    .card-image-wrapper {
+        height: 130px;
+    }
+    
+    .card-content {
+        padding: 8px;
+        gap: 5px;
+    }
+    
+    .category-name {
+        font-size: 13px;
+    }
+    
+    .category-description {
         font-size: 10px;
         -webkit-line-clamp: 2;
-        display: -webkit-box;
-        line-height: 1.35;
+        line-height: 1.3;
     }
     
     .view-row {
@@ -438,7 +380,8 @@
     }
     
     .inline-item-count {
-        padding: 2px 6px;
+        padding: 2px 5px;
+        gap: 3px;
     }
     
     .inline-item-count span {
@@ -450,10 +393,11 @@
     }
     
     .category-badge {
-        top: 8px;
-        left: 8px;
+        top: 6px;
+        left: 6px;
         padding: 2px 4px;
         border-radius: 4px;
+        min-width: 18px;
     }
     
     .badge-number {
@@ -461,25 +405,25 @@
     }
 }
 
-/* Very Small Mobile (380px and below) */
-@media (max-width: 380px) {
+/* Extra Small Mobile (480px and below) - Maximum categories visible */
+@media (max-width: 480px) {
     .categories-container {
         grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-        padding: 10px;
+        gap: 8px;
+        padding: 8px;
     }
     
     .card-image-wrapper {
-        height: 130px;
+        height: 120px;
     }
     
     .card-content {
-        padding: 8px 10px;
-        gap: 5px;
+        padding: 8px;
+        gap: 4px;
     }
     
     .category-name {
-        font-size: 13px;
+        font-size: 12px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -487,13 +431,13 @@
     
     .category-description {
         font-size: 9px;
-        -webkit-line-clamp: 2;
-        display: -webkit-box;
-        line-height: 1.3;
+        -webkit-line-clamp: 1;
+        line-height: 1.2;
     }
     
     .view-row {
         padding-top: 3px;
+        margin-top: 0;
     }
     
     .view-button span {
@@ -502,11 +446,12 @@
     
     .view-button i {
         font-size: 8px;
+        gap: 3px;
     }
     
     .inline-item-count {
-        padding: 2px 5px;
-        gap: 3px;
+        padding: 2px 4px;
+        gap: 2px;
     }
     
     .inline-item-count span {
@@ -520,8 +465,9 @@
     .category-badge {
         top: 6px;
         left: 6px;
-        padding: 2px 4px;
-        border-radius: 4px;
+        padding: 1px 4px;
+        border-radius: 3px;
+        min-width: 16px;
     }
     
     .badge-number {
@@ -529,24 +475,25 @@
     }
 }
 
-/* Extreme Small (320px and below) */
-@media (max-width: 320px) {
+/* Very Small Mobile (380px and below) - Maximum efficiency */
+@media (max-width: 380px) {
     .categories-container {
-        gap: 8px;
-        padding: 8px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+        padding: 6px;
     }
     
     .card-image-wrapper {
-        height: 120px;
+        height: 110px;
     }
     
     .card-content {
-        padding: 6px 8px;
-        gap: 4px;
+        padding: 6px;
+        gap: 3px;
     }
     
     .category-name {
-        font-size: 12px;
+        font-size: 11px;
     }
     
     .category-description {
@@ -558,6 +505,10 @@
         padding-top: 2px;
     }
     
+    .view-button {
+        gap: 3px;
+    }
+    
     .view-button span {
         font-size: 8px;
     }
@@ -567,7 +518,8 @@
     }
     
     .inline-item-count {
-        padding: 1px 4px;
+        padding: 1px 3px;
+        gap: 2px;
     }
     
     .inline-item-count span {
@@ -578,25 +530,74 @@
         font-size: 6px;
     }
     
+    .category-badge {
+        top: 5px;
+        left: 5px;
+        padding: 1px 3px;
+        border-radius: 3px;
+        min-width: 14px;
+    }
+    
     .badge-number {
         font-size: 6px;
     }
 }
 
-/* Landscape Mode */
-@media (max-height: 500px) and (orientation: landscape) {
+/* Extreme Small (320px and below) */
+@media (max-width: 320px) {
     .categories-container {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
-        padding: 12px;
+        gap: 5px;
+        padding: 5px;
     }
     
     .card-image-wrapper {
-        height: 120px;
+        height: 100px;
     }
     
     .card-content {
+        padding: 5px;
+        gap: 2px;
+    }
+    
+    .category-name {
+        font-size: 10px;
+    }
+    
+    .view-button span {
+        font-size: 7px;
+    }
+    
+    .view-button i {
+        font-size: 6px;
+    }
+    
+    .inline-item-count span {
+        font-size: 6px;
+    }
+    
+    .inline-item-count i {
+        font-size: 5px;
+    }
+    
+    .badge-number {
+        font-size: 5px;
+    }
+}
+
+/* Landscape Mode - Show 3 columns for maximum categories */
+@media (max-height: 500px) and (orientation: landscape) {
+    .categories-container {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
         padding: 10px;
+    }
+    
+    .card-image-wrapper {
+        height: 100px;
+    }
+    
+    .card-content {
+        padding: 8px;
     }
     
     .category-description {
@@ -604,32 +605,54 @@
     }
 }
 
-/* Large Desktop */
+/* Large Desktop - More spacing but compact badge remains */
 @media (min-width: 1200px) {
     .categories-container {
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 24px;
-        padding: 24px;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        padding: 20px;
     }
     
     .card-image-wrapper {
-        height: 200px;
+        height: 180px;
+    }
+    
+    .card-content {
+        padding: 14px;
     }
     
     .category-name {
-        font-size: 20px;
+        font-size: 17px;
+        white-space: normal;
     }
     
     .category-description {
-        font-size: 14px;
+        font-size: 13px;
+    }
+    
+    /* Desktop badge slightly larger but still compact */
+    .category-badge {
+        top: 12px;
+        left: 12px;
+        padding: 3px 8px;
+        border-radius: 6px;
+        min-width: 26px;
+    }
+    
+    .badge-number {
+        font-size: 12px;
+    }
+    
+    .view-button span {
+        font-size: 13px;
     }
     
     .inline-item-count {
-        padding: 5px 12px;
+        padding: 4px 10px;
     }
     
     .inline-item-count span {
-        font-size: 13px;
+        font-size: 12px;
     }
 }
 
