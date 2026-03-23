@@ -42,7 +42,7 @@
                             {% endif %}
                         </div>
                         
-                        <!-- VIEW BUTTON WITH COUNT AND ARROW -->
+                        <!-- VIEW BUTTON WITH COUNT BESIDE IT -->
                         <div class="category-actions">
                             <button class="btn-view-category" data-category-id="{{ category.id }}">
                                 <i class="fas fa-eye"></i> 
@@ -50,7 +50,6 @@
                                 <span class="item-count-badge-btn">
                                     <span class="count-number">{{ category.item_count }}</span>
                                 </span>
-                                <i class="fas fa-arrow-right arrow-icon"></i>
                             </button>
                         </div>
                     </div>
@@ -170,7 +169,7 @@ document.addEventListener('DOMContentLoaded', function() {
     background: var(--matte-black);
 }
 
-/* CATEGORY ITEM - Clickable card with visual indicators */
+/* CATEGORY ITEM */
 .category-item {
     background: var(--onyx-black);
     border-radius: 10px;
@@ -184,29 +183,6 @@ document.addEventListener('DOMContentLoaded', function() {
     flex-direction: column;
     position: relative;
     box-shadow: var(--card-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    /* Click indicator - subtle shine effect */
-    position: relative;
-}
-
-/* Glossy overlay effect on hover - indicates clickability */
-.category-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, 
-        transparent, 
-        rgba(192, 178, 131, 0.1), 
-        transparent);
-    transition: left 0.5s ease;
-    pointer-events: none;
-    z-index: 1;
-}
-
-.category-item:hover::before {
-    left: 100%;
 }
 
 .category-item:hover {
@@ -218,16 +194,10 @@ document.addEventListener('DOMContentLoaded', function() {
     transform: translateY(-2px);
 }
 
-/* Add subtle scale effect to photo on hover */
-.category-item:hover .category-square-photo img {
-    transform: scale(1.05);
-    filter: saturate(1.6) contrast(1.3) brightness(1.1);
-}
-
-/* SQUARE PHOTO - Height increased, width same */
+/* SQUARE PHOTO - Reduced height */
 .category-square-photo {
     width: 100%;
-    height: 135px;
+    height: 125px;
     border-radius: 8px 8px 0 0;
     overflow: hidden;
     position: relative;
@@ -243,6 +213,11 @@ document.addEventListener('DOMContentLoaded', function() {
     transition: transform 0.3s ease, filter 0.3s ease;
     border-radius: 8px 8px 0 0;
     filter: saturate(1.4) contrast(1.2) brightness(1.05);
+}
+
+.category-item:hover .category-square-photo img {
+    transform: scale(1.05);
+    filter: saturate(1.6) contrast(1.3) brightness(1.1);
 }
 
 /* Category number SQUARE with gold styling */
@@ -267,20 +242,19 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .category-details {
-    padding: 4px 8px 3px 8px;
+    padding: 6px 8px 4px 8px;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    transition: transform 0.2s ease;
 }
 
 .category-header {
-    margin-bottom: 1px;
+    margin-bottom: 4px;
 }
 
 .category-title {
-    margin: 0 0 1px 0;
+    margin: 0 0 2px 0;
     color: var(--creamy-white);
     font-size: 14px;
     font-weight: 700;
@@ -292,20 +266,14 @@ document.addEventListener('DOMContentLoaded', function() {
     font-family: var(--serif-font);
     letter-spacing: 0.02em;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    transition: color 0.3s ease;
 }
 
-/* Title subtle gold tint on hover - indicates clickability */
-.category-item:hover .category-title {
-    color: var(--champagne-gold);
-}
-
-/* Category Description - 2 lines with minimal gaps */
+/* Category Description - With added gap */
 .category-description {
-    margin: 0;
+    margin: 4px 0 2px 0;
     color: var(--silver-mist);
     font-size: 10px;
-    line-height: 1.25;
+    line-height: 1.3;
     text-align: center;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -314,24 +282,20 @@ document.addEventListener('DOMContentLoaded', function() {
     text-overflow: ellipsis;
     font-family: var(--sans-font);
     letter-spacing: 0.2px;
-    min-height: 24px;
-    padding: 0 2px;
-    transition: color 0.3s ease;
-}
-
-/* Description subtle gold tint on hover */
-.category-item:hover .category-description {
-    color: var(--gold-light);
+    min-height: 26px;
+    padding: 0 4px;
+    border-top: 1px dashed rgba(192, 178, 131, 0.2);
+    border-bottom: 1px dashed rgba(192, 178, 131, 0.2);
 }
 
 .category-actions {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: 1px;
+    margin-top: 4px;
 }
 
-/* VIEW ITEMS BUTTON - GOLD SOLID with arrow */
+/* VIEW ITEMS BUTTON - GOLD SOLID */
 .btn-view-category {
     background: var(--champagne-gold);
     color: #000000;
@@ -354,17 +318,6 @@ document.addEventListener('DOMContentLoaded', function() {
     font-family: var(--sans-font);
     z-index: 10;
     position: relative;
-}
-
-/* Arrow icon styling with animation */
-.btn-view-category .arrow-icon {
-    transition: transform 0.3s ease;
-    font-size: 10px;
-    margin-left: 2px;
-}
-
-.btn-view-category:hover .arrow-icon {
-    transform: translateX(3px);
 }
 
 .btn-view-category:hover {
@@ -426,7 +379,7 @@ document.addEventListener('DOMContentLoaded', function() {
     font-family: var(--sans-font);
 }
 
-/* ========== DESKTOP & TABLET (UNCHANGED) ========== */
+/* ========== DESKTOP & TABLET ========== */
 @media (min-width: 768px) {
     .categories-container {
         display: grid;
@@ -440,31 +393,32 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     .category-square-photo {
-        height: 145px;
+        height: 135px;
     }
     
     .category-details {
-        padding: 4px 10px 3px 10px;
+        padding: 8px 10px 5px 10px;
     }
     
     .category-title {
         font-size: 15px;
-        margin-bottom: 1px;
+        margin-bottom: 3px;
     }
     
     .category-description {
         font-size: 11px;
-        min-height: 26px;
-        line-height: 1.25;
-        padding: 0 4px;
+        min-height: 28px;
+        line-height: 1.3;
+        padding: 0 6px;
+        margin: 5px 0 3px 0;
     }
     
     .category-header {
-        margin-bottom: 1px;
+        margin-bottom: 5px;
     }
     
     .category-actions {
-        margin-top: 1px;
+        margin-top: 5px;
     }
     
     .item-count-badge-btn {
@@ -481,10 +435,6 @@ document.addEventListener('DOMContentLoaded', function() {
         height: 28px !important;
         font-size: 11px !important;
         padding: 4px 10px !important;
-    }
-    
-    .btn-view-category .arrow-icon {
-        font-size: 11px;
     }
 }
 
@@ -503,11 +453,32 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     .category-square-photo {
-        height: 125px !important;
+        height: 115px !important;
     }
     
     .category-details {
-        padding: 3px 6px 2px 6px !important;
+        padding: 5px 6px 3px 6px !important;
+    }
+    
+    .category-header {
+        margin-bottom: 3px !important;
+    }
+    
+    .category-title {
+        font-size: 13px !important;
+        margin-bottom: 2px !important;
+    }
+    
+    .category-description {
+        font-size: 9px !important;
+        min-height: 24px !important;
+        line-height: 1.25 !important;
+        padding: 0 3px !important;
+        margin: 3px 0 2px 0 !important;
+    }
+    
+    .category-actions {
+        margin-top: 3px !important;
     }
     
     /* Category number square ko mobile ke liye chhota karo */
@@ -520,36 +491,12 @@ document.addEventListener('DOMContentLoaded', function() {
         border: 1.5px solid var(--onyx-black) !important;
     }
     
-    .category-title {
-        font-size: 13px !important;
-        margin-bottom: 0px !important;
-    }
-    
-    .category-description {
-        font-size: 9px !important;
-        min-height: 22px !important;
-        line-height: 1.25 !important;
-        padding: 0 2px !important;
-    }
-    
-    .category-header {
-        margin-bottom: 0px !important;
-    }
-    
-    .category-actions {
-        margin-top: 0px !important;
-    }
-    
     /* View Items button mobile me aur chhota */
     .btn-view-category {
         padding: 3px 6px !important;
         font-size: 9px !important;
         height: 24px !important;
         gap: 3px !important;
-    }
-    
-    .btn-view-category .arrow-icon {
-        font-size: 9px;
     }
     
     .item-count-badge-btn {
@@ -576,11 +523,33 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     .category-square-photo {
-        height: 115px !important;
+        height: 105px !important;
     }
     
     .category-details {
-        padding: 2px 5px 1px 5px !important;
+        padding: 4px 5px 2px 5px !important;
+    }
+    
+    .category-header {
+        margin-bottom: 2px !important;
+    }
+    
+    .category-title {
+        font-size: 12px !important;
+        margin-bottom: 1px !important;
+    }
+    
+    .category-description {
+        font-size: 8px !important;
+        min-height: 22px !important;
+        -webkit-line-clamp: 2 !important;
+        line-height: 1.2 !important;
+        padding: 0 2px !important;
+        margin: 2px 0 1px 0 !important;
+    }
+    
+    .category-actions {
+        margin-top: 2px !important;
     }
     
     /* Category number aur bhi chhota karo */
@@ -593,35 +562,11 @@ document.addEventListener('DOMContentLoaded', function() {
         border: 1px solid var(--onyx-black) !important;
     }
     
-    .category-title {
-        font-size: 12px !important;
-        margin-bottom: 0px !important;
-    }
-    
-    .category-description {
-        font-size: 8px !important;
-        min-height: 20px !important;
-        -webkit-line-clamp: 2 !important;
-        line-height: 1.2 !important;
-    }
-    
-    .category-header {
-        margin-bottom: 0px !important;
-    }
-    
-    .category-actions {
-        margin-top: 0px !important;
-    }
-    
     .btn-view-category {
         padding: 2px 4px !important;
         font-size: 8px !important;
         height: 22px !important;
         gap: 2px !important;
-    }
-    
-    .btn-view-category .arrow-icon {
-        font-size: 8px;
     }
     
     .item-count-badge-btn {
