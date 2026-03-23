@@ -270,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function() {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* Description Wrapper - Premium Border Styling */
+/* Description Wrapper - Premium Border Styling with 0.5px borders */
 .description-wrapper {
     position: relative;
     margin: 8px 0 6px 0;
@@ -283,48 +283,48 @@ document.addEventListener('DOMContentLoaded', function() {
     transition: all 0.3s ease;
 }
 
-/* Premium Double Border Effect */
+/* Premium Ultra-Thin Border Effect - 0.5px */
 .description-wrapper::before {
     content: '';
     position: absolute;
-    top: -1px;
+    top: -0.5px;
     left: 8%;
     right: 8%;
-    height: 2px;
+    height: 0.5px;
     background: linear-gradient(90deg, 
         transparent 0%, 
         var(--champagne-gold) 20%, 
         var(--gold-light) 50%,
         var(--champagne-gold) 80%, 
         transparent 100%);
-    border-radius: 2px;
-    opacity: 0.7;
+    border-radius: 0.5px;
+    opacity: 0.8;
 }
 
 .description-wrapper::after {
     content: '';
     position: absolute;
-    bottom: -1px;
+    bottom: -0.5px;
     left: 8%;
     right: 8%;
-    height: 2px;
+    height: 0.5px;
     background: linear-gradient(90deg, 
         transparent 0%, 
         var(--champagne-gold) 20%, 
         var(--gold-light) 50%,
         var(--champagne-gold) 80%, 
         transparent 100%);
-    border-radius: 2px;
-    opacity: 0.7;
+    border-radius: 0.5px;
+    opacity: 0.8;
 }
 
-/* Left and Right Vertical Accents */
+/* Left and Right Vertical Accents - Ultra Thin */
 .description-wrapper .vertical-left {
     position: absolute;
     left: 4px;
     top: 20%;
     bottom: 20%;
-    width: 1px;
+    width: 0.5px;
     background: linear-gradient(180deg, 
         transparent 0%, 
         var(--champagne-gold) 30%, 
@@ -339,7 +339,7 @@ document.addEventListener('DOMContentLoaded', function() {
     right: 4px;
     top: 20%;
     bottom: 20%;
-    width: 1px;
+    width: 0.5px;
     background: linear-gradient(180deg, 
         transparent 0%, 
         var(--champagne-gold) 30%, 
@@ -504,6 +504,7 @@ document.addEventListener('DOMContentLoaded', function() {
     .description-wrapper::after {
         left: 10%;
         right: 10%;
+        height: 0.5px;
     }
     
     .category-header {
@@ -578,6 +579,7 @@ document.addEventListener('DOMContentLoaded', function() {
     .description-wrapper::after {
         left: 5%;
         right: 5%;
+        height: 0.5px;
     }
     
     .category-actions {
@@ -659,6 +661,7 @@ document.addEventListener('DOMContentLoaded', function() {
     .description-wrapper::after {
         left: 3%;
         right: 3%;
+        height: 0.5px;
     }
     
     .category-actions {
