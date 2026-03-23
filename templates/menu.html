@@ -99,10 +99,10 @@
 
 /* Categories Container - Optimized for maximum visibility */
 .categories-container {
-    padding: 16px;
+    padding: 20px;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
+    gap: 20px;
     background: var(--matte-black);
 }
 
@@ -126,11 +126,11 @@
     box-shadow: var(--hover-shadow);
 }
 
-/* Image Wrapper - Reduced height for mobile to show more categories */
+/* Image Wrapper */
 .card-image-wrapper {
     position: relative;
     width: 100%;
-    height: 160px;
+    height: 180px;
     overflow: hidden;
     background: var(--matte-black);
 }
@@ -146,55 +146,54 @@
     transform: scale(1.05);
 }
 
-/* Category Badge - Ultra Compact across all devices */
+/* Category Badge - Consistent Square Shape Across All Devices */
 .category-badge {
     position: absolute;
-    top: 10px;
-    left: 10px;
+    top: 12px;
+    left: 12px;
     background: linear-gradient(135deg, var(--champagne-gold), var(--vivid-gold));
-    border-radius: 5px;
-    padding: 2px 6px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    min-width: 22px;
-    text-align: center;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
 }
 
 .badge-number {
     color: #000;
     font-weight: 800;
-    font-size: 10px;
-    letter-spacing: 0.2px;
+    font-size: 14px;
+    letter-spacing: 0.5px;
     font-family: 'Inter', sans-serif;
-    display: inline-block;
-    line-height: 1.2;
+    line-height: 1;
 }
 
-/* Card Content - Compact for mobile */
+/* Card Content */
 .card-content {
-    padding: 12px;
+    padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
 }
 
 .category-name {
     margin: 0;
     color: var(--creamy-white);
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 700;
     font-family: 'Inter', sans-serif;
-    letter-spacing: 0.2px;
+    letter-spacing: 0.3px;
     line-height: 1.3;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .category-description {
     color: var(--silver-mist);
-    font-size: 12px;
-    line-height: 1.4;
+    font-size: 13px;
+    line-height: 1.5;
     margin: 0;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -208,18 +207,18 @@
     align-items: center;
     justify-content: space-between;
     margin-top: 4px;
-    padding-top: 6px;
+    padding-top: 8px;
     border-top: 1px solid var(--dark-border);
     width: 100%;
 }
 
-/* View Button with Arrow - Compact */
+/* View Button with Arrow */
 .view-button {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     color: var(--champagne-gold);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     transition: all 0.2s ease;
     background: transparent;
@@ -227,13 +226,13 @@
 }
 
 .view-button span {
-    font-size: 12px;
-    letter-spacing: 0.2px;
+    font-size: 13px;
+    letter-spacing: 0.3px;
     font-weight: 600;
 }
 
 .view-button i {
-    font-size: 11px;
+    font-size: 12px;
     transition: transform 0.2s ease;
 }
 
@@ -241,25 +240,25 @@
     transform: translateX(4px);
 }
 
-/* Inline Item Count - Compact */
+/* Inline Item Count */
 .inline-item-count {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
     background: rgba(192, 178, 131, 0.1);
-    padding: 3px 8px;
+    padding: 4px 10px;
     border-radius: 20px;
     transition: all 0.2s;
 }
 
 .inline-item-count i {
     color: var(--champagne-gold);
-    font-size: 10px;
+    font-size: 11px;
 }
 
 .inline-item-count span {
     color: var(--creamy-white);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     letter-spacing: 0.2px;
 }
@@ -271,10 +270,73 @@
     color: var(--silver-mist);
 }
 
-/* ========== MOBILE OPTIMIZED - MAXIMUM CATEGORIES VISIBLE ========== */
+/* ========== RESPONSIVE STYLES ========== */
 
-/* Mobile First - Default for all devices */
+/* Tablet (768px and below) */
 @media (max-width: 768px) {
+    .categories-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        padding: 16px;
+    }
+    
+    .card-image-wrapper {
+        height: 160px;
+    }
+    
+    .card-content {
+        padding: 14px;
+        gap: 8px;
+    }
+    
+    .category-name {
+        font-size: 16px;
+    }
+    
+    .category-description {
+        font-size: 12px;
+    }
+    
+    .view-row {
+        padding-top: 6px;
+    }
+    
+    .view-button span {
+        font-size: 12px;
+    }
+    
+    .view-button i {
+        font-size: 11px;
+    }
+    
+    .inline-item-count {
+        padding: 3px 8px;
+    }
+    
+    .inline-item-count span {
+        font-size: 11px;
+    }
+    
+    .inline-item-count i {
+        font-size: 10px;
+    }
+    
+    /* Tablet Badge Size */
+    .category-badge {
+        top: 10px;
+        left: 10px;
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
+    }
+    
+    .badge-number {
+        font-size: 12px;
+    }
+}
+
+/* Mobile (600px and below) */
+@media (max-width: 600px) {
     .categories-container {
         grid-template-columns: repeat(2, 1fr);
         gap: 12px;
@@ -283,6 +345,71 @@
     
     .card-image-wrapper {
         height: 140px;
+    }
+    
+    .card-content {
+        padding: 12px;
+        gap: 8px;
+    }
+    
+    .category-name {
+        font-size: 15px;
+    }
+    
+    .category-description {
+        font-size: 11px;
+        line-height: 1.4;
+    }
+    
+    .view-row {
+        padding-top: 5px;
+    }
+    
+    .view-button span {
+        font-size: 11px;
+    }
+    
+    .view-button i {
+        font-size: 10px;
+    }
+    
+    .inline-item-count {
+        padding: 2px 7px;
+    }
+    
+    .inline-item-count span {
+        font-size: 10px;
+    }
+    
+    .inline-item-count i {
+        font-size: 9px;
+    }
+    
+    /* Mobile Badge Size */
+    .category-badge {
+        top: 8px;
+        left: 8px;
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        border-width: 1.2px;
+    }
+    
+    .badge-number {
+        font-size: 10px;
+    }
+}
+
+/* Small Mobile (480px and below) */
+@media (max-width: 480px) {
+    .categories-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        padding: 10px;
+    }
+    
+    .card-image-wrapper {
+        height: 130px;
     }
     
     .card-content {
@@ -295,76 +422,8 @@
     }
     
     .category-description {
-        font-size: 11px;
-        -webkit-line-clamp: 2;
-        line-height: 1.3;
-    }
-    
-    .view-row {
-        padding-top: 5px;
-        margin-top: 2px;
-    }
-    
-    .view-button span {
-        font-size: 11px;
-    }
-    
-    .view-button i {
-        font-size: 10px;
-    }
-    
-    .inline-item-count {
-        padding: 2px 6px;
-        gap: 3px;
-    }
-    
-    .inline-item-count span {
-        font-size: 10px;
-    }
-    
-    .inline-item-count i {
-        font-size: 9px;
-    }
-    
-    /* Ultra compact badge for all mobile */
-    .category-badge {
-        top: 8px;
-        left: 8px;
-        padding: 2px 5px;
-        border-radius: 4px;
-        min-width: 20px;
-    }
-    
-    .badge-number {
-        font-size: 9px;
-    }
-}
-
-/* Small Mobile (600px and below) - Even more compact */
-@media (max-width: 600px) {
-    .categories-container {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-        padding: 10px;
-    }
-    
-    .card-image-wrapper {
-        height: 130px;
-    }
-    
-    .card-content {
-        padding: 8px;
-        gap: 5px;
-    }
-    
-    .category-name {
-        font-size: 13px;
-    }
-    
-    .category-description {
         font-size: 10px;
         -webkit-line-clamp: 2;
-        line-height: 1.3;
     }
     
     .view-row {
@@ -380,8 +439,7 @@
     }
     
     .inline-item-count {
-        padding: 2px 5px;
-        gap: 3px;
+        padding: 2px 6px;
     }
     
     .inline-item-count span {
@@ -392,21 +450,23 @@
         font-size: 8px;
     }
     
+    /* Small Mobile Badge Size */
     .category-badge {
         top: 6px;
         left: 6px;
-        padding: 2px 4px;
-        border-radius: 4px;
-        min-width: 18px;
+        width: 22px;
+        height: 22px;
+        border-radius: 5px;
+        border-width: 1px;
     }
     
     .badge-number {
-        font-size: 8px;
+        font-size: 9px;
     }
 }
 
-/* Extra Small Mobile (480px and below) - Maximum categories visible */
-@media (max-width: 480px) {
+/* Very Small Mobile (380px and below) */
+@media (max-width: 380px) {
     .categories-container {
         grid-template-columns: repeat(2, 1fr);
         gap: 8px;
@@ -419,11 +479,11 @@
     
     .card-content {
         padding: 8px;
-        gap: 4px;
+        gap: 5px;
     }
     
     .category-name {
-        font-size: 12px;
+        font-size: 13px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -431,13 +491,11 @@
     
     .category-description {
         font-size: 9px;
-        -webkit-line-clamp: 1;
-        line-height: 1.2;
+        -webkit-line-clamp: 2;
     }
     
     .view-row {
         padding-top: 3px;
-        margin-top: 0;
     }
     
     .view-button span {
@@ -446,12 +504,10 @@
     
     .view-button i {
         font-size: 8px;
-        gap: 3px;
     }
     
     .inline-item-count {
-        padding: 2px 4px;
-        gap: 2px;
+        padding: 2px 5px;
     }
     
     .inline-item-count span {
@@ -462,23 +518,23 @@
         font-size: 7px;
     }
     
+    /* Very Small Mobile Badge Size */
     .category-badge {
-        top: 6px;
-        left: 6px;
-        padding: 1px 4px;
-        border-radius: 3px;
-        min-width: 16px;
+        top: 5px;
+        left: 5px;
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
     }
     
     .badge-number {
-        font-size: 7px;
+        font-size: 8px;
     }
 }
 
-/* Very Small Mobile (380px and below) - Maximum efficiency */
-@media (max-width: 380px) {
+/* Extreme Small (320px and below) */
+@media (max-width: 320px) {
     .categories-container {
-        grid-template-columns: repeat(2, 1fr);
         gap: 6px;
         padding: 6px;
     }
@@ -489,11 +545,11 @@
     
     .card-content {
         padding: 6px;
-        gap: 3px;
+        gap: 4px;
     }
     
     .category-name {
-        font-size: 11px;
+        font-size: 12px;
     }
     
     .category-description {
@@ -505,10 +561,6 @@
         padding-top: 2px;
     }
     
-    .view-button {
-        gap: 3px;
-    }
-    
     .view-button span {
         font-size: 8px;
     }
@@ -518,8 +570,7 @@
     }
     
     .inline-item-count {
-        padding: 1px 3px;
-        gap: 2px;
+        padding: 1px 4px;
     }
     
     .inline-item-count span {
@@ -530,74 +581,32 @@
         font-size: 6px;
     }
     
+    /* Extreme Small Badge Size */
     .category-badge {
-        top: 5px;
-        left: 5px;
-        padding: 1px 3px;
-        border-radius: 3px;
-        min-width: 14px;
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
     }
     
     .badge-number {
-        font-size: 6px;
-    }
-}
-
-/* Extreme Small (320px and below) */
-@media (max-width: 320px) {
-    .categories-container {
-        gap: 5px;
-        padding: 5px;
-    }
-    
-    .card-image-wrapper {
-        height: 100px;
-    }
-    
-    .card-content {
-        padding: 5px;
-        gap: 2px;
-    }
-    
-    .category-name {
-        font-size: 10px;
-    }
-    
-    .view-button span {
         font-size: 7px;
     }
-    
-    .view-button i {
-        font-size: 6px;
-    }
-    
-    .inline-item-count span {
-        font-size: 6px;
-    }
-    
-    .inline-item-count i {
-        font-size: 5px;
-    }
-    
-    .badge-number {
-        font-size: 5px;
-    }
 }
 
-/* Landscape Mode - Show 3 columns for maximum categories */
+/* Landscape Mode */
 @media (max-height: 500px) and (orientation: landscape) {
     .categories-container {
         grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        padding: 10px;
+        gap: 12px;
+        padding: 12px;
     }
     
     .card-image-wrapper {
-        height: 100px;
+        height: 120px;
     }
     
     .card-content {
-        padding: 8px;
+        padding: 10px;
     }
     
     .category-description {
@@ -605,54 +614,32 @@
     }
 }
 
-/* Large Desktop - More spacing but compact badge remains */
+/* Large Desktop */
 @media (min-width: 1200px) {
     .categories-container {
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 20px;
-        padding: 20px;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 24px;
+        padding: 24px;
     }
     
     .card-image-wrapper {
-        height: 180px;
-    }
-    
-    .card-content {
-        padding: 14px;
+        height: 200px;
     }
     
     .category-name {
-        font-size: 17px;
-        white-space: normal;
+        font-size: 20px;
     }
     
     .category-description {
-        font-size: 13px;
-    }
-    
-    /* Desktop badge slightly larger but still compact */
-    .category-badge {
-        top: 12px;
-        left: 12px;
-        padding: 3px 8px;
-        border-radius: 6px;
-        min-width: 26px;
-    }
-    
-    .badge-number {
-        font-size: 12px;
-    }
-    
-    .view-button span {
-        font-size: 13px;
+        font-size: 14px;
     }
     
     .inline-item-count {
-        padding: 4px 10px;
+        padding: 5px 12px;
     }
     
     .inline-item-count span {
-        font-size: 12px;
+        font-size: 13px;
     }
 }
 
