@@ -79,7 +79,7 @@
             </div>
         {% endif %}
         
-        <!-- Horizontal Categories Scroll - INSIDE MAIN CONTENT -->
+        <!-- Horizontal Categories Scroll - 10px GAP FROM BOTTOM NAV -->
         {% if all_categories and all_categories|length > 1 %}
         <div class="browse-categories-section">
             <div class="browse-categories-header">
@@ -116,6 +116,9 @@
             </div>
         </div>
         {% endif %}
+        
+        <!-- Spacer for bottom gap - 10px -->
+        <div style="height: 10px;"></div>
     </main>
 
     <!-- Bottom Navigation -->
@@ -619,7 +622,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     border-top: 1px solid var(--dark-border);
     border-bottom: 1px solid var(--dark-border);
     margin-top: 16px;
-    margin-bottom: 16px;
+    margin-bottom: 0;
     position: relative;
     width: 100%;
 }
@@ -942,7 +945,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     .menu-modal-details-square { height: 95px !important; }
     .btn-menu-modal-details, .btn-menu-modal-add { height: 26px !important; padding: 4px 6px !important; font-size: 8.5px !important; }
     
-    .browse-categories-section { padding: 12px 0 16px 0; margin-top: 12px; margin-bottom: 12px; }
+    .browse-categories-section { padding: 12px 0 16px 0; margin-top: 12px; }
     .browse-categories-header { padding: 0 12px 8px 12px; }
     .browse-categories-header h3 { font-size: 12px; }
     .browse-categories-scroll { gap: 10px; padding: 5px 12px 6px 12px; }
