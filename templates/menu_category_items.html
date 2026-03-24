@@ -78,9 +78,12 @@
                 <p>Check back soon for premium selections!</p>
             </div>
         {% endif %}
+        
+        <!-- Spacer to prevent content from hiding behind fixed categories -->
+        <div class="categories-spacer"></div>
     </main>
 
-    <!-- Horizontal Categories Scroll - FIXED POSITION (No Movement) -->
+    <!-- Horizontal Categories Scroll - FIXED POSITION -->
     {% if all_categories and all_categories|length > 1 %}
     <div class="browse-categories-section">
         <div class="browse-categories-header">
@@ -243,6 +246,11 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     flex: 1;
     overflow-y: auto;
     padding-bottom: 20px;
+}
+
+/* Spacer to prevent content from hiding behind fixed categories */
+.categories-spacer {
+    height: 180px;  /* Desktop spacer height */
 }
 
 /* ========== MENU ITEMS 2-COLUMN GRID ========== */
@@ -599,18 +607,18 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     .btn-menu-modal-details i, .btn-menu-modal-add i { font-size: 10px; }
 }
 
-/* ========== BROWSE CATEGORIES SECTION - FIXED POSITION (No Movement) ========== */
+/* ========== BROWSE CATEGORIES SECTION - FIXED POSITION ========== */
 .browse-categories-section {
+    position: fixed;
+    bottom: 120px;  /* Desktop: bottom se 120px upar */
+    left: 0;
+    right: 0;
     background: var(--matte-black);
-    padding: 12px 0 120px 0;  /* Desktop: 120px bottom padding */
+    padding: 12px 0 12px 0;
     border-top: 1px solid var(--dark-border);
     border-bottom: 1px solid var(--dark-border);
-    margin-top: 0;  /* No negative margin - fixed position */
-    margin-bottom: 0;
-    position: relative;
-    z-index: 1;
+    z-index: 100;
     width: 100%;
-    clear: both;
 }
 
 .browse-categories-header {
@@ -852,7 +860,14 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     .menu-modal-details-square { height: 95px !important; }
     .btn-menu-modal-details, .btn-menu-modal-add { height: 26px !important; padding: 4px 6px !important; font-size: 8.5px !important; }
     
-    .browse-categories-section { padding: 10px 0 90px 0; margin-top: 0; }  /* Mobile: 90px bottom padding, no margin */
+    .categories-spacer {
+        height: 160px;  /* Mobile spacer height */
+    }
+    
+    .browse-categories-section {
+        bottom: 90px;  /* Mobile: bottom se 90px upar */
+        padding: 10px 0 10px 0;
+    }
     .browse-categories-header { padding: 0 12px 8px 12px; }
     .browse-categories-header h3 { font-size: 12px; }
     .browse-categories-scroll { gap: 12px; padding: 5px 12px 8px 12px; }
@@ -869,7 +884,14 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     .btn-menu-modal-details, .btn-menu-modal-add { height: 24px !important; padding: 3px 5px !important; font-size: 8px !important; gap: 2px; }
     .btn-menu-modal-details i, .btn-menu-modal-add i { font-size: 8px; }
     
-    .browse-categories-section { padding: 8px 0 80px 0; margin-top: 0; }  /* Small mobile: 80px bottom padding */
+    .categories-spacer {
+        height: 150px;  /* Small mobile spacer height */
+    }
+    
+    .browse-categories-section {
+        bottom: 80px;  /* Small mobile: bottom se 80px upar */
+        padding: 8px 0 8px 0;
+    }
     .browse-category-card { width: 75px; padding: 8px 4px; }
     .browse-category-photo-square { width: 55px; height: 55px; margin-bottom: 6px; }
     .browse-category-number { width: 18px; height: 18px; font-size: 8px; }
