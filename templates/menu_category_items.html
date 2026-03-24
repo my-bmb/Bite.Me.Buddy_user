@@ -461,7 +461,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     text-shadow: 0 1px 2px rgba(0,0,0,0.15), 0 0 5px var(--price-glow);
 }
 
-/* Action Buttons */
+/* Action Buttons - DESKTOP */
 .menu-modal-actions {
     display: flex;
     gap: 0.6px;
@@ -795,10 +795,11 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     color: var(--champagne-gold);
 }
 
-/* ========== MOBILE RESPONSIVE ========== */
+/* ========== MOBILE RESPONSIVE - BIGGER BUTTONS ========== */
 @media (max-width: 767px) {
     .menu-two-column-grid-direct { grid-template-columns: 1fr !important; gap: 2px !important; padding: 0 !important; }
     
+    /* Mobile Card - Compact Height */
     .menu-modal-item-card {
         height: 95px !important;
         min-height: 95px;
@@ -815,6 +816,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
         padding-right: 2px !important;
     }
     
+    /* Readable Font Sizes */
     .menu-modal-item-name {
         font-size: 11px !important;
         padding-right: 2px;
@@ -842,17 +844,18 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
         font-size: 13px !important;
     }
     
+    /* BIGGER BUTTONS - Same Card Height */
     .btn-menu-modal-details,
     .btn-menu-modal-add {
-        height: 22px !important;
-        padding: 3px 5px !important;
-        font-size: 8.5px !important;
-        gap: 3px;
+        height: 26px !important;
+        padding: 4px 6px !important;
+        font-size: 9.5px !important;
+        gap: 4px;
     }
     
     .btn-menu-modal-details i,
     .btn-menu-modal-add i {
-        font-size: 9px !important;
+        font-size: 10px !important;
     }
     
     .menu-modal-header {
@@ -936,17 +939,18 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
         font-size: 12px !important;
     }
     
+    /* Small Mobile Buttons */
     .btn-menu-modal-details,
     .btn-menu-modal-add {
-        height: 20px !important;
-        padding: 2px 4px !important;
-        font-size: 8px !important;
-        gap: 2px;
+        height: 24px !important;
+        padding: 3px 5px !important;
+        font-size: 9px !important;
+        gap: 3px;
     }
     
     .btn-menu-modal-details i,
     .btn-menu-modal-add i {
-        font-size: 8px !important;
+        font-size: 9px !important;
     }
     
     .categories-spacer {
