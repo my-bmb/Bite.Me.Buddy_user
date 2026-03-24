@@ -80,7 +80,7 @@
         {% endif %}
     </main>
 
-    <!-- Horizontal Categories Scroll - SYMMETRIC WITH TOP ITEMS GAP -->
+    <!-- Horizontal Categories Scroll - FIXED POSITION (No Movement) -->
     {% if all_categories and all_categories|length > 1 %}
     <div class="browse-categories-section">
         <div class="browse-categories-header">
@@ -599,13 +599,13 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     .btn-menu-modal-details i, .btn-menu-modal-add i { font-size: 10px; }
 }
 
-/* ========== BROWSE CATEGORIES SECTION - SYMMETRIC WITH TOP ITEMS GAP ========== */
+/* ========== BROWSE CATEGORIES SECTION - FIXED POSITION (No Movement) ========== */
 .browse-categories-section {
     background: var(--matte-black);
-    padding: 12px 0 90px 0;  /* Bottom padding 90px for symmetric gap */
+    padding: 12px 0 120px 0;  /* Desktop: 120px bottom padding */
     border-top: 1px solid var(--dark-border);
     border-bottom: 1px solid var(--dark-border);
-    margin-top: -80px;
+    margin-top: 0;  /* No negative margin - fixed position */
     margin-bottom: 0;
     position: relative;
     z-index: 1;
@@ -655,7 +655,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 .browse-categories-scroll::-webkit-scrollbar-track { background: var(--dark-border); border-radius: 10px; }
 .browse-categories-scroll::-webkit-scrollbar-thumb { background: var(--champagne-gold); border-radius: 10px; }
 
-/* Category Card - SQUARE CARD */
+/* Category Card - SQUARE CARD (With Number Badge) */
 .browse-category-card {
     flex-shrink: 0;
     width: 100px;
@@ -686,7 +686,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     box-shadow: 0 0 12px rgba(192, 178, 131, 0.3);
 }
 
-/* Square Photo */
+/* Square Photo with Number Badge */
 .browse-category-photo-square {
     width: 70px;
     height: 70px;
@@ -852,7 +852,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     .menu-modal-details-square { height: 95px !important; }
     .btn-menu-modal-details, .btn-menu-modal-add { height: 26px !important; padding: 4px 6px !important; font-size: 8.5px !important; }
     
-    .browse-categories-section { padding: 10px 0 80px 0; margin-top: -80px; }
+    .browse-categories-section { padding: 10px 0 90px 0; margin-top: 0; }  /* Mobile: 90px bottom padding, no margin */
     .browse-categories-header { padding: 0 12px 8px 12px; }
     .browse-categories-header h3 { font-size: 12px; }
     .browse-categories-scroll { gap: 12px; padding: 5px 12px 8px 12px; }
@@ -869,7 +869,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     .btn-menu-modal-details, .btn-menu-modal-add { height: 24px !important; padding: 3px 5px !important; font-size: 8px !important; gap: 2px; }
     .btn-menu-modal-details i, .btn-menu-modal-add i { font-size: 8px; }
     
-    .browse-categories-section { padding: 8px 0 70px 0; margin-top: -80px; }
+    .browse-categories-section { padding: 8px 0 80px 0; margin-top: 0; }  /* Small mobile: 80px bottom padding */
     .browse-category-card { width: 75px; padding: 8px 4px; }
     .browse-category-photo-square { width: 55px; height: 55px; margin-bottom: 6px; }
     .browse-category-number { width: 18px; height: 18px; font-size: 8px; }
