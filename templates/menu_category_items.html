@@ -554,7 +554,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 /* ========== BROWSE CATEGORIES SECTION - FIXED WITH BLUR EFFECT ========== */
 .browse-categories-section {
     position: fixed;
-    bottom: 120px;
+    bottom: 110px;  /* Desktop: bottom se 110px upar (was 120px) */
     left: 0;
     right: 0;
     background: rgba(13, 13, 13, 0.95);
@@ -795,11 +795,10 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     color: var(--champagne-gold);
 }
 
-/* ========== MOBILE RESPONSIVE - BIGGER BUTTONS ========== */
+/* ========== MOBILE RESPONSIVE ========== */
 @media (max-width: 767px) {
     .menu-two-column-grid-direct { grid-template-columns: 1fr !important; gap: 2px !important; padding: 0 !important; }
     
-    /* Mobile Card - Compact Height */
     .menu-modal-item-card {
         height: 95px !important;
         min-height: 95px;
@@ -816,7 +815,6 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
         padding-right: 2px !important;
     }
     
-    /* Readable Font Sizes */
     .menu-modal-item-name {
         font-size: 11px !important;
         padding-right: 2px;
@@ -844,7 +842,6 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
         font-size: 13px !important;
     }
     
-    /* BIGGER BUTTONS - Same Card Height */
     .btn-menu-modal-details,
     .btn-menu-modal-add {
         height: 26px !important;
@@ -882,9 +879,9 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
         height: 130px;
     }
     
-    /* Mobile Blur Effect */
+    /* Mobile - Bottom position 80px */
     .browse-categories-section {
-        bottom: 90px;
+        bottom: 80px;
         padding: 8px 0 8px 0;
         background: rgba(13, 13, 13, 0.96);
         backdrop-filter: blur(10px);
@@ -939,7 +936,6 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
         font-size: 12px !important;
     }
     
-    /* Small Mobile Buttons */
     .btn-menu-modal-details,
     .btn-menu-modal-add {
         height: 24px !important;
