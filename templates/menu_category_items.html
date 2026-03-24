@@ -16,7 +16,7 @@
         </div>
     </header>
 
-    <!-- Menu Content - Direct 2-Column Grid -->
+    <!-- Menu Content - Adjust margin to accommodate right sidebar -->
     <main class="main-content">
         {% if menu_items %}
             <div class="menu-two-column-grid-direct">
@@ -78,12 +78,9 @@
                 <p>Check back soon for premium selections!</p>
             </div>
         {% endif %}
-        
-        <!-- Spacer to prevent content from hiding behind fixed categories -->
-        <div class="categories-spacer"></div>
     </main>
 
-    <!-- Horizontal Categories Scroll - NO HEADER (More Space for Items) -->
+    <!-- Right Side Vertical Categories - No Horizontal Scroll -->
     {% if all_categories and all_categories|length > 1 %}
     <div class="browse-categories-section">
         <div class="browse-categories-scroll">
@@ -242,11 +239,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     flex: 1;
     overflow-y: auto;
     padding-bottom: 20px;
-}
-
-/* Spacer - Reduced for more items */
-.categories-spacer {
-    height: 120px;  /* Reduced from 150px for more items */
+    padding-right: 110px;  /* Space for right sidebar */
 }
 
 /* ========== MENU ITEMS 2-COLUMN GRID ========== */
@@ -547,39 +540,51 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 .btn-menu-modal-details i { color: var(--champagne-gold); }
 .btn-menu-modal-add i { color: #000000; font-weight: bold; }
 
-/* ========== BROWSE CATEGORIES SECTION - NO HEADER ========== */
+/* ========== RIGHT SIDE VERTICAL CATEGORIES - NO HORIZONTAL SCROLL ========== */
 .browse-categories-section {
     position: fixed;
-    bottom: 90px;
-    left: 0;
     right: 0;
+    top: 80px;  /* Header ke neeche */
+    bottom: 70px;  /* Bottom navigation ke upar */
+    width: 100px;
     background: rgba(13, 13, 13, 0.95);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    padding: 10px 0;
-    border-top: 1px solid rgba(192, 178, 131, 0.4);
-    border-bottom: 1px solid rgba(192, 178, 131, 0.4);
+    border-left: 1px solid rgba(192, 178, 131, 0.4);
     z-index: 100;
-    width: 100%;
+    overflow-y: auto;  /* Vertical scroll only */
+    overflow-x: hidden;  /* No horizontal scroll */
+    padding: 12px 5px;
+}
+
+/* Custom scrollbar for categories sidebar */
+.browse-categories-section::-webkit-scrollbar {
+    width: 3px;
+}
+
+.browse-categories-section::-webkit-scrollbar-track {
+    background: var(--dark-border);
+    border-radius: 10px;
+}
+
+.browse-categories-section::-webkit-scrollbar-thumb {
+    background: var(--champagne-gold);
+    border-radius: 10px;
 }
 
 .browse-categories-scroll {
     display: flex;
-    overflow-x: auto;
-    scroll-behavior: smooth;
+    flex-direction: column;  /* Vertical layout only */
     gap: 12px;
-    padding: 6px 16px;
-    -webkit-overflow-scrolling: touch;
+    height: 100%;
+    overflow-y: visible;
+    overflow-x: visible;
 }
 
-.browse-categories-scroll::-webkit-scrollbar { height: 2px; }
-.browse-categories-scroll::-webkit-scrollbar-track { background: var(--dark-border); border-radius: 10px; }
-.browse-categories-scroll::-webkit-scrollbar-thumb { background: var(--champagne-gold); border-radius: 10px; }
-
-/* Category Card - Different from Items Card */
+/* Category Card - Vertical Layout */
 .browse-category-card {
     flex-shrink: 0;
-    width: 85px;
+    width: 90px;
     background: rgba(26, 26, 26, 0.9);
     border-radius: 12px;
     border: 1px solid rgba(192, 178, 131, 0.2);
@@ -592,8 +597,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     align-items: center;
     justify-content: center;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    padding: 8px 5px;
-    aspect-ratio: 1 / 1;
+    padding: 8px 4px;
 }
 
 /* Active Category - Strong Glowing Effect */
@@ -606,13 +610,13 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 
 .browse-category-card:hover {
     border-color: var(--champagne-gold);
-    transform: translateY(-2px);
+    transform: translateX(-2px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(192, 178, 131, 0.4);
 }
 
 .browse-category-photo-square {
-    width: 60px;
-    height: 60px;
+    width: 65px;
+    height: 65px;
     border-radius: 10px;
     overflow: hidden;
     position: relative;
@@ -638,8 +642,8 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     position: absolute;
     top: -4px;
     right: -4px;
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--vivid-gold) 100%);
     color: #000000;
     border-radius: 50%;
@@ -647,7 +651,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     align-items: center;
     justify-content: center;
     font-weight: 900;
-    font-size: 8px;
+    font-size: 9px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     border: 1.5px solid var(--onyx-black);
     z-index: 2;
@@ -657,7 +661,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 .browse-category-name {
     margin: 0;
     color: var(--gold-light);
-    font-size: 6.5px;
+    font-size: 7px;
     font-weight: 600;
     text-align: center;
     overflow: hidden;
@@ -770,9 +774,15 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     color: var(--champagne-gold);
 }
 
-/* ========== MOBILE RESPONSIVE ========== */
+/* ========== MOBILE RESPONSIVE - RIGHT SIDE VERTICAL CATEGORIES (NO HORIZONTAL SCROLL) ========== */
 @media (max-width: 767px) {
     .menu-two-column-grid-direct { grid-template-columns: 1fr !important; gap: 2px !important; padding: 0 !important; }
+    
+    /* Adjust main content for right sidebar */
+    .main-content {
+        padding-right: 85px;  /* Space for right sidebar on mobile */
+        padding-bottom: 10px;
+    }
     
     .menu-modal-item-card {
         height: 95px !important;
@@ -850,28 +860,56 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
         top: -0.2px;
     }
     
-    /* Spacer reduced for mobile */
-    .categories-spacer {
-        height: 100px;
-    }
-    
-    /* Mobile Browse Categories - No Header */
+    /* Mobile Right Side Categories - No Horizontal Scroll */
     .browse-categories-section {
-        bottom: 60px;
-        padding: 8px 0;
+        top: 70px;  /* Mobile header height */
+        bottom: 60px;  /* Mobile bottom nav height */
+        width: 80px;
         background: rgba(13, 13, 13, 0.96);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
+        padding: 10px 4px;
+        overflow-y: auto;
+        overflow-x: hidden;
     }
-    .browse-categories-scroll { gap: 10px; padding: 5px 12px; }
-    .browse-category-card { width: 70px; padding: 6px 4px; }
-    .browse-category-photo-square { width: 52px; height: 52px; margin-bottom: 5px; }
-    .browse-category-number { width: 16px; height: 16px; font-size: 7px; top: -3px; right: -3px; }
-    .browse-category-name { font-size: 5.5px; }
-    .browse-category-card.active { transform: scale(1.03); }
+    
+    .browse-category-card {
+        width: 72px;
+        padding: 6px 3px;
+    }
+    
+    .browse-category-photo-square {
+        width: 55px;
+        height: 55px;
+        margin-bottom: 5px;
+    }
+    
+    .browse-category-number {
+        width: 16px;
+        height: 16px;
+        font-size: 7px;
+        top: -3px;
+        right: -3px;
+    }
+    
+    .browse-category-name {
+        font-size: 6px;
+    }
+    
+    .browse-categories-scroll {
+        gap: 10px;
+    }
+    
+    .browse-category-card.active {
+        transform: scale(1.03);
+    }
 }
 
 @media (max-width: 480px) {
+    .main-content {
+        padding-right: 75px;  /* Smaller right sidebar */
+    }
+    
     .menu-modal-item-card {
         height: 90px !important;
         min-height: 90px;
@@ -924,20 +962,30 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
         font-size: 9px !important;
     }
     
-    .categories-spacer {
-        height: 90px;
+    .browse-categories-section {
+        width: 70px;
+        padding: 8px 3px;
     }
     
-    .browse-categories-section {
-        bottom: 60px;
-        padding: 6px 0;
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+    .browse-category-card {
+        width: 64px;
+        padding: 5px 2px;
     }
-    .browse-category-card { width: 62px; padding: 5px 3px; }
-    .browse-category-photo-square { width: 48px; height: 48px; margin-bottom: 4px; }
-    .browse-category-number { width: 14px; height: 14px; font-size: 6px; }
-    .browse-category-name { font-size: 5px; }
+    
+    .browse-category-photo-square {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .browse-category-number {
+        width: 14px;
+        height: 14px;
+        font-size: 6px;
+    }
+    
+    .browse-category-name {
+        font-size: 5.5px;
+    }
 }
 
 /* No Items State */
