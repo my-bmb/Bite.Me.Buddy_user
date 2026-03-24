@@ -16,7 +16,7 @@
         </div>
     </header>
 
-    <!-- Menu Content - Adjust margin to accommodate right sidebar -->
+    <!-- Menu Content - Direct 2-Column Grid -->
     <main class="main-content">
         {% if menu_items %}
             <div class="menu-two-column-grid-direct">
@@ -80,7 +80,7 @@
         {% endif %}
     </main>
 
-    <!-- Right Side Vertical Categories - No Horizontal Scroll -->
+    <!-- Right Side Vertical Categories -->
     {% if all_categories and all_categories|length > 1 %}
     <div class="browse-categories-section">
         <div class="browse-categories-scroll">
@@ -238,7 +238,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 .main-content {
     flex: 1;
     overflow-y: auto;
-    padding-bottom: 20px;
+    padding-bottom: 80px;
     padding-right: 110px;  /* Space for right sidebar */
 }
 
@@ -253,7 +253,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     background: var(--matte-black);
 }
 
-/* MENU MODAL ITEM CARD - DESKTOP STYLE */
+/* MENU MODAL ITEM CARD */
 .menu-modal-item-card {
     display: flex;
     gap: 2px !important;
@@ -302,7 +302,6 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     }
 }
 
-/* Desktop layout borders */
 @media (min-width: 768px) {
     .menu-modal-item-card:nth-child(odd) { border-left: none; }
     .menu-modal-item-card:nth-child(even) { border-right: none; }
@@ -310,7 +309,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     .menu-modal-item-card:nth-last-child(-n+2) { border-bottom: none; }
 }
 
-/* Left Column: Photo Square - DESKTOP */
+/* Left Column: Photo Square */
 .menu-modal-photo-square {
     flex: 0 0 115px;
     width: 115px;
@@ -337,7 +336,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     filter: saturate(1.6) contrast(1.3) brightness(1.1);
 }
 
-/* Right Column: Details Square - DESKTOP */
+/* Right Column: Details Square */
 .menu-modal-details-square {
     flex: 1;
     min-width: 0;
@@ -450,7 +449,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     text-shadow: 0 1px 2px rgba(0,0,0,0.15), 0 0 5px var(--price-glow);
 }
 
-/* Action Buttons - DESKTOP */
+/* Action Buttons */
 .menu-modal-actions {
     display: flex;
     gap: 0.6px;
@@ -540,20 +539,21 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 .btn-menu-modal-details i { color: var(--champagne-gold); }
 .btn-menu-modal-add i { color: #000000; font-weight: bold; }
 
-/* ========== RIGHT SIDE VERTICAL CATEGORIES - NO HORIZONTAL SCROLL ========== */
+/* ========== RIGHT SIDE VERTICAL CATEGORIES - EQUAL BORDER GLOW ========== */
 .browse-categories-section {
     position: fixed;
-    right: 0;
-    top: 80px;  /* Header ke neeche */
-    bottom: 70px;  /* Bottom navigation ke upar */
+    right: 15px;
+    top: 80px;
+    bottom: 70px;
     width: 100px;
     background: rgba(13, 13, 13, 0.95);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-left: 1px solid rgba(192, 178, 131, 0.4);
+    border-right: 1px solid rgba(192, 178, 131, 0.4);  /* Same glow as left border */
     z-index: 100;
-    overflow-y: auto;  /* Vertical scroll only */
-    overflow-x: hidden;  /* No horizontal scroll */
+    overflow-y: auto;
+    overflow-x: hidden;
     padding: 12px 5px;
 }
 
@@ -574,14 +574,14 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 
 .browse-categories-scroll {
     display: flex;
-    flex-direction: column;  /* Vertical layout only */
+    flex-direction: column;
     gap: 12px;
     height: 100%;
     overflow-y: visible;
     overflow-x: visible;
 }
 
-/* Category Card - Vertical Layout */
+/* Category Card */
 .browse-category-card {
     flex-shrink: 0;
     width: 90px;
@@ -600,18 +600,18 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     padding: 8px 4px;
 }
 
-/* Active Category - Strong Glowing Effect */
+/* Active Category - Normal Effect */
 .browse-category-card.active {
     border: 2px solid var(--champagne-gold);
-    box-shadow: 0 0 20px rgba(192, 178, 131, 0.6), 0 0 30px rgba(192, 178, 131, 0.3);
-    background: rgba(192, 178, 131, 0.1);
-    transform: scale(1.02);
+    box-shadow: 0 0 8px rgba(192, 178, 131, 0.4);
+    background: rgba(192, 178, 131, 0.08);
+    transform: scale(1.01);
 }
 
 .browse-category-card:hover {
     border-color: var(--champagne-gold);
     transform: translateX(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(192, 178, 131, 0.4);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 10px rgba(192, 178, 131, 0.3);
 }
 
 .browse-category-photo-square {
@@ -675,7 +675,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 
 .browse-category-card.active .browse-category-name {
     color: var(--creamy-white);
-    text-shadow: 0 0 5px rgba(192, 178, 131, 0.5);
+    text-shadow: 0 0 3px rgba(192, 178, 131, 0.3);
 }
 
 /* NOTIFICATION */
@@ -774,14 +774,13 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     color: var(--champagne-gold);
 }
 
-/* ========== MOBILE RESPONSIVE - RIGHT SIDE VERTICAL CATEGORIES (NO HORIZONTAL SCROLL) ========== */
+/* ========== MOBILE RESPONSIVE ========== */
 @media (max-width: 767px) {
     .menu-two-column-grid-direct { grid-template-columns: 1fr !important; gap: 2px !important; padding: 0 !important; }
     
-    /* Adjust main content for right sidebar */
     .main-content {
-        padding-right: 85px;  /* Space for right sidebar on mobile */
-        padding-bottom: 10px;
+        padding-right: 85px;
+        padding-bottom: 70px;
     }
     
     .menu-modal-item-card {
@@ -860,17 +859,18 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
         top: -0.2px;
     }
     
-    /* Mobile Right Side Categories - No Horizontal Scroll */
+    /* Mobile Right Side Categories */
     .browse-categories-section {
-        top: 70px;  /* Mobile header height */
-        bottom: 60px;  /* Mobile bottom nav height */
+        top: 70px;
+        bottom: 60px;
         width: 80px;
+        right: 15px;
         background: rgba(13, 13, 13, 0.96);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         padding: 10px 4px;
-        overflow-y: auto;
-        overflow-x: hidden;
+        border-left: 1px solid rgba(192, 178, 131, 0.4);
+        border-right: 1px solid rgba(192, 178, 131, 0.4);
     }
     
     .browse-category-card {
@@ -901,13 +901,15 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     }
     
     .browse-category-card.active {
-        transform: scale(1.03);
+        transform: scale(1.01);
+        box-shadow: 0 0 6px rgba(192, 178, 131, 0.4);
     }
 }
 
 @media (max-width: 480px) {
     .main-content {
-        padding-right: 75px;  /* Smaller right sidebar */
+        padding-right: 75px;
+        padding-bottom: 60px;
     }
     
     .menu-modal-item-card {
@@ -964,6 +966,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     
     .browse-categories-section {
         width: 70px;
+        right: 15px;
         padding: 8px 3px;
     }
     
