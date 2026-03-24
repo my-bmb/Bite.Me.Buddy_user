@@ -83,13 +83,9 @@
         <div class="categories-spacer"></div>
     </main>
 
-    <!-- Horizontal Categories Scroll - FIXED POSITION WITH BLUR EFFECT -->
+    <!-- Horizontal Categories Scroll - NO HEADER (More Space for Items) -->
     {% if all_categories and all_categories|length > 1 %}
     <div class="browse-categories-section">
-        <div class="browse-categories-header">
-            <h3><i class="fas fa-th-large"></i> Browse Categories</h3>
-            <span class="scroll-hint"><i class="fas fa-arrow-right"></i> Scroll</span>
-        </div>
         <div class="browse-categories-scroll">
             {% for cat in all_categories %}
             <a href="{{ url_for('menu_category_items', category_id=cat.id) }}" 
@@ -248,9 +244,9 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     padding-bottom: 20px;
 }
 
-/* Spacer to prevent content from hiding behind fixed categories */
+/* Spacer - Reduced for more items */
 .categories-spacer {
-    height: 150px;
+    height: 120px;  /* Reduced from 150px for more items */
 }
 
 /* ========== MENU ITEMS 2-COLUMN GRID ========== */
@@ -551,57 +547,28 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 .btn-menu-modal-details i { color: var(--champagne-gold); }
 .btn-menu-modal-add i { color: #000000; font-weight: bold; }
 
-/* ========== BROWSE CATEGORIES SECTION - FIXED WITH BLUR EFFECT ========== */
+/* ========== BROWSE CATEGORIES SECTION - NO HEADER ========== */
 .browse-categories-section {
     position: fixed;
-    bottom: 90px;  /* Desktop: bottom se 90px upar */
+    bottom: 90px;
     left: 0;
     right: 0;
     background: rgba(13, 13, 13, 0.95);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    padding: 12px 0 12px 0;
-    border-top: 1px solid rgba(192, 178, 131, 0.3);
-    border-bottom: 1px solid rgba(192, 178, 131, 0.3);
+    padding: 10px 0;
+    border-top: 1px solid rgba(192, 178, 131, 0.4);
+    border-bottom: 1px solid rgba(192, 178, 131, 0.4);
     z-index: 100;
     width: 100%;
-}
-
-.browse-categories-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 16px 8px 16px;
-}
-
-.browse-categories-header h3 {
-    margin: 0;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--creamy-white);
-    font-family: var(--serif-font);
-}
-
-.browse-categories-header h3 i {
-    color: var(--champagne-gold);
-    margin-right: 5px;
-    font-size: 12px;
-}
-
-.scroll-hint {
-    font-size: 9px;
-    color: var(--silver-mist);
-    display: flex;
-    align-items: center;
-    gap: 2px;
 }
 
 .browse-categories-scroll {
     display: flex;
     overflow-x: auto;
     scroll-behavior: smooth;
-    gap: 10px;
-    padding: 4px 16px 8px 16px;
+    gap: 12px;
+    padding: 6px 16px;
     -webkit-overflow-scrolling: touch;
 }
 
@@ -609,13 +576,13 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 .browse-categories-scroll::-webkit-scrollbar-track { background: var(--dark-border); border-radius: 10px; }
 .browse-categories-scroll::-webkit-scrollbar-thumb { background: var(--champagne-gold); border-radius: 10px; }
 
-/* Category Card */
+/* Category Card - Different from Items Card */
 .browse-category-card {
     flex-shrink: 0;
     width: 85px;
-    background: var(--onyx-black);
-    border-radius: 10px;
-    border: 1px solid var(--dark-border);
+    background: rgba(26, 26, 26, 0.9);
+    border-radius: 12px;
+    border: 1px solid rgba(192, 178, 131, 0.2);
     transition: all 0.3s ease;
     overflow: hidden;
     cursor: pointer;
@@ -624,37 +591,40 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    box-shadow: var(--card-shadow);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     padding: 8px 5px;
     aspect-ratio: 1 / 1;
+}
+
+/* Active Category - Strong Glowing Effect */
+.browse-category-card.active {
+    border: 2px solid var(--champagne-gold);
+    box-shadow: 0 0 20px rgba(192, 178, 131, 0.6), 0 0 30px rgba(192, 178, 131, 0.3);
+    background: rgba(192, 178, 131, 0.1);
+    transform: scale(1.02);
 }
 
 .browse-category-card:hover {
     border-color: var(--champagne-gold);
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 10px rgba(192, 178, 131, 0.3);
-}
-
-.browse-category-card.active {
-    border-color: var(--champagne-gold);
-    box-shadow: 0 0 12px rgba(192, 178, 131, 0.3);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(192, 178, 131, 0.4);
 }
 
 .browse-category-photo-square {
     width: 60px;
     height: 60px;
-    border-radius: 8px;
+    border-radius: 10px;
     overflow: hidden;
     position: relative;
     background: var(--matte-black);
-    border: 2px solid var(--dark-border);
+    border: 1px solid rgba(192, 178, 131, 0.3);
     margin-bottom: 6px;
     transition: all 0.3s ease;
 }
 
-.browse-category-card:hover .browse-category-photo-square {
+.browse-category-card:hover .browse-category-photo-square,
+.browse-category-card.active .browse-category-photo-square {
     border-color: var(--champagne-gold);
-    transform: scale(1.05);
 }
 
 .browse-category-photo-square img {
@@ -678,7 +648,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     justify-content: center;
     font-weight: 900;
     font-size: 8px;
-    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     border: 1.5px solid var(--onyx-black);
     z-index: 2;
     font-family: var(--serif-font);
@@ -686,17 +656,22 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 
 .browse-category-name {
     margin: 0;
-    color: var(--creamy-white);
+    color: var(--gold-light);
     font-size: 6.5px;
-    font-weight: 500;
+    font-weight: 600;
     text-align: center;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     width: 100%;
     font-family: var(--sans-font);
-    letter-spacing: 0.02em;
-    line-height: 1.2;
+    letter-spacing: 0.3px;
+    line-height: 1.3;
+}
+
+.browse-category-card.active .browse-category-name {
+    color: var(--creamy-white);
+    text-shadow: 0 0 5px rgba(192, 178, 131, 0.5);
 }
 
 /* NOTIFICATION */
@@ -875,25 +850,25 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
         top: -0.2px;
     }
     
+    /* Spacer reduced for mobile */
     .categories-spacer {
-        height: 130px;
+        height: 100px;
     }
     
-    /* Mobile - Bottom position 60px */
+    /* Mobile Browse Categories - No Header */
     .browse-categories-section {
-        bottom: 60px;  /* Mobile: bottom se 60px upar */
-        padding: 8px 0 8px 0;
+        bottom: 60px;
+        padding: 8px 0;
         background: rgba(13, 13, 13, 0.96);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
     }
-    .browse-categories-header { padding: 0 12px 6px 12px; }
-    .browse-categories-header h3 { font-size: 11px; }
-    .browse-categories-scroll { gap: 8px; padding: 4px 12px 6px 12px; }
+    .browse-categories-scroll { gap: 10px; padding: 5px 12px; }
     .browse-category-card { width: 70px; padding: 6px 4px; }
     .browse-category-photo-square { width: 52px; height: 52px; margin-bottom: 5px; }
     .browse-category-number { width: 16px; height: 16px; font-size: 7px; top: -3px; right: -3px; }
     .browse-category-name { font-size: 5.5px; }
+    .browse-category-card.active { transform: scale(1.03); }
 }
 
 @media (max-width: 480px) {
@@ -950,12 +925,12 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     }
     
     .categories-spacer {
-        height: 120px;
+        height: 90px;
     }
     
     .browse-categories-section {
         bottom: 60px;
-        padding: 6px 0 6px 0;
+        padding: 6px 0;
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
     }
