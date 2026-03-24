@@ -78,45 +78,45 @@
                 <p>Check back soon for premium selections!</p>
             </div>
         {% endif %}
+        
+        <!-- Horizontal Categories Scroll - INSIDE MAIN CONTENT -->
+        {% if all_categories and all_categories|length > 1 %}
+        <div class="browse-categories-section">
+            <div class="browse-categories-header">
+                <h3><i class="fas fa-th-large"></i> Browse Categories</h3>
+                <span class="scroll-hint"><i class="fas fa-arrow-right"></i> Scroll</span>
+            </div>
+            <div class="browse-categories-scroll">
+                {% for cat in all_categories %}
+                <a href="{{ url_for('menu_category_items', category_id=cat.id) }}" 
+                   class="browse-category-card {% if cat.id == category.id %}active{% endif %}">
+                    <div class="browse-category-photo">
+                        <img src="{{ cat.category_photo }}" alt="{{ cat.name }}">
+                        <div class="browse-category-number">
+                            <span>{{ loop.index }}</span>
+                        </div>
+                    </div>
+                    <div class="browse-category-info">
+                        <h4 class="browse-category-name">{{ cat.name }}</h4>
+                        {% if cat.description %}
+                        <div class="browse-category-desc-wrapper">
+                            <p class="browse-category-desc">{{ cat.description|truncate(60) }}</p>
+                        </div>
+                        {% endif %}
+                        <div class="browse-category-action">
+                            <button class="browse-category-btn">
+                                <i class="fas fa-eye"></i> 
+                                <span>View Items</span>
+                                <span class="browse-item-count">{{ cat.item_count|default(0) }}</span>
+                            </button>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     </main>
-
-    <!-- Horizontal Categories Scroll - COMPACT SIZE -->
-    {% if all_categories and all_categories|length > 1 %}
-    <div class="browse-categories-section">
-        <div class="browse-categories-header">
-            <h3><i class="fas fa-th-large"></i> Browse Categories</h3>
-            <span class="scroll-hint"><i class="fas fa-arrow-right"></i> Scroll</span>
-        </div>
-        <div class="browse-categories-scroll">
-            {% for cat in all_categories %}
-            <a href="{{ url_for('menu_category_items', category_id=cat.id) }}" 
-               class="browse-category-card {% if cat.id == category.id %}active{% endif %}">
-                <div class="browse-category-photo">
-                    <img src="{{ cat.category_photo }}" alt="{{ cat.name }}">
-                    <div class="browse-category-number">
-                        <span>{{ loop.index }}</span>
-                    </div>
-                </div>
-                <div class="browse-category-info">
-                    <h4 class="browse-category-name">{{ cat.name }}</h4>
-                    {% if cat.description %}
-                    <div class="browse-category-desc-wrapper">
-                        <p class="browse-category-desc">{{ cat.description|truncate(60) }}</p>
-                    </div>
-                    {% endif %}
-                    <div class="browse-category-action">
-                        <button class="browse-category-btn">
-                            <i class="fas fa-eye"></i> 
-                            <span>View Items</span>
-                            <span class="browse-item-count">{{ cat.item_count|default(0) }}</span>
-                        </button>
-                    </div>
-                </div>
-            </a>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
 
     <!-- Bottom Navigation -->
     <nav class="bottom-nav">
@@ -243,7 +243,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     --sans-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* ========== DASHBOARD CONTAINER - FIXED OVERFLOW ========== */
+/* ========== DASHBOARD CONTAINER ========== */
 .dashboard {
     min-height: 100vh;
     display: flex;
@@ -255,8 +255,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 
 .main-content {
     flex: 1;
-    overflow-y: auto;
-    padding-bottom: 20px;
+    padding-bottom: 0;
 }
 
 /* ========== MENU ITEMS 2-COLUMN GRID ========== */
@@ -613,24 +612,23 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     .btn-menu-modal-details i, .btn-menu-modal-add i { font-size: 10px; }
 }
 
-/* ========== BROWSE CATEGORIES SECTION - FIXED VISIBILITY ========== */
+/* ========== BROWSE CATEGORIES SECTION - WITH BORDER BOTTOM ========== */
 .browse-categories-section {
     background: var(--matte-black);
-    padding: 12px 0 25px 0;
+    padding: 16px 0 20px 0;
     border-top: 1px solid var(--dark-border);
-    margin-top: 8px;
-    margin-bottom: 0;
+    border-bottom: 1px solid var(--dark-border);
+    margin-top: 16px;
+    margin-bottom: 16px;
     position: relative;
-    z-index: 1;
     width: 100%;
-    clear: both;
 }
 
 .browse-categories-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 16px 10px 16px;
+    padding: 0 16px 12px 16px;
 }
 
 .browse-categories-header h3 {
@@ -660,7 +658,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     overflow-x: auto;
     scroll-behavior: smooth;
     gap: 12px;
-    padding: 6px 16px 10px 16px;
+    padding: 6px 16px 8px 16px;
     -webkit-overflow-scrolling: touch;
 }
 
@@ -944,10 +942,10 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     .menu-modal-details-square { height: 95px !important; }
     .btn-menu-modal-details, .btn-menu-modal-add { height: 26px !important; padding: 4px 6px !important; font-size: 8.5px !important; }
     
-    .browse-categories-section { padding: 8px 0 20px 0; margin-top: 6px; }
+    .browse-categories-section { padding: 12px 0 16px 0; margin-top: 12px; margin-bottom: 12px; }
     .browse-categories-header { padding: 0 12px 8px 12px; }
     .browse-categories-header h3 { font-size: 12px; }
-    .browse-categories-scroll { gap: 10px; padding: 5px 12px 8px 12px; }
+    .browse-categories-scroll { gap: 10px; padding: 5px 12px 6px 12px; }
     .browse-category-card { width: 140px; }
     .browse-category-photo { height: 85px; }
     .browse-category-number { width: 18px; height: 18px; font-size: 8px; top: 2px; left: 2px; }
