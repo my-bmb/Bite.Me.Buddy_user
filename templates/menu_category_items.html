@@ -234,7 +234,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 
 .main-content {
     flex: 1;
-    padding: 102px 110px 100px 32px;  /* top: header height + 32, right: sidebar space, bottom: nav space, left: normal */
+    padding: 70px 110px 100px 5px;  /* top: 70px (matches sidebar), left: 5px gap, right: space for sidebar, bottom: nav space */
     overflow-y: auto;
 }
 
@@ -536,7 +536,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 .btn-menu-modal-details i { color: var(--champagne-gold); }
 .btn-menu-modal-add i { color: #000000; font-weight: bold; }
 
-/* ========== RIGHT SIDE VERTICAL CATEGORIES - MATCHING CSS HEADER/BOTTOM ========== */
+/* ========== RIGHT SIDE VERTICAL CATEGORIES ========== */
 .browse-categories-section {
     position: fixed;
     right: 5px;
@@ -774,7 +774,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 /* ========== MOBILE RESPONSIVE ========== */
 @media (max-width: 767px) {
     .main-content {
-        padding: 80px 85px 80px 16px;
+        padding: 60px 85px 80px 5px;  /* top: 60px (matches mobile sidebar), left: 5px gap */
     }
     
     .menu-two-column-grid-direct { grid-template-columns: 1fr !important; gap: 2px !important; padding: 0 !important; }
@@ -857,8 +857,8 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     
     /* Mobile Right Side Categories */
     .browse-categories-section {
-        top: 60px;
-        bottom: 60px;
+        top: 60px;  /* Matches mobile header */
+        bottom: 60px;  /* Matches mobile bottom nav */
         width: 80px;
         right: 5px;
         background: rgba(13, 13, 13, 0.96);
@@ -902,7 +902,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 
 @media (max-width: 480px) {
     .main-content {
-        padding: 70px 75px 70px 12px;
+        padding: 55px 75px 70px 5px;  /* top: 55px (matches small mobile sidebar), left: 5px gap */
     }
     
     .menu-modal-item-card {
