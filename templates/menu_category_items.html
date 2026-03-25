@@ -80,7 +80,7 @@
         {% endif %}
     </main>
 
-    <!-- Right Side Vertical Categories - FIXED POSITION MATCHING CSS -->
+    <!-- Right Side Vertical Categories -->
     {% if all_categories and all_categories|length > 1 %}
     <div class="browse-categories-section">
         <div class="browse-categories-scroll">
@@ -234,7 +234,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 
 .main-content {
     flex: 1;
-    padding: 70px 110px 100px 5px;  /* top: 70px (matches sidebar), left: 5px gap, right: space for sidebar, bottom: nav space */
+    padding: 85px 110px 100px 5px;  /* top: 70px + 15px = 85px */
     overflow-y: auto;
 }
 
@@ -540,8 +540,8 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 .browse-categories-section {
     position: fixed;
     right: 5px;
-    top: 70px;  /* Matches header height */
-    bottom: 70px;  /* Matches bottom nav height */
+    top: 70px;
+    bottom: 70px;
     width: 100px;
     background: rgba(13, 13, 13, 0.95);
     backdrop-filter: blur(12px);
@@ -774,7 +774,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 /* ========== MOBILE RESPONSIVE ========== */
 @media (max-width: 767px) {
     .main-content {
-        padding: 60px 85px 80px 5px;  /* top: 60px (matches mobile sidebar), left: 5px gap */
+        padding: 75px 85px 80px 5px;  /* top: 60px + 15px = 75px */
     }
     
     .menu-two-column-grid-direct { grid-template-columns: 1fr !important; gap: 2px !important; padding: 0 !important; }
@@ -857,8 +857,8 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     
     /* Mobile Right Side Categories */
     .browse-categories-section {
-        top: 60px;  /* Matches mobile header */
-        bottom: 60px;  /* Matches mobile bottom nav */
+        top: 60px;
+        bottom: 60px;
         width: 80px;
         right: 5px;
         background: rgba(13, 13, 13, 0.96);
@@ -902,7 +902,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 
 @media (max-width: 480px) {
     .main-content {
-        padding: 55px 75px 70px 5px;  /* top: 55px (matches small mobile sidebar), left: 5px gap */
+        padding: 70px 75px 70px 5px;  /* top: 55px + 15px = 70px */
     }
     
     .menu-modal-item-card {
