@@ -80,7 +80,7 @@
         {% endif %}
     </main>
 
-    <!-- Right Side Vertical Categories - 5px Gap from Screen Edge -->
+    <!-- Right Side Vertical Categories - FIXED POSITION MATCHING CSS -->
     {% if all_categories and all_categories|length > 1 %}
     <div class="browse-categories-section">
         <div class="browse-categories-scroll">
@@ -225,21 +225,17 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     --sans-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* ========== DASHBOARD CONTAINER ========== */
+/* ========== DASHBOARD CONTAINER OVERRIDE ========== */
 .dashboard {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background: var(--matte-black);
     position: relative;
-    overflow-x: hidden;
+    min-height: 100vh;
+    background: var(--matte-black);
 }
 
 .main-content {
     flex: 1;
+    padding: 102px 110px 100px 32px;  /* top: header height + 32, right: sidebar space, bottom: nav space, left: normal */
     overflow-y: auto;
-    padding-bottom: 80px;
-    padding-right: 110px;  /* Space for right sidebar */
 }
 
 /* ========== MENU ITEMS 2-COLUMN GRID ========== */
@@ -253,7 +249,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     background: var(--matte-black);
 }
 
-/* MENU MODAL ITEM CARD - DESKTOP STYLE */
+/* MENU MODAL ITEM CARD */
 .menu-modal-item-card {
     display: flex;
     gap: 2px !important;
@@ -310,7 +306,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     .menu-modal-item-card:nth-last-child(-n+2) { border-bottom: none; }
 }
 
-/* Left Column: Photo Square - DESKTOP */
+/* Left Column: Photo Square */
 .menu-modal-photo-square {
     flex: 0 0 115px;
     width: 115px;
@@ -337,7 +333,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     filter: saturate(1.6) contrast(1.3) brightness(1.1);
 }
 
-/* Right Column: Details Square - DESKTOP */
+/* Right Column: Details Square */
 .menu-modal-details-square {
     flex: 1;
     min-width: 0;
@@ -450,7 +446,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     text-shadow: 0 1px 2px rgba(0,0,0,0.15), 0 0 5px var(--price-glow);
 }
 
-/* Action Buttons - DESKTOP */
+/* Action Buttons */
 .menu-modal-actions {
     display: flex;
     gap: 0.6px;
@@ -540,12 +536,12 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 .btn-menu-modal-details i { color: var(--champagne-gold); }
 .btn-menu-modal-add i { color: #000000; font-weight: bold; }
 
-/* ========== RIGHT SIDE VERTICAL CATEGORIES - 5px GAP FROM SCREEN EDGE ========== */
+/* ========== RIGHT SIDE VERTICAL CATEGORIES - MATCHING CSS HEADER/BOTTOM ========== */
 .browse-categories-section {
     position: fixed;
-    right: 5px;  /* 5px gap from screen edge */
-    top: 80px;
-    bottom: 70px;
+    right: 5px;
+    top: 70px;  /* Matches header height */
+    bottom: 70px;  /* Matches bottom nav height */
     width: 100px;
     background: rgba(13, 13, 13, 0.95);
     backdrop-filter: blur(12px);
@@ -582,7 +578,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     overflow-x: visible;
 }
 
-/* Category Card - Normal Active Effect */
+/* Category Card */
 .browse-category-card {
     flex-shrink: 0;
     width: 90px;
@@ -775,14 +771,13 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     color: var(--champagne-gold);
 }
 
-/* ========== MOBILE RESPONSIVE - 5px Gap Same as Desktop ========== */
+/* ========== MOBILE RESPONSIVE ========== */
 @media (max-width: 767px) {
-    .menu-two-column-grid-direct { grid-template-columns: 1fr !important; gap: 2px !important; padding: 0 !important; }
-    
     .main-content {
-        padding-right: 85px;
-        padding-bottom: 70px;
+        padding: 80px 85px 80px 16px;
     }
+    
+    .menu-two-column-grid-direct { grid-template-columns: 1fr !important; gap: 2px !important; padding: 0 !important; }
     
     .menu-modal-item-card {
         height: 95px !important;
@@ -860,12 +855,12 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
         top: -0.2px;
     }
     
-    /* Mobile Right Side Categories - 5px Gap */
+    /* Mobile Right Side Categories */
     .browse-categories-section {
-        top: 70px;
+        top: 60px;
         bottom: 60px;
         width: 80px;
-        right: 5px;  /* Same 5px gap as desktop */
+        right: 5px;
         background: rgba(13, 13, 13, 0.96);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
@@ -907,8 +902,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 
 @media (max-width: 480px) {
     .main-content {
-        padding-right: 75px;
-        padding-bottom: 60px;
+        padding: 70px 75px 70px 12px;
     }
     
     .menu-modal-item-card {
@@ -963,11 +957,12 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
         font-size: 9px !important;
     }
     
-    /* Small Mobile Right Side Categories - 5px Gap */
     .browse-categories-section {
         width: 70px;
-        right: 5px;  /* Same 5px gap for small mobile */
+        right: 5px;
         padding: 8px 3px;
+        top: 55px;
+        bottom: 55px;
     }
     
     .browse-category-card {
