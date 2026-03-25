@@ -80,7 +80,7 @@
         {% endif %}
     </main>
 
-    <!-- Right Side Vertical Categories -->
+    <!-- Right Side Vertical Categories - FIXED POSITION MATCHING CSS -->
     {% if all_categories and all_categories|length > 1 %}
     <div class="browse-categories-section">
         <div class="browse-categories-scroll">
@@ -234,7 +234,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 
 .main-content {
     flex: 1;
-    padding: 85px 110px 100px 5px;  /* top: 70px + 15px = 85px */
+    padding: 78px 110px 100px 5px;  /* top: 70px + 8px = 78px, left: 5px gap */
     overflow-y: auto;
 }
 
@@ -540,8 +540,8 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 .browse-categories-section {
     position: fixed;
     right: 5px;
-    top: 70px;
-    bottom: 70px;
+    top: 70px;  /* Matches header height */
+    bottom: 70px;  /* Matches bottom nav height */
     width: 100px;
     background: rgba(13, 13, 13, 0.95);
     backdrop-filter: blur(12px);
@@ -774,7 +774,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 /* ========== MOBILE RESPONSIVE ========== */
 @media (max-width: 767px) {
     .main-content {
-        padding: 75px 85px 80px 5px;  /* top: 60px + 15px = 75px */
+        padding: 68px 85px 80px 5px;  /* mobile: 60px + 8px = 68px */
     }
     
     .menu-two-column-grid-direct { grid-template-columns: 1fr !important; gap: 2px !important; padding: 0 !important; }
@@ -902,7 +902,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 
 @media (max-width: 480px) {
     .main-content {
-        padding: 70px 75px 70px 5px;  /* top: 55px + 15px = 70px */
+        padding: 63px 75px 70px 5px;  /* small mobile: 55px + 8px = 63px */
     }
     
     .menu-modal-item-card {
