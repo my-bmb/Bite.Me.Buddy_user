@@ -21,8 +21,8 @@
         </div>
     </header>
 
-    <!-- Collection Navigation Bar - Horizontal Scroll (Styled like Category Cards) -->
-    {% if all_collections and all_collections|length > 1 %}
+    <!-- Collection Navigation Bar - Horizontal Scroll (Shows even if only 1 collection) -->
+    {% if all_collections and all_collections|length >= 1 %}
     <div class="collection-nav-section">
         <div class="collection-nav-scroll">
             {% for col in all_collections %}
