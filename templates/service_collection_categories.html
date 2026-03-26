@@ -92,21 +92,21 @@
     </div>
     {% endif %}
 
-    <!-- Bottom Navigation - Dynamic Active Class -->
+    <!-- Bottom Navigation - EXACT SAME PATTERN AS services.html (Hardcoded Active) -->
     <nav class="bottom-nav">
-        <a href="{{ url_for('services') }}" class="nav-item {% if active_page == 'services' %}active{% endif %}">
+        <a href="{{ url_for('services') }}" class="nav-item active">
             <i class="fas fa-concierge-bell"></i><span>Services</span>
         </a>
-        <a href="{{ url_for('menu') }}" class="nav-item {% if active_page == 'menu' %}active{% endif %}">
+        <a href="{{ url_for('menu') }}" class="nav-item">
             <i class="fas fa-utensils"></i><span>Menu</span>
         </a>
-        <a href="{{ url_for('cart') }}" class="nav-item {% if active_page == 'cart' %}active{% endif %}">
+        <a href="{{ url_for('cart') }}" class="nav-item">
             <i class="fas fa-shopping-cart"></i><span>Cart</span>
         </a>
-        <a href="{{ url_for('order_history') }}" class="nav-item {% if active_page == 'orders' %}active{% endif %}">
+        <a href="{{ url_for('order_history') }}" class="nav-item">
             <i class="fas fa-history"></i><span>Orders</span>
         </a>
-        <a href="{{ url_for('profile') }}" class="nav-item {% if active_page == 'profile' %}active{% endif %}">
+        <a href="{{ url_for('profile') }}" class="nav-item">
             <i class="fas fa-user"></i><span>Profile</span>
         </a>
     </nav>
