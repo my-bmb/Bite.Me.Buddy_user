@@ -67,7 +67,7 @@
         {% endif %}
     </main>
 
-    <!-- Right Side Vertical Collections Navigation - Category Count Removed -->
+    <!-- Right Side Vertical Collections Navigation -->
     {% if all_collections %}
     <div class="browse-collections-section">
         <div class="browse-collections-scroll">
@@ -85,7 +85,6 @@
                 </div>
                 <div class="browse-collection-info">
                     <div class="browse-collection-name">{{ col.name }}</div>
-                    <!-- CATEGORY COUNT REMOVED -->
                 </div>
             </a>
             {% endfor %}
@@ -180,12 +179,12 @@ document.addEventListener('DOMContentLoaded', function() {
     overflow-y: auto;
 }
 
-/* ========== SERVICE CATEGORIES STYLES (Matching Menu Categories - COMPACT) ========== */
+/* ========== SERVICE CATEGORIES STYLES - 2 COLUMN GRID ========== */
 
 .categories-container {
     padding: 12px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 15px;
     background: var(--matte-black);
 }
@@ -198,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
     overflow: hidden;
     cursor: pointer;
     height: auto;
-    min-height: 165px;
+    min-height: 190px;
     display: flex;
     flex-direction: column;
     position: relative;
@@ -216,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .category-square-photo {
     width: 100%;
-    height: 105px;
+    height: 125px;
     border-radius: 8px 8px 0 0;
     overflow: hidden;
     position: relative;
@@ -243,8 +242,8 @@ document.addEventListener('DOMContentLoaded', function() {
     position: absolute;
     top: 4px;
     left: 4px;
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--vivid-gold) 100%);
     color: #000000;
     border-radius: 4px;
@@ -252,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function() {
     align-items: center;
     justify-content: center;
     font-weight: 900;
-    font-size: 11px;
+    font-size: 12px;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4), 0 0 5px rgba(192, 178, 131, 0.5);
     border: 2px solid var(--onyx-black);
     z-index: 2;
@@ -260,7 +259,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .category-details {
-    padding: 6px 8px 6px 8px;
+    padding: 6px 8px 4px 8px;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
@@ -268,13 +267,13 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .category-header {
-    margin-bottom: 2px;
+    margin-bottom: 4px;
 }
 
 .category-title {
     margin: 0 0 2px 0;
     color: var(--creamy-white);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
     line-height: 1.2;
     text-align: center;
@@ -286,10 +285,10 @@ document.addEventListener('DOMContentLoaded', function() {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* Description Wrapper - COMPACT */
+/* Description Wrapper */
 .description-wrapper {
     position: relative;
-    margin: 4px 0 4px 0;
+    margin: 8px 0 6px 0;
     padding: 0;
     background: linear-gradient(135deg, 
         rgba(192, 178, 131, 0.03) 0%, 
@@ -334,13 +333,13 @@ document.addEventListener('DOMContentLoaded', function() {
     opacity: 0.8;
 }
 
-/* Category Description - COMPACT */
+/* Category Description - EXACT 2 LINES */
 .category-description {
-    margin: 6px 8px;
+    margin: 10px 12px;
     color: var(--silver-mist);
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 400;
-    line-height: 1.4;
+    line-height: 1.5;
     text-align: center;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -349,9 +348,9 @@ document.addEventListener('DOMContentLoaded', function() {
     text-overflow: ellipsis;
     word-break: break-word;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    letter-spacing: 0.25px;
-    max-height: 25px;
-    min-height: 25px;
+    letter-spacing: 0.3px;
+    max-height: 30px;
+    min-height: 30px;
     position: relative;
     z-index: 1;
 }
@@ -360,7 +359,7 @@ document.addEventListener('DOMContentLoaded', function() {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: 2px;
+    margin-top: 4px;
 }
 
 .btn-view-category {
@@ -369,7 +368,7 @@ document.addEventListener('DOMContentLoaded', function() {
     border: none;
     padding: 4px 8px !important;
     border-radius: 5px;
-    font-size: 9px !important;
+    font-size: 10px !important;
     font-weight: 600;
     cursor: pointer;
     display: inline-flex;
@@ -381,7 +380,7 @@ document.addEventListener('DOMContentLoaded', function() {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
     position: relative;
     overflow: hidden;
-    height: 24px !important;
+    height: 26px !important;
     font-family: var(--sans-font);
     z-index: 10;
 }
@@ -403,13 +402,13 @@ document.addEventListener('DOMContentLoaded', function() {
     border: 1px solid var(--champagne-gold);
     border-radius: 8px;
     padding: 1px 4px !important;
-    font-size: 8px !important;
+    font-size: 9px !important;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 18px;
-    height: 14px !important;
+    min-width: 20px;
+    height: 16px !important;
     backdrop-filter: blur(5px);
     margin-left: 2px;
 }
@@ -417,10 +416,10 @@ document.addEventListener('DOMContentLoaded', function() {
 .count-number {
     color: var(--champagne-gold);
     font-weight: 700;
-    font-size: 8px !important;
+    font-size: 9px !important;
 }
 
-/* ========== RIGHT SIDE VERTICAL COLLECTIONS - CATEGORY COUNT REMOVED ========== */
+/* ========== RIGHT SIDE VERTICAL COLLECTIONS ========== */
 .browse-collections-section {
     position: fixed;
     right: 5px;
@@ -477,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function() {
     font-family: var(--sans-font);
 }
 
-/* Collection Card - COMPACT (No Category Count) */
+/* Collection Card */
 .browse-collection-card {
     flex-shrink: 0;
     width: 90px;
@@ -578,48 +577,78 @@ document.addEventListener('DOMContentLoaded', function() {
     text-shadow: 0 0 2px rgba(192, 178, 131, 0.3);
 }
 
+/* No Items State */
+.no-services {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--silver-mist);
+}
+
+.no-services i {
+    margin-bottom: 20px;
+    color: var(--dark-border);
+}
+
+.no-services h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: var(--silver-mist);
+    font-family: var(--serif-font);
+}
+
+.no-services p {
+    font-size: 14px;
+    font-family: var(--sans-font);
+}
+
 /* ========== DESKTOP & TABLET ========== */
 @media (min-width: 768px) {
     .categories-container {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 18px;
-        padding: 18px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        padding: 20px;
     }
     
     .category-item {
-        min-height: 175px;
+        min-height: 200px;
     }
     
     .category-square-photo {
-        height: 115px;
+        height: 135px;
     }
     
     .category-details {
-        padding: 6px 8px 6px 8px;
+        padding: 8px 10px 5px 10px;
     }
     
     .category-title {
-        font-size: 14px;
-        margin-bottom: 2px;
+        font-size: 15px;
+        margin-bottom: 3px;
     }
     
     .description-wrapper {
-        margin: 5px 0 5px 0;
+        margin: 10px 0 8px 0;
     }
     
     .category-description {
-        font-size: 10px;
-        line-height: 1.45;
-        margin: 8px 10px;
-        letter-spacing: 0.3px;
-        max-height: 29px;
-        min-height: 29px;
+        font-size: 11px;
+        line-height: 1.55;
+        margin: 12px 14px;
+        letter-spacing: 0.35px;
+        max-height: 34px;
+        min-height: 34px;
+    }
+    
+    .description-wrapper::before,
+    .description-wrapper::after {
+        left: 10%;
+        right: 10%;
     }
     
     .btn-view-category {
-        height: 26px !important;
-        font-size: 10px !important;
-        padding: 4px 8px !important;
+        height: 28px !important;
+        font-size: 11px !important;
+        padding: 4px 10px !important;
     }
 }
 
@@ -632,39 +661,34 @@ document.addEventListener('DOMContentLoaded', function() {
     .categories-container {
         display: grid !important;
         grid-template-columns: repeat(2, 1fr) !important;
-        gap: 10px !important;
-        padding: 10px !important;
+        gap: 12px !important;
+        padding: 12px !important;
     }
     
     .category-item {
-        min-height: 155px !important;
+        min-height: 180px !important;
         width: 100% !important;
     }
     
     .category-square-photo {
-        height: 95px !important;
+        height: 115px !important;
     }
     
     .category-details {
-        padding: 4px 6px 4px 6px !important;
+        padding: 5px 6px 3px 6px !important;
     }
     
     .category-title {
-        font-size: 12px !important;
-        margin-bottom: 1px;
+        font-size: 13px !important;
     }
     
     .category-description {
-        font-size: 8px !important;
-        line-height: 1.4 !important;
-        margin: 4px 6px !important;
-        letter-spacing: 0.2px !important;
-        max-height: 22px !important;
-        min-height: 22px !important;
-    }
-    
-    .description-wrapper {
-        margin: 3px 0 3px 0 !important;
+        font-size: 9px !important;
+        line-height: 1.45 !important;
+        margin: 8px 8px !important;
+        letter-spacing: 0.25px !important;
+        max-height: 26px !important;
+        min-height: 26px !important;
     }
     
     .category-number {
@@ -677,22 +701,22 @@ document.addEventListener('DOMContentLoaded', function() {
     
     .btn-view-category {
         padding: 3px 6px !important;
-        font-size: 8px !important;
-        height: 22px !important;
+        font-size: 9px !important;
+        height: 24px !important;
     }
     
     .item-count-badge-btn {
         padding: 1px 3px !important;
-        font-size: 7px !important;
-        min-width: 16px;
-        height: 12px !important;
+        font-size: 8px !important;
+        min-width: 18px;
+        height: 14px !important;
     }
     
     .count-number {
-        font-size: 7px !important;
+        font-size: 8px !important;
     }
     
-    /* Collections Sidebar - Mobile - COMPACT (No Category Count) */
+    /* Collections Sidebar - Mobile */
     .browse-collections-section {
         top: 60px;
         bottom: 60px;
@@ -753,31 +777,28 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     .category-item {
-        min-height: 145px !important;
+        min-height: 170px !important;
     }
     
     .category-square-photo {
-        height: 85px !important;
+        height: 105px !important;
     }
     
     .category-details {
-        padding: 3px 5px 3px 5px !important;
+        padding: 4px 5px 2px 5px !important;
     }
     
     .category-title {
-        font-size: 11px !important;
+        font-size: 12px !important;
     }
     
     .category-description {
-        font-size: 7.5px !important;
-        line-height: 1.35 !important;
-        margin: 3px 5px !important;
-        max-height: 20px !important;
-        min-height: 20px !important;
-    }
-    
-    .description-wrapper {
-        margin: 2px 0 2px 0 !important;
+        font-size: 8px !important;
+        line-height: 1.4 !important;
+        margin: 6px 6px !important;
+        letter-spacing: 0.2px !important;
+        max-height: 22px !important;
+        min-height: 22px !important;
     }
     
     .category-number {
@@ -790,8 +811,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     .btn-view-category {
         padding: 2px 4px !important;
-        font-size: 7.5px !important;
-        height: 20px !important;
+        font-size: 8px !important;
+        height: 22px !important;
     }
     
     .browse-collections-section {
@@ -821,30 +842,6 @@ document.addEventListener('DOMContentLoaded', function() {
     .browse-collection-name {
         font-size: 6px;
     }
-}
-
-/* No Items State */
-.no-services {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--silver-mist);
-}
-
-.no-services i {
-    margin-bottom: 20px;
-    color: var(--dark-border);
-}
-
-.no-services h3 {
-    font-size: 18px;
-    margin-bottom: 10px;
-    color: var(--silver-mist);
-    font-family: var(--serif-font);
-}
-
-.no-services p {
-    font-size: 14px;
-    font-family: var(--sans-font);
 }
 </style>
 {% endblock %}
