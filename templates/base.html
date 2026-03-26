@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Flask App{% endblock %}</title>
     
     <!-- BROWSER & MOBILE UI COLORS - DARK GRAY FOR BOTH MODES -->
@@ -77,46 +77,8 @@
         {% endif %}
     {% endwith %}
     
-    <!-- Main Content Block - will have bottom padding to avoid overlap with bottom nav -->
-    <main class="main-content-with-nav">
-        {% block content %}{% endblock %}
-    </main>
-    
-    <!-- ============================================================ -->
-    <!-- REUSABLE BOTTOM NAVIGATION BAR - SINGLE SOURCE OF TRUTH     -->
-    <!-- Active state controlled by 'active_page' variable in routes -->
-    <!-- ============================================================ -->
-    <nav class="bottom-nav">
-        <!-- Services / Home -->
-        <a href="{{ url_for('services') }}" class="nav-item {% if active_page == 'services' %}active{% endif %}">
-            <i class="fas fa-concierge-bell"></i>
-            <span>Services</span>
-        </a>
-        
-        <!-- Menu -->
-        <a href="{{ url_for('menu') }}" class="nav-item {% if active_page == 'menu' %}active{% endif %}">
-            <i class="fas fa-utensils"></i>
-            <span>Menu</span>
-        </a>
-        
-        <!-- Cart -->
-        <a href="{{ url_for('cart') }}" class="nav-item {% if active_page == 'cart' %}active{% endif %}">
-            <i class="fas fa-shopping-cart"></i>
-            <span>Cart</span>
-        </a>
-        
-        <!-- Orders -->
-        <a href="{{ url_for('orders') }}" class="nav-item {% if active_page == 'orders' %}active{% endif %}">
-            <i class="fas fa-clipboard-list"></i>
-            <span>Orders</span>
-        </a>
-        
-        <!-- Profile -->
-        <a href="{{ url_for('profile') }}" class="nav-item {% if active_page == 'profile' %}active{% endif %}">
-            <i class="fas fa-user"></i>
-            <span>Profile</span>
-        </a>
-    </nav>
+    <!-- Main Content Block -->
+    {% block content %}{% endblock %}
     
     <!-- JavaScript -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
@@ -129,16 +91,6 @@
                 const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
                 if (prefersLight) {
                     document.documentElement.style.colorScheme = 'dark';
-                }
-            }
-            
-            // Optional: ensure bottom-nav doesn't cover interactive elements
-            // Add padding-bottom to main content if needed (already handled by CSS)
-            if (document.querySelector('.bottom-nav')) {
-                const navHeight = document.querySelector('.bottom-nav').offsetHeight;
-                const mainContent = document.querySelector('.main-content-with-nav');
-                if (mainContent && !mainContent.style.paddingBottom) {
-                    mainContent.style.paddingBottom = navHeight + 'px';
                 }
             }
         })();
