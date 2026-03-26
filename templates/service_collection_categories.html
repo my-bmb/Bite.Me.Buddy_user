@@ -8,7 +8,7 @@
     <header class="dashboard-header">
         <div class="header-left">
             <h1>{{ collection.name }}</h1>
-            <p class="welcome-text">{{ collection.category_count|default(categories|length) }} categories • {{ total_services }} services available</p>
+            <p class="welcome-text">Explore our exclusive categories</p>
         </div>
         <div class="header-right">
             <img src="{{ session.profile_pic }}" alt="Profile" class="profile-pic"
@@ -42,7 +42,6 @@
                                 <p class="category-description">{{ category.description }}</p>
                             </div>
                             {% endif %}
-                            <!-- REMOVED: service count text from description -->
                         </div>
                         
                         <!-- VIEW BUTTON WITH COUNT BESIDE IT -->
@@ -68,8 +67,8 @@
         {% endif %}
     </main>
 
-    <!-- Right Side Vertical Collections Navigation -->
-    {% if all_collections and all_collections|length > 1 %}
+    <!-- Right Side Vertical Collections Navigation - Shows even if only 1 collection -->
+    {% if all_collections %}
     <div class="browse-collections-section">
         <div class="browse-collections-scroll">
             <div class="collections-header">
@@ -94,7 +93,7 @@
     </div>
     {% endif %}
 
-    <!-- Bottom Navigation -->
+    <!-- Bottom Navigation - Services active -->
     <nav class="bottom-nav">
         <a href="{{ url_for('services') }}" class="nav-item active">
             <i class="fas fa-concierge-bell"></i><span>Services</span>
