@@ -1,7 +1,6 @@
-<!-- service_collection_categories.html -->
 {% extends "base.html" %}
 
-{% block title %}{{ collection.name }} - Categories{% endblock %}
+{% block title %}{{ collection.name }} - Service Categories{% endblock %}
 
 {% block content %}
 <div class="dashboard">
@@ -9,11 +8,7 @@
     <header class="dashboard-header">
         <div class="header-left">
             <h1>{{ collection.name }}</h1>
-            <!-- Alternative Message without collection name -->
-            <p class="welcome-text">
-                <i class="fas fa-tag"></i> 
-                Explore our exclusive services
-            </p>
+            <p class="welcome-text">{{ collection.category_count|default(categories|length) }} categories • {{ total_services }} services available</p>
         </div>
         <div class="header-right">
             <img src="{{ session.profile_pic }}" alt="Profile" class="profile-pic"
@@ -21,27 +16,7 @@
         </div>
     </header>
 
-    <!-- Collection Navigation Bar - Horizontal Scroll (Shows even if only 1 collection) -->
-    {% if all_collections and all_collections|length >= 1 %}
-    <div class="collection-nav-section">
-        <div class="collection-nav-scroll">
-            {% for col in all_collections %}
-                <a href="{{ url_for('service_collection_categories', collection_id=col.id) }}" 
-                   class="collection-nav-card {% if col.id == collection.id %}active{% endif %}">
-                    <div class="collection-nav-photo-square">
-                        <img src="{{ col.collection_photo }}" alt="{{ col.name }}">
-                        <div class="collection-nav-number">
-                            <span>{{ loop.index }}</span>
-                        </div>
-                    </div>
-                    <div class="collection-nav-name">{{ col.name }}</div>
-                </a>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Categories Content -->
+    <!-- Service Categories Content -->
     <main class="main-content">
         {% if categories %}
             <div class="categories-container">
@@ -52,6 +27,7 @@
                         <img src="{{ category.category_photo }}" 
                              alt="{{ category.name }}"
                              onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/default_service_category.jpg'">
+                        <!-- Number SQUARE with fixed position -->
                         <div class="category-number">
                             <span>{{ loop.index }}</span>
                         </div>
@@ -60,19 +36,22 @@
                     <div class="category-details">
                         <div class="category-header">
                             <h3 class="category-title">{{ category.name }}</h3>
+                            <!-- Category Description - Only show if exists -->
                             {% if category.description %}
                             <div class="description-wrapper">
                                 <p class="category-description">{{ category.description }}</p>
                             </div>
                             {% endif %}
+                            <!-- REMOVED: service count text from description -->
                         </div>
                         
+                        <!-- VIEW BUTTON WITH COUNT BESIDE IT -->
                         <div class="category-actions">
                             <button class="btn-view-category" data-category-id="{{ category.id }}">
-                                <i class="fas fa-concierge-bell"></i> 
+                                <i class="fas fa-eye"></i> 
                                 <span class="btn-text">View Services</span>
                                 <span class="item-count-badge-btn">
-                                    <span class="count-number">{{ category.service_count or 0 }}</span>
+                                    <span class="count-number">{{ category.service_count }}</span>
                                 </span>
                             </button>
                         </div>
@@ -84,10 +63,36 @@
             <div class="no-services">
                 <i class="fas fa-folder-open fa-3x"></i>
                 <h3>No Categories Available</h3>
-                <p>No service categories found in this collection.</p>
+                <p>This collection doesn't have any categories yet. Check back soon!</p>
             </div>
         {% endif %}
     </main>
+
+    <!-- Right Side Vertical Collections Navigation -->
+    {% if all_collections and all_collections|length > 1 %}
+    <div class="browse-collections-section">
+        <div class="browse-collections-scroll">
+            <div class="collections-header">
+                <span>Collections</span>
+            </div>
+            {% for col in all_collections %}
+            <a href="{{ url_for('service_collection_categories', collection_id=col.id) }}" 
+               class="browse-collection-card {% if col.id == collection.id %}active{% endif %}">
+                <div class="browse-collection-photo-square">
+                    <img src="{{ col.collection_photo }}" alt="{{ col.name }}">
+                    <div class="browse-collection-number">
+                        <span>{{ loop.index }}</span>
+                    </div>
+                </div>
+                <div class="browse-collection-info">
+                    <div class="browse-collection-name">{{ col.name }}</div>
+                    <div class="browse-collection-count">{{ col.category_count }} categories</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Bottom Navigation -->
     <nav class="bottom-nav">
@@ -111,10 +116,14 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Handle card click - whole category card
     const categoryCards = document.querySelectorAll('.category-item');
     categoryCards.forEach(card => {
         card.addEventListener('click', function(e) {
-            if (e.target.closest('.btn-view-category')) return;
+            // Don't trigger if clicked on button
+            if (e.target.closest('.btn-view-category')) {
+                return;
+            }
             const categoryId = this.dataset.categoryId;
             if (categoryId) {
                 window.location.href = `/service-category-services/${categoryId}`;
@@ -122,33 +131,25 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
+    // Handle button click - View Services button
     const viewButtons = document.querySelectorAll('.btn-view-category');
     viewButtons.forEach(button => {
         button.addEventListener('click', function(e) {
-            e.stopPropagation();
+            e.stopPropagation(); // Stop event from bubbling to parent
             const categoryId = this.dataset.categoryId;
             if (categoryId) {
                 window.location.href = `/service-category-services/${categoryId}`;
             }
         });
     });
-    
-    // Auto-scroll to active collection
-    const activeCard = document.querySelector('.collection-nav-card.active');
-    if (activeCard) {
-        activeCard.scrollIntoView({
-            behavior: 'smooth',
-            block: 'nearest',
-            inline: 'center'
-        });
-    }
 });
 </script>
 
 <style>
-/* Same styling as services.html */
+/* Import Google Fonts for premium typography */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
+/* ✅ PREMIUM DARK & GOLD THEME - OPTIMIZED COLOR SYSTEM */
 :root {
     --matte-black: #0D0D0D;
     --champagne-gold: #C0B283;
@@ -160,174 +161,45 @@ document.addEventListener('DOMContentLoaded', function() {
     --dark-border: #333333;
     --antique-bronze: #8e7d4d;
     --silver-mist: #A0A0A0;
+    --burnt-orange: #D98324;
     --serif-font: 'Playfair Display', Georgia, serif;
     --sans-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --gold-glow: 0 0 15px rgba(192, 178, 131, 0.3);
     --card-shadow: 0 6px 25px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-.welcome-text {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--gold-light);
-    font-size: 14px;
-    margin-top: 5px;
-    font-family: var(--sans-font);
-}
-
-.welcome-text i {
-    color: var(--champagne-gold);
-    font-size: 12px;
-}
-
-/* ========== COLLECTION NAVIGATION BAR (Styled like Category Cards) ========== */
-.collection-nav-section {
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(192, 178, 131, 0.2);
-    border-top: 1px solid rgba(192, 178, 131, 0.2);
-    background: var(--matte-black);
-    margin-bottom: 0;
-}
-
-.collection-nav-scroll {
-    display: flex;
-    gap: 15px;
-    padding: 5px 15px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-}
-
-.collection-nav-scroll::-webkit-scrollbar {
-    height: 3px;
-}
-
-.collection-nav-scroll::-webkit-scrollbar-track {
-    background: var(--dark-border);
-    border-radius: 10px;
-}
-
-.collection-nav-scroll::-webkit-scrollbar-thumb {
-    background: var(--champagne-gold);
-    border-radius: 10px;
-}
-
-.collection-nav-card {
-    flex-shrink: 0;
-    width: 85px;
-    background: rgba(26, 26, 26, 0.9);
-    border-radius: 12px;
-    border: 1px solid rgba(192, 178, 131, 0.2);
-    transition: all 0.3s ease;
-    overflow: hidden;
-    cursor: pointer;
-    text-decoration: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    padding: 10px 6px;
-}
-
-.collection-nav-card.active {
-    border: 2px solid var(--champagne-gold);
-    box-shadow: 0 0 8px rgba(192, 178, 131, 0.4);
-    background: rgba(192, 178, 131, 0.08);
-    transform: scale(1.02);
-}
-
-.collection-nav-card:hover {
-    border-color: var(--champagne-gold);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 10px rgba(192, 178, 131, 0.3);
-}
-
-.collection-nav-photo-square {
-    width: 65px;
-    height: 65px;
-    border-radius: 10px;
-    overflow: hidden;
+/* ========== DASHBOARD CONTAINER OVERRIDE ========== */
+.dashboard {
     position: relative;
+    min-height: 100vh;
     background: var(--matte-black);
-    border: 1px solid rgba(192, 178, 131, 0.3);
-    margin-bottom: 8px;
-    transition: all 0.3s ease;
 }
 
-.collection-nav-card:hover .collection-nav-photo-square,
-.collection-nav-card.active .collection-nav-photo-square {
-    border-color: var(--champagne-gold);
+.main-content {
+    flex: 1;
+    padding: 78px 115px 100px 5px;
+    overflow-y: auto;
 }
 
-.collection-nav-photo-square img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    filter: saturate(1.2) contrast(1.1);
-}
+/* ========== SERVICE CATEGORIES STYLES (Matching Menu Categories - COMPACT) ========== */
 
-.collection-nav-number {
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    width: 22px;
-    height: 22px;
-    background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--vivid-gold) 100%);
-    color: #000000;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 900;
-    font-size: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    border: 1.5px solid var(--onyx-black);
-    z-index: 2;
-    font-family: var(--serif-font);
-}
-
-.collection-nav-name {
-    margin: 0;
-    color: var(--gold-light);
-    font-size: 10px;
-    font-weight: 600;
-    text-align: center;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    width: 100%;
-    font-family: var(--sans-font);
-    letter-spacing: 0.3px;
-    line-height: 1.3;
-}
-
-.collection-nav-card.active .collection-nav-name {
-    color: var(--creamy-white);
-    text-shadow: 0 0 3px rgba(192, 178, 131, 0.3);
-    font-weight: 700;
-}
-
-/* Categories Grid */
 .categories-container {
-    padding: 20px;
+    padding: 12px;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 20px;
+    gap: 15px;
     background: var(--matte-black);
 }
 
 .category-item {
     background: var(--onyx-black);
-    border-radius: 12px;
+    border-radius: 10px;
     border: 1px solid var(--dark-border);
     transition: all 0.3s ease;
     overflow: hidden;
     cursor: pointer;
     height: auto;
-    min-height: 200px;
+    min-height: 165px;
     display: flex;
     flex-direction: column;
     position: relative;
@@ -336,14 +208,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .category-item:hover {
     border-color: var(--champagne-gold);
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 15px rgba(192, 178, 131, 0.3);
-    transform: translateY(-4px);
+    box-shadow: 
+        0 12px 35px rgba(0, 0, 0, 0.5),
+        0 4px 12px rgba(0, 0, 0, 0.3),
+        0 0 15px rgba(192, 178, 131, 0.3);
+    transform: translateY(-2px);
 }
 
 .category-square-photo {
     width: 100%;
-    height: 130px;
-    border-radius: 12px 12px 0 0;
+    height: 105px;
+    border-radius: 8px 8px 0 0;
     overflow: hidden;
     position: relative;
     border-bottom: 1px solid var(--dark-border);
@@ -356,6 +231,7 @@ document.addEventListener('DOMContentLoaded', function() {
     height: 100%;
     object-fit: cover;
     transition: transform 0.3s ease, filter 0.3s ease;
+    border-radius: 8px 8px 0 0;
     filter: saturate(1.4) contrast(1.2) brightness(1.05);
 }
 
@@ -366,18 +242,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .category-number {
     position: absolute;
-    top: 8px;
-    left: 8px;
-    width: 28px;
-    height: 28px;
+    top: 4px;
+    left: 4px;
+    width: 24px;
+    height: 24px;
     background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--vivid-gold) 100%);
     color: #000000;
-    border-radius: 6px;
+    border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 900;
-    font-size: 12px;
+    font-size: 11px;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4), 0 0 5px rgba(192, 178, 131, 0.5);
     border: 2px solid var(--onyx-black);
     z-index: 2;
@@ -385,7 +261,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .category-details {
-    padding: 12px;
+    padding: 6px 8px 6px 8px;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
@@ -393,15 +269,15 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .category-header {
-    margin-bottom: 8px;
+    margin-bottom: 2px;
 }
 
 .category-title {
-    margin: 0 0 4px 0;
+    margin: 0 0 2px 0;
     color: var(--creamy-white);
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 700;
-    line-height: 1.3;
+    line-height: 1.2;
     text-align: center;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -411,15 +287,20 @@ document.addEventListener('DOMContentLoaded', function() {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
+/* Description Wrapper - COMPACT */
 .description-wrapper {
     position: relative;
-    margin: 8px 0;
+    margin: 4px 0 4px 0;
     padding: 0;
-    background: linear-gradient(135deg, rgba(192, 178, 131, 0.03) 0%, rgba(192, 178, 131, 0.08) 50%, rgba(192, 178, 131, 0.03) 100%);
+    background: linear-gradient(135deg, 
+        rgba(192, 178, 131, 0.03) 0%, 
+        rgba(192, 178, 131, 0.08) 50%, 
+        rgba(192, 178, 131, 0.03) 100%);
     border-radius: 12px;
     transition: all 0.3s ease;
 }
 
+/* Ultra-Thin Border - 0.5px */
 .description-wrapper::before {
     content: '';
     position: absolute;
@@ -427,7 +308,12 @@ document.addEventListener('DOMContentLoaded', function() {
     left: 8%;
     right: 8%;
     height: 0.5px;
-    background: linear-gradient(90deg, transparent 0%, var(--champagne-gold) 20%, var(--gold-light) 50%, var(--champagne-gold) 80%, transparent 100%);
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        var(--champagne-gold) 20%, 
+        var(--gold-light) 50%,
+        var(--champagne-gold) 80%, 
+        transparent 100%);
     border-radius: 0.5px;
     opacity: 0.8;
 }
@@ -439,15 +325,21 @@ document.addEventListener('DOMContentLoaded', function() {
     left: 8%;
     right: 8%;
     height: 0.5px;
-    background: linear-gradient(90deg, transparent 0%, var(--champagne-gold) 20%, var(--gold-light) 50%, var(--champagne-gold) 80%, transparent 100%);
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        var(--champagne-gold) 20%, 
+        var(--gold-light) 50%,
+        var(--champagne-gold) 80%, 
+        transparent 100%);
     border-radius: 0.5px;
     opacity: 0.8;
 }
 
+/* Category Description - COMPACT */
 .category-description {
-    margin: 8px 10px;
+    margin: 6px 8px;
     color: var(--silver-mist);
-    font-size: 11px;
+    font-size: 9px;
     font-weight: 400;
     line-height: 1.4;
     text-align: center;
@@ -458,9 +350,9 @@ document.addEventListener('DOMContentLoaded', function() {
     text-overflow: ellipsis;
     word-break: break-word;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    letter-spacing: 0.3px;
-    max-height: 32px;
-    min-height: 32px;
+    letter-spacing: 0.25px;
+    max-height: 25px;
+    min-height: 25px;
     position: relative;
     z-index: 1;
 }
@@ -469,28 +361,28 @@ document.addEventListener('DOMContentLoaded', function() {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: 8px;
+    margin-top: 2px;
 }
 
 .btn-view-category {
     background: var(--champagne-gold);
     color: #000000;
     border: none;
-    padding: 6px 12px !important;
-    border-radius: 8px;
-    font-size: 11px !important;
+    padding: 4px 8px !important;
+    border-radius: 5px;
+    font-size: 9px !important;
     font-weight: 600;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: space-between;
-    gap: 6px;
+    gap: 4px;
     transition: all 0.3s;
     width: 100%;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
     position: relative;
     overflow: hidden;
-    height: 32px !important;
+    height: 24px !important;
     font-family: var(--sans-font);
     z-index: 10;
 }
@@ -510,173 +402,465 @@ document.addEventListener('DOMContentLoaded', function() {
 .item-count-badge-btn {
     background: rgba(26, 26, 26, 0.8);
     border: 1px solid var(--champagne-gold);
-    border-radius: 10px;
-    padding: 2px 6px !important;
-    font-size: 10px !important;
+    border-radius: 8px;
+    padding: 1px 4px !important;
+    font-size: 8px !important;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 24px;
-    height: 20px !important;
+    min-width: 18px;
+    height: 14px !important;
     backdrop-filter: blur(5px);
-    margin-left: 4px;
+    margin-left: 2px;
 }
 
 .count-number {
     color: var(--champagne-gold);
     font-weight: 700;
-    font-size: 10px !important;
+    font-size: 8px !important;
 }
 
-.no-services {
+/* ========== RIGHT SIDE VERTICAL COLLECTIONS ========== */
+.browse-collections-section {
+    position: fixed;
+    right: 5px;
+    top: 70px;
+    bottom: 70px;
+    width: 100px;
+    background: rgba(13, 13, 13, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-left: 1px solid rgba(192, 178, 131, 0.4);
+    border-right: 1px solid rgba(192, 178, 131, 0.2);
+    z-index: 100;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 12px 5px;
+}
+
+.browse-collections-section::-webkit-scrollbar {
+    width: 3px;
+}
+
+.browse-collections-section::-webkit-scrollbar-track {
+    background: var(--dark-border);
+    border-radius: 10px;
+}
+
+.browse-collections-section::-webkit-scrollbar-thumb {
+    background: var(--champagne-gold);
+    border-radius: 10px;
+}
+
+.browse-collections-scroll {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: 100%;
+    overflow-y: visible;
+    overflow-x: visible;
+}
+
+.collections-header {
     text-align: center;
-    padding: 60px 20px;
-    color: var(--silver-mist);
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(192, 178, 131, 0.3);
 }
 
-/* ========== MOBILE RESPONSIVE ========== */
-@media (max-width: 768px) {
-    .collection-nav-card {
-        width: 75px;
-        padding: 8px 4px;
-    }
-    
-    .collection-nav-photo-square {
-        width: 55px;
-        height: 55px;
-        margin-bottom: 6px;
-    }
-    
-    .collection-nav-number {
-        width: 20px;
-        height: 20px;
-        font-size: 9px;
-        top: -4px;
-        right: -4px;
-    }
-    
-    .collection-nav-name {
-        font-size: 9px;
-    }
-    
+.collections-header span {
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--champagne-gold);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: var(--sans-font);
+}
+
+/* Collection Card */
+.browse-collection-card {
+    flex-shrink: 0;
+    width: 90px;
+    background: rgba(26, 26, 26, 0.9);
+    border-radius: 12px;
+    border: 1px solid rgba(192, 178, 131, 0.2);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    padding: 8px 4px;
+}
+
+.browse-collection-card.active {
+    border: 2px solid var(--champagne-gold);
+    box-shadow: 0 0 8px rgba(192, 178, 131, 0.4);
+    background: rgba(192, 178, 131, 0.08);
+    transform: scale(1.01);
+}
+
+.browse-collection-card:hover {
+    border-color: var(--champagne-gold);
+    transform: translateX(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 10px rgba(192, 178, 131, 0.3);
+}
+
+.browse-collection-photo-square {
+    width: 65px;
+    height: 65px;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    background: var(--matte-black);
+    border: 1px solid rgba(192, 178, 131, 0.3);
+    margin-bottom: 6px;
+    transition: all 0.3s ease;
+}
+
+.browse-collection-card:hover .browse-collection-photo-square,
+.browse-collection-card.active .browse-collection-photo-square {
+    border-color: var(--champagne-gold);
+}
+
+.browse-collection-photo-square img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(1.2) contrast(1.1);
+}
+
+.browse-collection-number {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--vivid-gold) 100%);
+    color: #000000;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 9px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    border: 1.5px solid var(--onyx-black);
+    z-index: 2;
+    font-family: var(--serif-font);
+}
+
+.browse-collection-info {
+    text-align: center;
+    width: 100%;
+}
+
+.browse-collection-name {
+    margin: 0;
+    color: var(--gold-light);
+    font-size: 8px;
+    font-weight: 600;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+    font-family: var(--sans-font);
+    letter-spacing: 0.3px;
+    line-height: 1.3;
+    margin-bottom: 2px;
+}
+
+.browse-collection-count {
+    font-size: 7px;
+    color: var(--silver-mist);
+    text-align: center;
+    font-family: var(--sans-font);
+}
+
+.browse-collection-card.active .browse-collection-name {
+    color: var(--creamy-white);
+    text-shadow: 0 0 3px rgba(192, 178, 131, 0.3);
+}
+
+.browse-collection-card.active .browse-collection-count {
+    color: var(--champagne-gold);
+}
+
+/* ========== DESKTOP & TABLET ========== */
+@media (min-width: 768px) {
     .categories-container {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-        padding: 15px;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 18px;
+        padding: 18px;
+    }
+    
+    .category-item {
+        min-height: 175px;
     }
     
     .category-square-photo {
         height: 115px;
     }
     
-    .category-title {
-        font-size: 13px;
+    .category-details {
+        padding: 6px 8px 6px 8px;
     }
     
-    .category-number {
-        width: 24px;
-        height: 24px;
-        font-size: 10px;
-        top: 6px;
-        left: 6px;
+    .category-title {
+        font-size: 14px;
+        margin-bottom: 2px;
+    }
+    
+    .description-wrapper {
+        margin: 5px 0 5px 0;
     }
     
     .category-description {
         font-size: 10px;
-        margin: 6px 8px;
+        line-height: 1.45;
+        margin: 8px 10px;
+        letter-spacing: 0.3px;
+        max-height: 29px;
+        min-height: 29px;
     }
     
     .btn-view-category {
-        padding: 5px 10px !important;
+        height: 26px !important;
         font-size: 10px !important;
-        height: 28px !important;
-    }
-    
-    .item-count-badge-btn {
-        padding: 1px 4px !important;
-        font-size: 9px !important;
-        min-width: 20px;
-        height: 18px !important;
-    }
-    
-    .count-number {
-        font-size: 9px !important;
+        padding: 4px 8px !important;
     }
 }
 
-@media (max-width: 480px) {
-    .collection-nav-card {
-        width: 65px;
-        padding: 6px 3px;
-    }
-    
-    .collection-nav-photo-square {
-        width: 50px;
-        height: 50px;
-        margin-bottom: 5px;
-    }
-    
-    .collection-nav-number {
-        width: 18px;
-        height: 18px;
-        font-size: 8px;
-        top: -3px;
-        right: -3px;
-    }
-    
-    .collection-nav-name {
-        font-size: 8px;
+/* ========== MOBILE RESPONSIVE - 2 COLUMNS ========== */
+@media (max-width: 767px) {
+    .main-content {
+        padding: 68px 95px 100px 5px;
     }
     
     .categories-container {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-        padding: 12px;
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+        padding: 10px !important;
+    }
+    
+    .category-item {
+        min-height: 155px !important;
+        width: 100% !important;
     }
     
     .category-square-photo {
-        height: 100px;
+        height: 95px !important;
+    }
+    
+    .category-details {
+        padding: 4px 6px 4px 6px !important;
     }
     
     .category-title {
-        font-size: 12px;
-    }
-    
-    .category-number {
-        width: 22px;
-        height: 22px;
-        font-size: 9px;
+        font-size: 12px !important;
+        margin-bottom: 1px;
     }
     
     .category-description {
-        font-size: 9px;
-        margin: 4px 6px;
-        max-height: 28px;
-        min-height: 28px;
+        font-size: 8px !important;
+        line-height: 1.4 !important;
+        margin: 4px 6px !important;
+        letter-spacing: 0.2px !important;
+        max-height: 22px !important;
+        min-height: 22px !important;
+    }
+    
+    .description-wrapper {
+        margin: 3px 0 3px 0 !important;
+    }
+    
+    .category-number {
+        width: 20px !important;
+        height: 20px !important;
+        font-size: 10px !important;
+        top: 3px !important;
+        left: 3px !important;
     }
     
     .btn-view-category {
-        padding: 4px 8px !important;
-        font-size: 9px !important;
-        height: 26px !important;
-        gap: 4px;
-    }
-    
-    .btn-view-category i {
-        font-size: 8px;
+        padding: 3px 6px !important;
+        font-size: 8px !important;
+        height: 22px !important;
     }
     
     .item-count-badge-btn {
         padding: 1px 3px !important;
-        font-size: 8px !important;
-        min-width: 18px;
-        height: 16px !important;
+        font-size: 7px !important;
+        min-width: 16px;
+        height: 12px !important;
     }
     
     .count-number {
-        font-size: 8px !important;
+        font-size: 7px !important;
     }
+    
+    /* Collections Sidebar - Mobile */
+    .browse-collections-section {
+        top: 60px;
+        bottom: 60px;
+        width: 85px;
+        right: 5px;
+        background: rgba(13, 13, 13, 0.96);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        padding: 10px 4px;
+    }
+    
+    .browse-collection-card {
+        width: 77px;
+        padding: 6px 3px;
+    }
+    
+    .browse-collection-photo-square {
+        width: 55px;
+        height: 55px;
+        margin-bottom: 5px;
+    }
+    
+    .browse-collection-number {
+        width: 16px;
+        height: 16px;
+        font-size: 7px;
+        top: -3px;
+        right: -3px;
+    }
+    
+    .browse-collection-name {
+        font-size: 7px;
+    }
+    
+    .browse-collection-count {
+        font-size: 6px;
+    }
+    
+    .browse-collections-scroll {
+        gap: 10px;
+    }
+    
+    .collections-header span {
+        font-size: 8px;
+    }
+}
+
+/* ========== EXTRA SMALL MOBILE ========== */
+@media (max-width: 480px) {
+    .main-content {
+        padding: 63px 80px 100px 5px;
+    }
+    
+    .categories-container {
+        gap: 8px !important;
+        padding: 8px !important;
+    }
+    
+    .category-item {
+        min-height: 145px !important;
+    }
+    
+    .category-square-photo {
+        height: 85px !important;
+    }
+    
+    .category-details {
+        padding: 3px 5px 3px 5px !important;
+    }
+    
+    .category-title {
+        font-size: 11px !important;
+    }
+    
+    .category-description {
+        font-size: 7.5px !important;
+        line-height: 1.35 !important;
+        margin: 3px 5px !important;
+        max-height: 20px !important;
+        min-height: 20px !important;
+    }
+    
+    .description-wrapper {
+        margin: 2px 0 2px 0 !important;
+    }
+    
+    .category-number {
+        width: 18px !important;
+        height: 18px !important;
+        font-size: 9px !important;
+        top: 2px !important;
+        left: 2px !important;
+    }
+    
+    .btn-view-category {
+        padding: 2px 4px !important;
+        font-size: 7.5px !important;
+        height: 20px !important;
+    }
+    
+    .browse-collections-section {
+        width: 70px;
+        right: 5px;
+        padding: 8px 3px;
+        top: 55px;
+        bottom: 55px;
+    }
+    
+    .browse-collection-card {
+        width: 64px;
+        padding: 5px 2px;
+    }
+    
+    .browse-collection-photo-square {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .browse-collection-number {
+        width: 14px;
+        height: 14px;
+        font-size: 6px;
+    }
+    
+    .browse-collection-name {
+        font-size: 6px;
+    }
+    
+    .browse-collection-count {
+        font-size: 5px;
+    }
+}
+
+/* No Items State */
+.no-services {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--silver-mist);
+}
+
+.no-services i {
+    margin-bottom: 20px;
+    color: var(--dark-border);
+}
+
+.no-services h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: var(--silver-mist);
+    font-family: var(--serif-font);
+}
+
+.no-services p {
+    font-size: 14px;
+    font-family: var(--sans-font);
 }
 </style>
 {% endblock %}
