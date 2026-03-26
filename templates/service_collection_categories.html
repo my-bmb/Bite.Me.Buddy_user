@@ -1,14 +1,20 @@
+<!-- service_collection_categories.html -->
 {% extends "base.html" %}
 
-{% block title %}Services{% endblock %}
+{% block title %}{{ collection.name }} - Categories{% endblock %}
 
 {% block content %}
 <div class="dashboard">
     <!-- Top Header -->
     <header class="dashboard-header">
         <div class="header-left">
-            <h1>Our Services</h1>
-            <p class="welcome-text">Explore our premium service collections</p>
+            <a href="{{ url_for('services') }}" class="back-link">
+                <i class="fas fa-arrow-left"></i> Back to Services
+            </a>
+            <h1>{{ collection.name }}</h1>
+            {% if collection.description %}
+            <p class="welcome-text">{{ collection.description }}</p>
+            {% endif %}
         </div>
         <div class="header-right">
             <img src="{{ session.profile_pic }}" alt="Profile" class="profile-pic"
@@ -16,41 +22,38 @@
         </div>
     </header>
 
-    <!-- Main Content: Display Collections (Top Level) -->
+    <!-- Categories Content -->
     <main class="main-content">
-        {% if collections %}
-            <div class="collections-container">
-                {% for collection in collections %}
-                <div class="collection-item" data-collection-id="{{ collection.id }}">
+        {% if categories %}
+            <div class="categories-container">
+                {% for category in categories %}
+                <div class="category-item" data-category-id="{{ category.id }}">
                     <!-- SQUARE PHOTO -->
-                    <div class="collection-square-photo">
-                        <img src="{{ collection.collection_photo }}" 
-                             alt="{{ collection.name }}"
-                             onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/default_service_collection.jpg'">
-                        <!-- Number SQUARE with fixed position -->
-                        <div class="collection-number">
+                    <div class="category-square-photo">
+                        <img src="{{ category.category_photo }}" 
+                             alt="{{ category.name }}"
+                             onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/default_service_category.jpg'">
+                        <div class="category-number">
                             <span>{{ loop.index }}</span>
                         </div>
                     </div>
                     
-                    <div class="collection-details">
-                        <div class="collection-header">
-                            <h3 class="collection-title">{{ collection.name }}</h3>
-                            <!-- Collection Description - Only show if exists -->
-                            {% if collection.description %}
+                    <div class="category-details">
+                        <div class="category-header">
+                            <h3 class="category-title">{{ category.name }}</h3>
+                            {% if category.description %}
                             <div class="description-wrapper">
-                                <p class="collection-description">{{ collection.description }}</p>
+                                <p class="category-description">{{ category.description }}</p>
                             </div>
                             {% endif %}
                         </div>
                         
-                        <!-- VIEW BUTTON WITH COUNT BESIDE IT -->
-                        <div class="collection-actions">
-                            <button class="btn-view-collection" data-collection-id="{{ collection.id }}">
-                                <i class="fas fa-layer-group"></i> 
-                                <span class="btn-text">View Categories</span>
+                        <div class="category-actions">
+                            <button class="btn-view-category" data-category-id="{{ category.id }}">
+                                <i class="fas fa-concierge-bell"></i> 
+                                <span class="btn-text">View Services</span>
                                 <span class="item-count-badge-btn">
-                                    <span class="count-number">{{ collection.category_count or 0 }}</span>
+                                    <span class="count-number">{{ category.service_count or 0 }}</span>
                                 </span>
                             </button>
                         </div>
@@ -60,9 +63,9 @@
             </div>
         {% else %}
             <div class="no-services">
-                <i class="fas fa-concierge-bell fa-3x"></i>
-                <h3>No Service Collections Available</h3>
-                <p>Check back soon for premium services!</p>
+                <i class="fas fa-folder-open fa-3x"></i>
+                <h3>No Categories Available</h3>
+                <p>No service categories found in this collection.</p>
             </div>
         {% endif %}
     </main>
@@ -89,29 +92,24 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Handle card click - whole collection card
-    const collectionCards = document.querySelectorAll('.collection-item');
-    collectionCards.forEach(card => {
+    const categoryCards = document.querySelectorAll('.category-item');
+    categoryCards.forEach(card => {
         card.addEventListener('click', function(e) {
-            // Don't trigger if clicked on button
-            if (e.target.closest('.btn-view-collection')) {
-                return;
-            }
-            const collectionId = this.dataset.collectionId;
-            if (collectionId) {
-                window.location.href = `/service-collection/${collectionId}`;
+            if (e.target.closest('.btn-view-category')) return;
+            const categoryId = this.dataset.categoryId;
+            if (categoryId) {
+                window.location.href = `/service-category-services/${categoryId}`;
             }
         });
     });
     
-    // Handle button click - View Categories button
-    const viewButtons = document.querySelectorAll('.btn-view-collection');
+    const viewButtons = document.querySelectorAll('.btn-view-category');
     viewButtons.forEach(button => {
         button.addEventListener('click', function(e) {
-            e.stopPropagation(); // Stop event from bubbling to parent
-            const collectionId = this.dataset.collectionId;
-            if (collectionId) {
-                window.location.href = `/service-collection/${collectionId}`;
+            e.stopPropagation();
+            const categoryId = this.dataset.categoryId;
+            if (categoryId) {
+                window.location.href = `/service-category-services/${categoryId}`;
             }
         });
     });
@@ -119,10 +117,9 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
-/* Import Google Fonts for premium typography */
+/* Same styling as services.html */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* ✅ PREMIUM DARK & GOLD THEME - OPTIMIZED COLOR SYSTEM */
 :root {
     --matte-black: #0D0D0D;
     --champagne-gold: #C0B283;
@@ -134,16 +131,31 @@ document.addEventListener('DOMContentLoaded', function() {
     --dark-border: #333333;
     --antique-bronze: #8e7d4d;
     --silver-mist: #A0A0A0;
-    --burnt-orange: #D98324;
     --serif-font: 'Playfair Display', Georgia, serif;
     --sans-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --gold-glow: 0 0 15px rgba(192, 178, 131, 0.3);
     --card-shadow: 0 6px 25px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* ========== SERVICES SECTION STYLES ========== */
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--champagne-gold);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    transition: all 0.3s;
+    font-family: var(--sans-font);
+}
 
-.collections-container {
+.back-link:hover {
+    color: var(--vivid-gold);
+    transform: translateX(-3px);
+}
+
+.categories-container {
     padding: 12px;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -151,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
     background: var(--matte-black);
 }
 
-.collection-item {
+.category-item {
     background: var(--onyx-black);
     border-radius: 10px;
     border: 1px solid var(--dark-border);
@@ -166,16 +178,13 @@ document.addEventListener('DOMContentLoaded', function() {
     box-shadow: var(--card-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-.collection-item:hover {
+.category-item:hover {
     border-color: var(--champagne-gold);
-    box-shadow: 
-        0 12px 35px rgba(0, 0, 0, 0.5),
-        0 4px 12px rgba(0, 0, 0, 0.3),
-        0 0 15px rgba(192, 178, 131, 0.3);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 15px rgba(192, 178, 131, 0.3);
     transform: translateY(-2px);
 }
 
-.collection-square-photo {
+.category-square-photo {
     width: 100%;
     height: 125px;
     border-radius: 8px 8px 0 0;
@@ -186,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
     flex-shrink: 0;
 }
 
-.collection-square-photo img {
+.category-square-photo img {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -195,12 +204,12 @@ document.addEventListener('DOMContentLoaded', function() {
     filter: saturate(1.4) contrast(1.2) brightness(1.05);
 }
 
-.collection-item:hover .collection-square-photo img {
+.category-item:hover .category-square-photo img {
     transform: scale(1.05);
     filter: saturate(1.6) contrast(1.3) brightness(1.1);
 }
 
-.collection-number {
+.category-number {
     position: absolute;
     top: 4px;
     left: 4px;
@@ -220,7 +229,7 @@ document.addEventListener('DOMContentLoaded', function() {
     font-family: var(--serif-font);
 }
 
-.collection-details {
+.category-details {
     padding: 6px 8px 4px 8px;
     flex-grow: 1;
     display: flex;
@@ -228,11 +237,11 @@ document.addEventListener('DOMContentLoaded', function() {
     justify-content: space-between;
 }
 
-.collection-header {
+.category-header {
     margin-bottom: 4px;
 }
 
-.collection-title {
+.category-title {
     margin: 0 0 2px 0;
     color: var(--creamy-white);
     font-size: 14px;
@@ -247,20 +256,15 @@ document.addEventListener('DOMContentLoaded', function() {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* Description Wrapper */
 .description-wrapper {
     position: relative;
     margin: 8px 0 6px 0;
     padding: 0;
-    background: linear-gradient(135deg, 
-        rgba(192, 178, 131, 0.03) 0%, 
-        rgba(192, 178, 131, 0.08) 50%, 
-        rgba(192, 178, 131, 0.03) 100%);
+    background: linear-gradient(135deg, rgba(192, 178, 131, 0.03) 0%, rgba(192, 178, 131, 0.08) 50%, rgba(192, 178, 131, 0.03) 100%);
     border-radius: 12px;
     transition: all 0.3s ease;
 }
 
-/* Ultra-Thin Border - 0.5px */
 .description-wrapper::before {
     content: '';
     position: absolute;
@@ -268,12 +272,7 @@ document.addEventListener('DOMContentLoaded', function() {
     left: 8%;
     right: 8%;
     height: 0.5px;
-    background: linear-gradient(90deg, 
-        transparent 0%, 
-        var(--champagne-gold) 20%, 
-        var(--gold-light) 50%,
-        var(--champagne-gold) 80%, 
-        transparent 100%);
+    background: linear-gradient(90deg, transparent 0%, var(--champagne-gold) 20%, var(--gold-light) 50%, var(--champagne-gold) 80%, transparent 100%);
     border-radius: 0.5px;
     opacity: 0.8;
 }
@@ -285,18 +284,12 @@ document.addEventListener('DOMContentLoaded', function() {
     left: 8%;
     right: 8%;
     height: 0.5px;
-    background: linear-gradient(90deg, 
-        transparent 0%, 
-        var(--champagne-gold) 20%, 
-        var(--gold-light) 50%,
-        var(--champagne-gold) 80%, 
-        transparent 100%);
+    background: linear-gradient(90deg, transparent 0%, var(--champagne-gold) 20%, var(--gold-light) 50%, var(--champagne-gold) 80%, transparent 100%);
     border-radius: 0.5px;
     opacity: 0.8;
 }
 
-/* Collection Description - EXACT 2 LINES, NO CUTOFF */
-.collection-description {
+.category-description {
     margin: 10px 12px;
     color: var(--silver-mist);
     font-size: 10px;
@@ -317,14 +310,14 @@ document.addEventListener('DOMContentLoaded', function() {
     z-index: 1;
 }
 
-.collection-actions {
+.category-actions {
     display: flex;
     align-items: center;
     justify-content: center;
     margin-top: 4px;
 }
 
-.btn-view-collection {
+.btn-view-category {
     background: var(--champagne-gold);
     color: #000000;
     border: none;
@@ -347,13 +340,13 @@ document.addEventListener('DOMContentLoaded', function() {
     z-index: 10;
 }
 
-.btn-view-collection:hover {
+.btn-view-category:hover {
     transform: translateY(-1px);
     box-shadow: var(--gold-glow);
     background: var(--antique-bronze);
 }
 
-.btn-view-collection .btn-text {
+.btn-view-category .btn-text {
     flex: 1;
     text-align: left;
     font-weight: 600;
@@ -387,168 +380,22 @@ document.addEventListener('DOMContentLoaded', function() {
     color: var(--silver-mist);
 }
 
-.no-services i {
-    margin-bottom: 20px;
-    color: var(--dark-border);
-}
-
-.no-services h3 {
-    font-size: 18px;
-    margin-bottom: 10px;
-    color: var(--silver-mist);
-    font-family: var(--serif-font);
-}
-
-.no-services p {
-    font-size: 14px;
-    font-family: var(--sans-font);
-}
-
-/* ========== DESKTOP & TABLET ========== */
-@media (min-width: 768px) {
-    .collections-container {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 20px;
-        padding: 20px;
-    }
-    
-    .collection-item {
-        min-height: 200px;
-    }
-    
-    .collection-square-photo {
-        height: 135px;
-    }
-    
-    .collection-details {
-        padding: 8px 10px 5px 10px;
-    }
-    
-    .collection-title {
-        font-size: 15px;
-        margin-bottom: 3px;
-    }
-    
-    .description-wrapper {
-        margin: 10px 0 8px 0;
-    }
-    
-    .collection-description {
-        font-size: 11px;
-        line-height: 1.55;
-        margin: 12px 14px;
-        letter-spacing: 0.35px;
-        max-height: 34px;
-        min-height: 34px;
-    }
-    
-    .description-wrapper::before,
-    .description-wrapper::after {
-        left: 10%;
-        right: 10%;
-    }
-    
-    .btn-view-collection {
-        height: 28px !important;
-        font-size: 11px !important;
-        padding: 4px 10px !important;
-    }
-}
-
-/* ========== MOBILE RESPONSIVE - 2 COLUMNS ========== */
 @media (max-width: 767px) {
-    .collections-container {
-        display: grid !important;
+    .categories-container {
         grid-template-columns: repeat(2, 1fr) !important;
         gap: 12px !important;
         padding: 12px !important;
     }
-    
-    .collection-item {
-        min-height: 180px !important;
-        width: 100% !important;
-    }
-    
-    .collection-square-photo {
+    .category-square-photo {
         height: 115px !important;
     }
-    
-    .collection-details {
-        padding: 5px 6px 3px 6px !important;
-    }
-    
-    .collection-title {
+    .category-title {
         font-size: 13px !important;
     }
-    
-    .collection-description {
-        font-size: 9px !important;
-        line-height: 1.45 !important;
-        margin: 8px 8px !important;
-        letter-spacing: 0.25px !important;
-        max-height: 26px !important;
-        min-height: 26px !important;
-    }
-    
-    .collection-number {
+    .category-number {
         width: 20px !important;
         height: 20px !important;
         font-size: 10px !important;
-        top: 3px !important;
-        left: 3px !important;
-    }
-    
-    .btn-view-collection {
-        padding: 3px 6px !important;
-        font-size: 9px !important;
-        height: 24px !important;
-    }
-}
-
-/* ========== EXTRA SMALL MOBILE ========== */
-@media (max-width: 480px) {
-    .collections-container {
-        gap: 8px !important;
-        padding: 8px !important;
-    }
-    
-    .collection-item {
-        min-height: 170px !important;
-    }
-    
-    .collection-square-photo {
-        height: 105px !important;
-    }
-    
-    .collection-details {
-        padding: 4px 5px 2px 5px !important;
-    }
-    
-    .collection-title {
-        font-size: 12px !important;
-    }
-    
-    .collection-description {
-        font-size: 8px !important;
-        line-height: 1.4 !important;
-        margin: 6px 6px !important;
-        letter-spacing: 0.2px !important;
-        max-height: 22px !important;
-        min-height: 22px !important;
-    }
-    
-    .collection-number {
-        width: 18px !important;
-        height: 18px !important;
-        font-size: 9px !important;
-        top: 2px !important;
-        left: 2px !important;
-    }
-    
-    .btn-view-collection {
-        padding: 2px 4px !important;
-        font-size: 8px !important;
-        height: 22px !important;
     }
 }
 </style>

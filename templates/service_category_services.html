@@ -1,0 +1,440 @@
+<!-- service_category_services.html -->
+{% extends "base.html" %}
+
+{% block title %}{{ category.name }} - Services{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Top Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <a href="{{ url_for('service_collection_categories', collection_id=category.collection_id) }}" class="back-link">
+                <i class="fas fa-arrow-left"></i> Back to Categories
+            </a>
+            <h1>{{ category.name }}</h1>
+            {% if category.description %}
+            <p class="welcome-text">{{ category.description }}</p>
+            {% endif %}
+            {% if collection_name %}
+            <span class="collection-badge">{{ collection_name }}</span>
+            {% endif %}
+        </div>
+        <div class="header-right">
+            <img src="{{ session.profile_pic }}" alt="Profile" class="profile-pic"
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+    </header>
+
+    <!-- Services Grid -->
+    <main class="main-content">
+        {% if services %}
+            <div class="services-container">
+                {% for service in services %}
+                <div class="service-card" data-service-id="{{ service.id }}">
+                    <div class="service-image">
+                        <img src="{{ service.photo }}" 
+                             alt="{{ service.name }}"
+                             onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
+                        {% if service.discount > 0 %}
+                        <span class="discount-badge">{{ service.discount }}% OFF</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="service-info">
+                        <h3 class="service-name">{{ service.name }}</h3>
+                        
+                        {% if service.description %}
+                        <p class="service-description">{{ service.description[:80] }}{% if service.description|length > 80 %}...{% endif %}</p>
+                        {% endif %}
+                        
+                        <div class="service-price-row">
+                            <div class="price-container">
+                                {% if service.discount > 0 %}
+                                <span class="original-price">₹{{ "%.2f"|format(service.price) }}</span>
+                                <span class="final-price">₹{{ "%.2f"|format(service.final_price) }}</span>
+                                {% else %}
+                                <span class="final-price">₹{{ "%.2f"|format(service.price) }}</span>
+                                {% endif %}
+                            </div>
+                            
+                            <button class="btn-add-to-cart" data-service-id="{{ service.id }}" data-service-name="{{ service.name }}" data-service-price="{{ service.final_price }}">
+                                <i class="fas fa-plus"></i>
+                                <span>Add</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-services">
+                <i class="fas fa-tools fa-3x"></i>
+                <h3>No Services Available</h3>
+                <p>No services found in this category.</p>
+            </div>
+        {% endif %}
+    </main>
+
+    <!-- Floating Cart Button -->
+    <div class="floating-cart" id="floatingCart" onclick="window.location.href='{{ url_for('cart') }}'">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="cart-count" id="cartCount">0</span>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item active">
+            <i class="fas fa-concierge-bell"></i><span>Services</span>
+        </a>
+        <a href="{{ url_for('menu') }}" class="nav-item">
+            <i class="fas fa-utensils"></i><span>Menu</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item">
+            <i class="fas fa-shopping-cart"></i><span>Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item">
+            <i class="fas fa-history"></i><span>Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item">
+            <i class="fas fa-user"></i><span>Profile</span>
+        </a>
+    </nav>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const serviceCards = document.querySelectorAll('.service-card');
+    serviceCards.forEach(card => {
+        card.addEventListener('click', function(e) {
+            if (e.target.closest('.btn-add-to-cart')) return;
+            const serviceId = this.dataset.serviceId;
+            if (serviceId) {
+                window.location.href = `/service-detail/${serviceId}`;
+            }
+        });
+    });
+    
+    const addButtons = document.querySelectorAll('.btn-add-to-cart');
+    addButtons.forEach(button => {
+        button.addEventListener('click', async function(e) {
+            e.stopPropagation();
+            const serviceId = this.dataset.serviceId;
+            const serviceName = this.dataset.serviceName;
+            const originalHTML = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            this.disabled = true;
+            
+            try {
+                const formData = new FormData();
+                formData.append('item_type', 'service');
+                formData.append('item_id', serviceId);
+                formData.append('quantity', 1);
+                
+                const response = await fetch('/add_to_cart', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    this.innerHTML = '<i class="fas fa-check"></i><span>Added</span>';
+                    setTimeout(() => {
+                        this.innerHTML = originalHTML;
+                        this.disabled = false;
+                    }, 1500);
+                    updateCartCount();
+                    showNotification(`${serviceName} added to cart!`, 'success');
+                } else {
+                    this.innerHTML = '<i class="fas fa-exclamation-triangle"></i><span>Error</span>';
+                    setTimeout(() => {
+                        this.innerHTML = originalHTML;
+                        this.disabled = false;
+                    }, 1500);
+                    showNotification(data.message || 'Failed to add', 'error');
+                }
+            } catch (error) {
+                this.innerHTML = '<i class="fas fa-times"></i><span>Error</span>';
+                setTimeout(() => {
+                    this.innerHTML = originalHTML;
+                    this.disabled = false;
+                }, 1500);
+                showNotification('Network error', 'error');
+            }
+        });
+    });
+    
+    async function updateCartCount() {
+        try {
+            const response = await fetch('/cart-count');
+            const data = await response.json();
+            const cartCount = document.getElementById('cartCount');
+            if (cartCount) {
+                cartCount.textContent = data.count;
+                cartCount.style.display = data.count > 0 ? 'flex' : 'none';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+    
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i><span>${message}</span>`;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.classList.add('show'), 100);
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+    
+    updateCartCount();
+});
+</script>
+
+<style>
+/* Same styling as services.html */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --matte-black: #0D0D0D;
+    --champagne-gold: #C0B283;
+    --onyx-black: #1A1A1A;
+    --vivid-gold: #D4AF37;
+    --creamy-white: #F4F1E1;
+    --gold-light: #D4C19C;
+    --gold-dark: #A8955E;
+    --dark-border: #333333;
+    --antique-bronze: #8e7d4d;
+    --silver-mist: #A0A0A0;
+    --serif-font: 'Playfair Display', Georgia, serif;
+    --sans-font: 'Inter', sans-serif;
+    --gold-glow: 0 0 15px rgba(192, 178, 131, 0.3);
+    --card-shadow: 0 6px 25px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--champagne-gold);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    transition: all 0.3s;
+    font-family: var(--sans-font);
+}
+
+.back-link:hover {
+    color: var(--vivid-gold);
+    transform: translateX(-3px);
+}
+
+.collection-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--champagne-gold), var(--gold-dark));
+    color: #000;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 8px;
+    font-family: var(--sans-font);
+}
+
+.services-container {
+    padding: 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    background: var(--matte-black);
+}
+
+.service-card {
+    background: var(--onyx-black);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--dark-border);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    box-shadow: var(--card-shadow);
+}
+
+.service-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--champagne-gold);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), 0 0 15px rgba(192, 178, 131, 0.3);
+}
+
+.service-image {
+    position: relative;
+    height: 180px;
+    overflow: hidden;
+}
+
+.service-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.service-card:hover .service-image img {
+    transform: scale(1.05);
+}
+
+.discount-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    z-index: 2;
+}
+
+.service-info {
+    padding: 16px;
+}
+
+.service-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--creamy-white);
+    margin-bottom: 8px;
+    font-family: var(--serif-font);
+}
+
+.service-description {
+    font-size: 12px;
+    color: var(--silver-mist);
+    line-height: 1.4;
+    margin-bottom: 12px;
+}
+
+.service-price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.price-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.original-price {
+    font-size: 12px;
+    color: var(--silver-mist);
+    text-decoration: line-through;
+}
+
+.final-price {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--champagne-gold);
+}
+
+.btn-add-to-cart {
+    background: var(--champagne-gold);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 25px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #000;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s;
+}
+
+.btn-add-to-cart:hover {
+    background: var(--antique-bronze);
+    transform: scale(1.05);
+}
+
+.floating-cart {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, var(--champagne-gold), var(--vivid-gold));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(192, 178, 131, 0.4);
+    transition: all 0.3s;
+    z-index: 100;
+}
+
+.floating-cart:hover {
+    transform: scale(1.1);
+}
+
+.floating-cart i {
+    font-size: 24px;
+    color: #000;
+}
+
+.cart-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ff6b6b;
+    color: white;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notification {
+    position: fixed;
+    bottom: 140px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--onyx-black);
+    color: var(--creamy-white);
+    padding: 12px 20px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+    border-left: 4px solid var(--champagne-gold);
+    white-space: nowrap;
+}
+
+.notification.show {
+    transform: translateX(-50%) translateY(0);
+}
+
+@media (max-width: 768px) {
+    .services-container {
+        grid-template-columns: 1fr;
+        padding: 12px;
+    }
+    .service-image {
+        height: 160px;
+    }
+}
+</style>
+{% endblock %}
