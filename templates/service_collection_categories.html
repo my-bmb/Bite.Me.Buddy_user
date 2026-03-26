@@ -418,12 +418,12 @@ document.addEventListener('DOMContentLoaded', function() {
     font-size: 8px !important;
 }
 
-/* ========== RIGHT SIDE VERTICAL COLLECTIONS ========== */
+/* ========== RIGHT SIDE VERTICAL COLLECTIONS - FIXED CONFLICT ========== */
 .browse-collections-section {
     position: fixed;
     right: 5px;
     top: 70px;
-    bottom: 70px;
+    bottom: 0;  /* ← FIXED: Changed from 70px to 0 to prevent conflict with bottom-nav */
     width: 100px;
     background: rgba(13, 13, 13, 0.95);
     backdrop-filter: blur(12px);
@@ -692,7 +692,7 @@ document.addEventListener('DOMContentLoaded', function() {
     /* Collections Sidebar - Mobile */
     .browse-collections-section {
         top: 60px;
-        bottom: 60px;
+        bottom: 0;  /* ← FIXED: Changed from 60px to 0 */
         width: 80px;
         right: 5px;
         background: rgba(13, 13, 13, 0.96);
@@ -796,7 +796,7 @@ document.addEventListener('DOMContentLoaded', function() {
         right: 5px;
         padding: 6px 2px;
         top: 55px;
-        bottom: 55px;
+        bottom: 0;  /* ← FIXED: Changed from 55px to 0 */
     }
     
     .browse-collection-card {
