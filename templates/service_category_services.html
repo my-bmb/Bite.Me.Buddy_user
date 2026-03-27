@@ -80,8 +80,8 @@
         {% endif %}
     </main>
 
-    <!-- Right Side Vertical Categories - FIXED POSITION MATCHING CSS -->
-    {% if all_categories and all_categories|length > 1 %}
+    <!-- Right Side Vertical Categories - ALWAYS SHOW if categories exist (even if 1) -->
+    {% if all_categories %}
     <div class="browse-categories-section">
         <div class="browse-categories-scroll">
             {% for cat in all_categories %}
