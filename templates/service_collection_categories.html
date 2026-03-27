@@ -94,7 +94,7 @@
 
     <!-- Bottom Navigation - SERVICES TAB ACTIVE with updated transform values -->
     <nav class="bottom-nav">
-        <a href="{{ url_for('services') }}" class="nav-item active" style="background: linear-gradient(135deg, var(--champagne-primary), var(--champagne-light)) !important; color: var(--matte-black-darkest) !important; transform: translateY(-4px) !important; box-shadow: 0 6px 15px rgba(192, 178, 131, 0.3) !important; position: relative !important;">
+        <a href="{{ url_for('services') }}" class="nav-item active" style="background: linear-gradient(135deg, var(--champagne-primary), var(--champagne-light)) !important; color: var(--matte-black-darkest) !important; transform: translateY(-3px) !important; box-shadow: 0 6px 15px rgba(192, 178, 131, 0.3) !important; position: relative !important;">
             <i class="fas fa-concierge-bell" style="color: var(--matte-black-darkest) !important;"></i><span style="color: var(--matte-black-darkest) !important;">Services</span>
             <!-- Underline line for active state - exact style.css dimensions -->
             <span class="active-underline"></span>
@@ -608,11 +608,11 @@ document.addEventListener('DOMContentLoaded', function() {
 /* ========== IMPORTANT: BOTTOM NAVIGATION OVERRIDE FOR ACTIVE SERVICES TAB ========== */
 /* These styles will override the base.css to ensure Services tab is properly highlighted */
 
-/* Desktop and Tablet - 4px up */
+/* Desktop and Tablet - 3px up */
 .bottom-nav .nav-item.active {
     background: linear-gradient(135deg, var(--champagne-primary), var(--champagne-light)) !important;
     color: var(--matte-black-darkest) !important;
-    transform: translateY(-4px) !important;
+    transform: translateY(-3px) !important;
     box-shadow: 0 6px 15px rgba(192, 178, 131, 0.3) !important;
     position: relative !important;
 }
@@ -636,10 +636,10 @@ document.addEventListener('DOMContentLoaded', function() {
     transform: translateY(-3px) !important;
 }
 
-/* Mobile - 2px up */
+/* Mobile - 1.5px up */
 @media (max-width: 480px) {
     .bottom-nav .nav-item.active {
-        transform: translateY(-2px) !important;
+        transform: translateY(-1.5px) !important;
         box-shadow: 0 6px 12px rgba(192, 178, 131, 0.25) !important;
     }
 }
