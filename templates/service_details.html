@@ -1,4 +1,3 @@
-<!-- service_details.html - UPDATED WITH BROWSE BY COLLECTION -->
 {% extends "base.html" %}
 
 {% block title %}{{ service.name }} - Service Details{% endblock %}
@@ -8,13 +7,8 @@
     <!-- Top Header -->
     <header class="dashboard-header">
         <div class="header-left">
-            <a href="javascript:history.back()" class="back-link">
-                <i class="fas fa-arrow-left"></i> Back
-            </a>
             <h1>{{ service.name }}</h1>
-            {% if category %}
-            <p class="welcome-text">{{ category.name }}</p>
-            {% endif %}
+            <p class="welcome-text">{{ category.name if category else 'Service Details' }}</p>
         </div>
         <div class="header-right">
             <img src="{{ session.profile_pic }}" alt="Profile" class="profile-pic"
@@ -22,114 +16,80 @@
         </div>
     </header>
 
-    <!-- Service Detail Content -->
+    <!-- Main Content Area -->
     <main class="main-content">
+        <!-- Service Detail Container -->
         <div class="service-detail-container">
-            <div class="service-hero">
-                <img src="{{ service.photo }}" alt="{{ service.name }}" 
+            <!-- Left Column: Photo -->
+            <div class="service-detail-photo">
+                <img src="{{ service.photo }}" alt="{{ service.name }}"
                      onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
-                {% if service.discount > 0 %}
-                <div class="hero-discount">
-                    <span class="discount-percent">{{ service.discount }}% OFF</span>
-                </div>
-                {% endif %}
             </div>
             
-            <div class="service-info-section">
-                <div class="service-header">
-                    <h2 class="service-title">{{ service.name }}</h2>
-                    
-                    <div class="price-section">
-                        {% if service.discount > 0 %}
-                        <span class="price-original">₹{{ "%.2f"|format(service.price) }}</span>
-                        <span class="price-final">₹{{ "%.2f"|format(service.final_price) }}</span>
-                        <span class="saved-amount">Save ₹{{ "%.2f"|format(service.price - service.final_price) }}</span>
-                        {% else %}
-                        <span class="price-final">₹{{ "%.2f"|format(service.price) }}</span>
-                        {% endif %}
+            <!-- Right Column: Details -->
+            <div class="service-detail-info">
+                <div class="service-detail-header">
+                    <h2>{{ service.name }}</h2>
+                    {% if category %}
+                    <span class="service-detail-category">{{ category.name }}</span>
+                    {% endif %}
+                </div>
+                
+                <!-- About This Service Section -->
+                <div class="about-service-section">
+                    <h3 class="about-heading">About This Service</h3>
+                    <div class="service-detail-description">
+                        <p>{{ service.description or 'No description available for this service. Please contact us for more details.' }}</p>
                     </div>
                 </div>
                 
-                {% if service.description %}
-                <div class="service-description-section">
-                    <h3>About this Service</h3>
-                    <p>{{ service.description }}</p>
-                </div>
-                {% endif %}
-                
-                <div class="action-buttons">
-                    <div class="quantity-selector">
-                        <button class="qty-btn" id="decreaseQty">-</button>
-                        <input type="number" id="quantity" value="1" min="1" max="10">
-                        <button class="qty-btn" id="increaseQty">+</button>
+                <div class="service-detail-pricing">
+                    {% if service.discount and service.discount > 0 %}
+                    <div class="service-detail-discount-row">
+                        <span class="service-detail-original-price">₹{{ "%.2f"|format(service.price) }}</span>
+                        <span class="service-detail-discount-badge">-{{ service.discount }}% OFF</span>
                     </div>
-                    
-                    <button class="btn-add-to-cart-main" id="addToCartBtn">
-                        <i class="fas fa-shopping-cart"></i>
-                        <span>Add to Cart</span>
-                        <span class="price-display">₹{{ "%.2f"|format(service.final_price) }}</span>
+                    {% endif %}
+                    <div class="service-detail-final-price">
+                        <span class="service-detail-rupee">₹</span>
+                        <span class="service-detail-price-value">{{ "%.2f"|format(service.final_price) }}</span>
+                    </div>
+                </div>
+                
+                <div class="service-detail-actions">
+                    <button class="btn-service-detail-add" onclick="addServiceToCart({{ service.id }})">
+                        <i class="fas fa-cart-plus"></i> Add to Cart
                     </button>
                 </div>
             </div>
         </div>
-        
+
+        <!-- You Might Also Like Section -->
         {% if recommended_services %}
         <div class="recommended-section">
-            <h3>You Might Also Like</h3>
-            <div class="recommended-grid">
-                {% for rec in recommended_services %}
-                <div class="recommended-card" onclick="window.location.href='/service-detail/{{ rec.id }}'">
-                    <img src="{{ rec.photo }}" alt="{{ rec.name }}">
-                    <div class="recommended-info">
-                        <h4>{{ rec.name }}</h4>
-                        <div class="recommended-price">
-                            {% if rec.discount > 0 %}
-                            <span class="rec-original">₹{{ "%.2f"|format(rec.price) }}</span>
-                            <span class="rec-final">₹{{ "%.2f"|format(rec.final_price) }}</span>
-                            {% else %}
-                            <span class="rec-final">₹{{ "%.2f"|format(rec.price) }}</span>
-                            {% endif %}
+            <h3 class="section-title">You Might Also Like</h3>
+            <div class="recommended-horizontal-scroll">
+                {% for rec_service in recommended_services %}
+                <div class="recommended-service-card" onclick="window.location.href='/service-detail/{{ rec_service.id }}'">
+                    <div class="recommended-service-photo-square">
+                        <img src="{{ rec_service.photo }}" alt="{{ rec_service.name }}"
+                             onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
+                        <div class="recommended-service-number">
+                            <span>{{ loop.index }}</span>
                         </div>
                     </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-        
-        {% if all_categories %}
-        <div class="categories-section">
-            <h3>Browse by Category</h3>
-            <div class="categories-scroll">
-                {% for cat in all_categories %}
-                <div class="category-chip" onclick="window.location.href='/service-category-services/{{ cat.id }}'">
-                    {% if cat.category_photo %}
-                    <img src="{{ cat.category_photo }}" alt="{{ cat.name }}">
-                    {% else %}
-                    <i class="fas fa-folder"></i>
-                    {% endif %}
-                    <span>{{ cat.name }}</span>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-        
-        <!-- ✅ NEW: BROWSE BY COLLECTION SECTION -->
-        {% if all_collections %}
-        <div class="collections-section">
-            <h3>Browse by Collection</h3>
-            <div class="collections-scroll">
-                {% for col in all_collections %}
-                <div class="collection-chip" onclick="window.location.href='/service-collection/{{ col.id }}'">
-                    {% if col.collection_photo %}
-                    <img src="{{ col.collection_photo }}" alt="{{ col.name }}">
-                    {% else %}
-                    <i class="fas fa-layer-group"></i>
-                    {% endif %}
-                    <div class="collection-chip-info">
-                        <span class="collection-chip-name">{{ col.name }}</span>
-                        <span class="collection-chip-count">{{ col.category_count or 0 }} Categories</span>
+                    <div class="recommended-service-details">
+                        <div class="recommended-service-name">{{ rec_service.name }}</div>
+                        <div class="recommended-service-pricing">
+                            {% if rec_service.discount and rec_service.discount > 0 %}
+                            <span class="recommended-original-price">₹{{ "%.2f"|format(rec_service.price) }}</span>
+                            <span class="recommended-discount-badge">-{{ rec_service.discount }}%</span>
+                            {% endif %}
+                            <div class="recommended-final-price">
+                                <span>₹</span>
+                                <span>{{ "%.2f"|format(rec_service.final_price) }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 {% endfor %}
@@ -138,16 +98,31 @@
         {% endif %}
     </main>
 
-    <!-- Floating Cart Button -->
-    <div class="floating-cart" id="floatingCart" onclick="window.location.href='{{ url_for('cart') }}'">
-        <i class="fas fa-shopping-cart"></i>
-        <span class="cart-count" id="cartCount">0</span>
+    <!-- Right Side Vertical Categories - EXACTLY LIKE service_category_services.html -->
+    {% if all_categories %}
+    <div class="browse-categories-section">
+        <div class="browse-categories-scroll">
+            {% for cat in all_categories %}
+            <a href="{{ url_for('service_category_services', category_id=cat.id) }}" 
+               class="browse-category-card {% if cat.id == category.id %}active{% endif %}">
+                <div class="browse-category-photo-square">
+                    <img src="{{ cat.category_photo }}" alt="{{ cat.name }}">
+                    <div class="browse-category-number">
+                        <span>{{ loop.index }}</span>
+                    </div>
+                </div>
+                <div class="browse-category-name">{{ cat.name }}</div>
+            </a>
+            {% endfor %}
+        </div>
     </div>
+    {% endif %}
 
     <!-- Bottom Navigation -->
     <nav class="bottom-nav">
-        <a href="{{ url_for('services') }}" class="nav-item active">
-            <i class="fas fa-concierge-bell"></i><span>Services</span>
+        <a href="{{ url_for('services') }}" class="nav-item active" style="background: linear-gradient(135deg, var(--champagne-primary), var(--champagne-light)) !important; color: var(--matte-black-darkest) !important; transform: translateY(-3px) !important; box-shadow: 0 6px 15px rgba(192, 178, 131, 0.3) !important; position: relative !important;">
+            <i class="fas fa-concierge-bell" style="color: var(--matte-black-darkest) !important;"></i><span style="color: var(--matte-black-darkest) !important;">Services</span>
+            <span class="active-underline"></span>
         </a>
         <a href="{{ url_for('menu') }}" class="nav-item">
             <i class="fas fa-utensils"></i><span>Menu</span>
@@ -164,124 +139,75 @@
     </nav>
 </div>
 
+<!-- BOOKING NOTIFICATION -->
+<div id="bookingNotification" class="booking-notification-fixed" style="display: none;">
+    <div class="notification-fixed-content">
+        <div class="notification-fixed-icon">
+            <i class="fas fa-shopping-cart"></i>
+        </div>
+        <div class="notification-fixed-text">
+            <strong>Service Added Successfully!</strong>
+            <span>Added to your cart</span>
+        </div>
+        <div class="notification-fixed-actions">
+            <button class="btn-view-cart-fixed" onclick="window.location.href='/cart'">
+                View Cart
+            </button>
+            <button class="btn-close-fixed" onclick="closeBookingNotification()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const quantityInput = document.getElementById('quantity');
-    const decreaseBtn = document.getElementById('decreaseQty');
-    const increaseBtn = document.getElementById('increaseQty');
-    const addToCartBtn = document.getElementById('addToCartBtn');
-    const serviceId = {{ service.id }};
-    const serviceName = "{{ service.name }}";
-    const servicePrice = {{ service.final_price }};
-    
-    decreaseBtn.addEventListener('click', function() {
-        let val = parseInt(quantityInput.value);
-        if (val > 1) quantityInput.value = val - 1;
-        updatePriceDisplay();
-    });
-    
-    increaseBtn.addEventListener('click', function() {
-        let val = parseInt(quantityInput.value);
-        if (val < 10) quantityInput.value = val + 1;
-        updatePriceDisplay();
-    });
-    
-    quantityInput.addEventListener('change', function() {
-        let val = parseInt(this.value);
-        if (isNaN(val) || val < 1) this.value = 1;
-        if (val > 10) this.value = 10;
-        updatePriceDisplay();
-    });
-    
-    function updatePriceDisplay() {
-        const quantity = parseInt(quantityInput.value);
-        const total = servicePrice * quantity;
-        const priceDisplay = addToCartBtn.querySelector('.price-display');
-        if (priceDisplay) priceDisplay.textContent = `₹${total.toFixed(2)}`;
-    }
-    
-    addToCartBtn.addEventListener('click', async function() {
-        const quantity = parseInt(quantityInput.value);
-        const originalHTML = this.innerHTML;
-        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
-        this.disabled = true;
-        
-        try {
-            const formData = new FormData();
-            formData.append('item_type', 'service');
-            formData.append('item_id', serviceId);
-            formData.append('quantity', quantity);
-            
-            const response = await fetch('/add_to_cart', {
-                method: 'POST',
-                body: formData
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                this.innerHTML = '<i class="fas fa-check"></i> Added!';
-                setTimeout(() => {
-                    this.innerHTML = originalHTML;
-                    this.disabled = false;
-                }, 1500);
-                updateCartCount();
-                showNotification(`${quantity}x ${serviceName} added to cart!`, 'success');
-            } else {
-                this.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Failed';
-                setTimeout(() => {
-                    this.innerHTML = originalHTML;
-                    this.disabled = false;
-                }, 1500);
-                showNotification(data.message || 'Failed to add', 'error');
-            }
-        } catch (error) {
-            this.innerHTML = '<i class="fas fa-times"></i> Error';
-            setTimeout(() => {
-                this.innerHTML = originalHTML;
-                this.disabled = false;
-            }, 1500);
-            showNotification('Network error', 'error');
+function addServiceToCart(serviceId) {
+    fetch('/add_to_cart', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `item_type=service&item_id=${serviceId}&quantity=1`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showBookingNotification();
+        } else {
+            showBookingNotification();
         }
+    })
+    .catch(error => {
+        console.error("Add to cart error:", error);
+        showBookingNotification();
     });
-    
-    async function updateCartCount() {
-        try {
-            const response = await fetch('/cart-count');
-            const data = await response.json();
-            const cartCount = document.getElementById('cartCount');
-            if (cartCount) {
-                cartCount.textContent = data.count;
-                cartCount.style.display = data.count > 0 ? 'flex' : 'none';
-            }
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }
-    
-    function showNotification(message, type) {
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i><span>${message}</span>`;
-        document.body.appendChild(notification);
-        setTimeout(() => notification.classList.add('show'), 100);
-        setTimeout(() => {
-            notification.classList.remove('show');
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
-    }
-    
-    updateCartCount();
-});
+}
+
+function showBookingNotification() {
+    const notification = document.getElementById('bookingNotification');
+    notification.style.display = 'block';
+    notification.offsetHeight;
+    notification.classList.add('show');
+    setTimeout(() => {
+        closeBookingNotification();
+    }, 5000);
+}
+
+function closeBookingNotification() {
+    const notification = document.getElementById('bookingNotification');
+    notification.classList.remove('show');
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 400);
+}
 </script>
 
 <style>
-/* Same styling as services.html */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
     --matte-black: #0D0D0D;
     --champagne-gold: #C0B283;
+    --champagne-primary: #C0B283;
+    --champagne-light: #D4C5A1;
     --onyx-black: #1A1A1A;
     --vivid-gold: #D4AF37;
     --creamy-white: #F4F1E1;
@@ -290,510 +216,767 @@ document.addEventListener('DOMContentLoaded', function() {
     --dark-border: #333333;
     --antique-bronze: #8e7d4d;
     --silver-mist: #A0A0A0;
-    --serif-font: 'Playfair Display', Georgia, serif;
-    --sans-font: 'Inter', sans-serif;
+    --text-charcoal: #A6A6A6;
+    --matte-black-darkest: #050505;
+    --burnt-orange: #D98324;
+    --price-glow: rgba(212, 175, 55, 0.3);
     --gold-glow: 0 0 15px rgba(192, 178, 131, 0.3);
-    --card-shadow: 0 6px 25px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+    --modal-glow: 0 0 30px rgba(0,0,0,0.8), 0 0 10px rgba(192, 178, 131, 0.1);
+    --serif-font: 'Playfair Display', Georgia, serif;
+    --sans-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-.back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--champagne-gold);
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 10px;
-    transition: all 0.3s;
-    font-family: var(--sans-font);
+.dashboard {
+    position: relative;
+    min-height: 100vh;
+    background: var(--matte-black);
 }
 
-.back-link:hover {
-    color: var(--vivid-gold);
-    transform: translateX(-3px);
+.main-content {
+    flex: 1;
+    padding: 78px 110px 100px 5px;
+    overflow-y: auto;
 }
 
+/* ========== SERVICE DETAIL SECTION ========== */
 .service-detail-container {
-    max-width: 1000px;
-    margin: 0 auto;
+    display: flex;
+    gap: 30px;
     background: var(--onyx-black);
-    border-radius: 24px;
+    border-radius: 16px;
+    border: 1px solid var(--dark-border);
+    overflow: hidden;
+    margin-bottom: 40px;
+    padding: 24px;
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+}
+
+.service-detail-photo {
+    flex: 0 0 300px;
+    height: 300px;
+    border-radius: 12px;
     overflow: hidden;
     border: 1px solid var(--dark-border);
 }
 
-.service-hero {
-    position: relative;
-    height: 300px;
-    overflow: hidden;
-}
-
-.service-hero img {
+.service-detail-photo img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    filter: saturate(1.2) contrast(1.1);
 }
 
-.hero-discount {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
-    padding: 8px 16px;
-    border-radius: 30px;
-    color: white;
-    font-weight: 700;
-    font-size: 14px;
-    z-index: 2;
+.service-detail-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
-.service-info-section {
-    padding: 24px;
-}
-
-.service-title {
+.service-detail-header h2 {
     font-size: 28px;
     font-weight: 800;
     color: var(--creamy-white);
-    margin-bottom: 16px;
+    margin: 0 0 8px 0;
     font-family: var(--serif-font);
+    letter-spacing: 0.02em;
 }
 
-.price-section {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 24px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--dark-border);
-}
-
-.price-original {
-    font-size: 20px;
-    color: var(--silver-mist);
-    text-decoration: line-through;
-}
-
-.price-final {
-    font-size: 32px;
-    font-weight: 800;
+.service-detail-category {
+    display: inline-block;
+    background: rgba(192, 178, 131, 0.15);
     color: var(--champagne-gold);
-}
-
-.saved-amount {
-    font-size: 14px;
-    color: #4caf50;
-    font-weight: 600;
-    background: rgba(76, 175, 80, 0.1);
     padding: 4px 12px;
     border-radius: 20px;
-}
-
-.service-description-section {
-    margin-bottom: 24px;
-}
-
-.service-description-section h3 {
-    font-size: 18px;
+    font-size: 12px;
     font-weight: 600;
-    color: var(--creamy-white);
-    margin-bottom: 12px;
-    font-family: var(--serif-font);
+    font-family: var(--sans-font);
+    border: 1px solid rgba(192, 178, 131, 0.3);
 }
 
-.service-description-section p {
-    font-size: 14px;
-    line-height: 1.6;
-    color: var(--silver-mist);
+/* About This Service Section */
+.about-service-section {
+    margin: 8px 0;
+    padding: 12px 0;
+    border-top: 1px solid rgba(192, 178, 131, 0.2);
+    border-bottom: 1px solid rgba(192, 178, 131, 0.2);
 }
 
-.action-buttons {
-    display: flex;
-    gap: 16px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.quantity-selector {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: var(--matte-black);
-    border-radius: 50px;
-    padding: 4px;
-    border: 1px solid var(--dark-border);
-}
-
-.qty-btn {
-    width: 40px;
-    height: 40px;
-    border: none;
-    background: var(--onyx-black);
-    color: var(--champagne-gold);
-    font-size: 20px;
-    font-weight: 700;
-    cursor: pointer;
-    border-radius: 50%;
-    transition: all 0.3s;
-}
-
-.qty-btn:hover {
-    background: var(--champagne-gold);
-    color: #000;
-}
-
-#quantity {
-    width: 60px;
-    text-align: center;
-    border: none;
-    background: transparent;
-    color: var(--creamy-white);
-    font-size: 18px;
-    font-weight: 600;
-    outline: none;
-}
-
-.btn-add-to-cart-main {
-    flex: 1;
-    background: linear-gradient(135deg, var(--champagne-gold), var(--gold-dark));
-    border: none;
-    padding: 14px 24px;
-    border-radius: 50px;
+.about-heading {
     font-size: 16px;
     font-weight: 700;
-    color: #000;
-    cursor: pointer;
+    color: var(--champagne-gold);
+    margin: 0 0 12px 0;
+    font-family: var(--serif-font);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-size: 13px;
+}
+
+.service-detail-description p {
+    color: var(--silver-mist);
+    font-size: 15px;
+    line-height: 1.6;
+    font-family: var(--sans-font);
+    margin: 0;
+}
+
+.service-detail-pricing {
+    padding: 8px 0;
+}
+
+.service-detail-discount-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    transition: all 0.3s;
+    gap: 10px;
+    margin-bottom: 8px;
 }
 
-.btn-add-to-cart-main:hover {
+.service-detail-original-price {
+    color: var(--silver-mist);
+    text-decoration: line-through;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.service-detail-discount-badge {
+    background: linear-gradient(135deg, var(--burnt-orange) 0%, #b86d1a 100%);
+    color: var(--creamy-white);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.service-detail-final-price {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.service-detail-rupee {
+    color: var(--antique-bronze);
+    font-size: 28px;
+    font-weight: 900;
+}
+
+.service-detail-price-value {
+    font-weight: 900;
+    color: var(--vivid-gold);
+    font-size: 36px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.15), 0 0 5px var(--price-glow);
+}
+
+.btn-service-detail-add {
+    background: linear-gradient(135deg, var(--champagne-gold), var(--antique-bronze));
+    color: #000000;
+    border: none;
+    font-weight: bold;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    font-family: var(--sans-font);
+    width: fit-content;
+}
+
+.btn-service-detail-add:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(192, 178, 131, 0.4);
+    box-shadow: 0 6px 20px rgba(192, 178, 131, 0.3);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold-dark));
 }
 
+/* ========== RECOMMENDED SECTION ========== */
 .recommended-section {
-    margin-top: 40px;
+    margin-bottom: 40px;
 }
 
-.recommended-section h3,
-.categories-section h3,
-.collections-section h3 {
-    font-size: 22px;
+.section-title {
+    font-size: 20px;
     font-weight: 700;
     color: var(--creamy-white);
     margin-bottom: 20px;
     font-family: var(--serif-font);
+    letter-spacing: 0.02em;
+    border-left: 3px solid var(--champagne-gold);
+    padding-left: 12px;
+}
+
+.recommended-horizontal-scroll {
+    display: flex;
+    overflow-x: auto;
+    gap: 16px;
+    padding: 8px 4px 16px 4px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--champagne-gold) var(--dark-border);
+}
+
+.recommended-horizontal-scroll::-webkit-scrollbar {
+    height: 6px;
+}
+
+.recommended-horizontal-scroll::-webkit-scrollbar-track {
+    background: var(--dark-border);
+    border-radius: 10px;
+}
+
+.recommended-horizontal-scroll::-webkit-scrollbar-thumb {
+    background: var(--champagne-gold);
+    border-radius: 10px;
+}
+
+/* Recommended Service Cards */
+.recommended-service-card {
+    flex-shrink: 0;
+    width: 200px;
+    background: var(--onyx-black);
+    border-radius: 12px;
+    border: 1px solid var(--dark-border);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.recommended-service-card:hover {
+    border-color: var(--champagne-gold);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 10px rgba(192, 178, 131, 0.3);
+}
+
+.recommended-service-photo-square {
+    width: 100%;
+    height: 160px;
+    position: relative;
+    overflow: hidden;
+}
+
+.recommended-service-photo-square img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.recommended-service-card:hover .recommended-service-photo-square img {
+    transform: scale(1.05);
+}
+
+.recommended-service-number {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--vivid-gold) 100%);
+    color: #000000;
+    border-radius: 50%;
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    border: 2px solid var(--onyx-black);
+    z-index: 2;
 }
 
-.recommended-section h3::before,
-.categories-section h3::before,
-.collections-section h3::before {
-    content: '';
-    width: 4px;
-    height: 24px;
-    background: var(--champagne-gold);
-    border-radius: 2px;
-}
-
-.recommended-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
-}
-
-.recommended-card {
-    background: var(--onyx-black);
-    border-radius: 16px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: all 0.3s;
-    border: 1px solid var(--dark-border);
-}
-
-.recommended-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--champagne-gold);
-}
-
-.recommended-card img {
-    width: 100%;
-    height: 140px;
-    object-fit: cover;
-}
-
-.recommended-info {
+.recommended-service-details {
     padding: 12px;
 }
 
-.recommended-info h4 {
+.recommended-service-name {
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--creamy-white);
     margin-bottom: 8px;
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.recommended-price {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.rec-original {
-    font-size: 11px;
-    color: var(--silver-mist);
-    text-decoration: line-through;
-}
-
-.rec-final {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--champagne-gold);
-}
-
-.categories-section {
-    margin-top: 40px;
-}
-
-.categories-scroll {
-    display: flex;
-    gap: 12px;
-    overflow-x: auto;
-    padding-bottom: 8px;
-}
-
-.category-chip {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background: var(--onyx-black);
-    border-radius: 50px;
-    cursor: pointer;
-    transition: all 0.3s;
-    border: 1px solid var(--dark-border);
     white-space: nowrap;
-}
-
-.category-chip:hover {
-    border-color: var(--champagne-gold);
-    transform: translateY(-2px);
-}
-
-.category-chip img {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.category-chip i {
-    font-size: 16px;
-    color: var(--champagne-gold);
-}
-
-.category-chip span {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--creamy-white);
-}
-
-/* ✅ NEW: COLLECTIONS SECTION STYLES */
-.collections-section {
-    margin-top: 40px;
-    margin-bottom: 80px;
-}
-
-.collections-scroll {
-    display: flex;
-    gap: 16px;
-    overflow-x: auto;
-    padding-bottom: 8px;
-}
-
-.collection-chip {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 20px;
-    background: var(--onyx-black);
-    border-radius: 60px;
-    cursor: pointer;
-    transition: all 0.3s;
-    border: 1px solid var(--dark-border);
-    min-width: 180px;
-}
-
-.collection-chip:hover {
-    border-color: var(--champagne-gold);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(192, 178, 131, 0.2);
-}
-
-.collection-chip img {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--champagne-gold);
-}
-
-.collection-chip i {
-    font-size: 28px;
-    color: var(--champagne-gold);
-}
-
-.collection-chip-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.collection-chip-name {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--creamy-white);
     font-family: var(--serif-font);
 }
 
-.collection-chip-count {
+.recommended-service-pricing {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.recommended-original-price {
+    color: var(--silver-mist);
+    text-decoration: line-through;
+    font-size: 11px;
+}
+
+.recommended-discount-badge {
+    background: linear-gradient(135deg, var(--burnt-orange) 0%, #b86d1a 100%);
+    color: var(--creamy-white);
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.recommended-final-price {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    font-weight: 700;
+    color: var(--vivid-gold);
+    font-size: 16px;
+}
+
+.recommended-final-price span:first-child {
+    font-size: 12px;
+}
+
+/* ========== RIGHT SIDE VERTICAL CATEGORIES ========== */
+.browse-categories-section {
+    position: fixed;
+    right: 5px;
+    top: 70px;
+    bottom: 70px;
+    width: 100px;
+    background: rgba(13, 13, 13, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-left: 1px solid rgba(192, 178, 131, 0.4);
+    border-right: 1px solid rgba(192, 178, 131, 0.2);
+    z-index: 100;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 12px 5px;
+}
+
+.browse-categories-section::-webkit-scrollbar {
+    width: 3px;
+}
+
+.browse-categories-section::-webkit-scrollbar-track {
+    background: var(--dark-border);
+    border-radius: 10px;
+}
+
+.browse-categories-section::-webkit-scrollbar-thumb {
+    background: var(--champagne-gold);
+    border-radius: 10px;
+}
+
+.browse-categories-scroll {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: 100%;
+    overflow-y: visible;
+    overflow-x: visible;
+}
+
+/* Category Card */
+.browse-category-card {
+    flex-shrink: 0;
+    width: 90px;
+    background: rgba(26, 26, 26, 0.9);
+    border-radius: 12px;
+    border: 1px solid rgba(192, 178, 131, 0.2);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    padding: 8px 4px;
+}
+
+.browse-category-card.active {
+    border: 2px solid var(--champagne-gold);
+    box-shadow: 0 0 8px rgba(192, 178, 131, 0.4);
+    background: rgba(192, 178, 131, 0.08);
+    transform: scale(1.01);
+}
+
+.browse-category-card:hover {
+    border-color: var(--champagne-gold);
+    transform: translateX(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 10px rgba(192, 178, 131, 0.3);
+}
+
+.browse-category-photo-square {
+    width: 65px;
+    height: 65px;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    background: var(--matte-black);
+    border: 1px solid rgba(192, 178, 131, 0.3);
+    margin-bottom: 6px;
+    transition: all 0.3s ease;
+}
+
+.browse-category-card:hover .browse-category-photo-square,
+.browse-category-card.active .browse-category-photo-square {
+    border-color: var(--champagne-gold);
+}
+
+.browse-category-photo-square img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(1.2) contrast(1.1);
+}
+
+.browse-category-number {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--vivid-gold) 100%);
+    color: #000000;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 9px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    border: 1.5px solid var(--onyx-black);
+    z-index: 2;
+    font-family: var(--serif-font);
+}
+
+.browse-category-name {
+    margin: 0;
+    color: var(--gold-light);
+    font-size: 7px;
+    font-weight: 600;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+    font-family: var(--sans-font);
+    letter-spacing: 0.3px;
+    line-height: 1.3;
+}
+
+.browse-category-card.active .browse-category-name {
+    color: var(--creamy-white);
+    text-shadow: 0 0 3px rgba(192, 178, 131, 0.3);
+}
+
+/* ========== ACTIVE TAB UNDERLINE ========== */
+.active-underline {
+    position: absolute;
+    bottom: -3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 2.5px;
+    background: linear-gradient(90deg, var(--champagne-primary), var(--champagne-light));
+    border-radius: 3px;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { width: 0; opacity: 0; }
+    to { width: 24px; opacity: 1; }
+}
+
+@media (max-width: 480px) {
+    .active-underline {
+        bottom: -3px !important;
+        width: 24px !important;
+        height: 2.5px !important;
+    }
+}
+
+/* ========== BOTTOM NAVIGATION OVERRIDE ========== */
+.bottom-nav .nav-item.active {
+    background: linear-gradient(135deg, var(--champagne-primary), var(--champagne-light)) !important;
+    color: var(--matte-black-darkest) !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 6px 15px rgba(192, 178, 131, 0.3) !important;
+    position: relative !important;
+}
+
+.bottom-nav .nav-item.active i,
+.bottom-nav .nav-item.active span {
+    color: var(--matte-black-darkest) !important;
+}
+
+.bottom-nav .nav-item:not(.active) {
+    background: transparent !important;
+    color: var(--text-charcoal) !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.bottom-nav .nav-item:not(.active):hover {
+    background: rgba(192, 178, 131, 0.12) !important;
+    color: var(--champagne-light) !important;
+    transform: translateY(-3px) !important;
+}
+
+@media (max-width: 480px) {
+    .bottom-nav .nav-item.active {
+        transform: translateY(-1.5px) !important;
+        box-shadow: 0 6px 12px rgba(192, 178, 131, 0.25) !important;
+    }
+}
+
+/* ========== NOTIFICATION ========== */
+.booking-notification-fixed {
+    position: fixed;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    max-width: 400px;
+    background: var(--onyx-black);
+    border-radius: 12px;
+    border: 1px solid var(--champagne-gold);
+    z-index: 99999;
+    transition: top 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: var(--modal-glow);
+    overflow: hidden;
+}
+
+.booking-notification-fixed.show { top: 15px; }
+
+.notification-fixed-content {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    gap: 10px;
+}
+
+.notification-fixed-icon {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--antique-bronze) 100%);
+    color: #000000;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.notification-fixed-text strong {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--creamy-white);
+    margin-bottom: 2px;
+    font-family: var(--serif-font);
+}
+
+.notification-fixed-text span {
     font-size: 11px;
     color: var(--silver-mist);
+    font-family: var(--sans-font);
 }
 
-.floating-cart {
-    position: fixed;
-    bottom: 80px;
-    right: 20px;
-    width: 56px;
-    height: 56px;
-    background: linear-gradient(135deg, var(--champagne-gold), var(--vivid-gold));
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(192, 178, 131, 0.4);
-    transition: all 0.3s;
-    z-index: 100;
-}
+.notification-fixed-actions { display: flex; gap: 6px; flex-shrink: 0; }
 
-.floating-cart:hover {
-    transform: scale(1.1);
-}
-
-.floating-cart i {
-    font-size: 24px;
-    color: #000;
-}
-
-.cart-count {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background: #ff6b6b;
-    color: white;
-    border-radius: 50%;
-    width: 22px;
-    height: 22px;
+.btn-view-cart-fixed {
+    background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--antique-bronze) 100%);
+    color: #000000;
+    border: 1px solid var(--champagne-gold);
+    padding: 5px 10px;
+    border-radius: 5px;
     font-size: 11px;
     font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.3s;
+    font-family: var(--sans-font);
+}
+
+.btn-view-cart-fixed:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--gold-glow);
+    background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold-dark) 100%);
+}
+
+.btn-close-fixed {
+    background: #2A2A2A;
+    color: var(--silver-mist);
+    border: 1px solid var(--dark-border);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 11px;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.2s;
 }
 
-.notification {
-    position: fixed;
-    bottom: 140px;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: var(--onyx-black);
-    color: var(--creamy-white);
-    padding: 12px 20px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    z-index: 1000;
-    transition: transform 0.3s ease;
-    border-left: 4px solid var(--champagne-gold);
-    white-space: nowrap;
+.btn-close-fixed:hover {
+    background: #333;
+    border-color: var(--champagne-gold);
+    color: var(--champagne-gold);
 }
 
-.notification.show {
-    transform: translateX(-50%) translateY(0);
-}
-
-/* Responsive Styles */
-@media (max-width: 768px) {
-    .service-hero {
-        height: 220px;
-    }
-    .service-title {
-        font-size: 22px;
-    }
-    .price-final {
-        font-size: 26px;
-    }
-    .action-buttons {
-        flex-direction: column;
-    }
-    .quantity-selector {
-        width: 100%;
-        justify-content: center;
-    }
-    .btn-add-to-cart-main {
-        width: 100%;
-    }
-    .recommended-grid {
-        grid-template-columns: repeat(2, 1fr);
+/* ========== MOBILE RESPONSIVE ========== */
+@media (max-width: 767px) {
+    .main-content {
+        padding: 68px 85px 80px 5px;
     }
     
-    .collections-scroll {
-        gap: 12px;
+    .service-detail-container {
+        flex-direction: column;
+        padding: 16px;
     }
-    .collection-chip {
-        min-width: 160px;
-        padding: 10px 16px;
+    
+    .service-detail-photo {
+        flex: 0 0 auto;
+        width: 100%;
+        height: 250px;
     }
-    .collection-chip img {
-        width: 36px;
-        height: 36px;
+    
+    .service-detail-header h2 {
+        font-size: 22px;
     }
-    .collection-chip-name {
-        font-size: 12px;
+    
+    .service-detail-price-value {
+        font-size: 28px;
     }
-    .collection-chip-count {
-        font-size: 10px;
+    
+    .service-detail-rupee {
+        font-size: 22px;
+    }
+    
+    .recommended-service-card {
+        width: 160px;
+    }
+    
+    .recommended-service-photo-square {
+        height: 130px;
+    }
+    
+    /* Mobile Right Side Categories */
+    .browse-categories-section {
+        top: 60px;
+        bottom: 60px;
+        width: 80px;
+        right: 5px;
+        background: rgba(13, 13, 13, 0.96);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        padding: 10px 4px;
+    }
+    
+    .browse-category-card {
+        width: 72px;
+        padding: 6px 3px;
+    }
+    
+    .browse-category-photo-square {
+        width: 55px;
+        height: 55px;
+        margin-bottom: 5px;
+    }
+    
+    .browse-category-number {
+        width: 16px;
+        height: 16px;
+        font-size: 7px;
+        top: -3px;
+        right: -3px;
+    }
+    
+    .browse-category-name {
+        font-size: 6px;
+    }
+    
+    .browse-categories-scroll {
+        gap: 10px;
+    }
+    
+    .browse-category-card.active {
+        transform: scale(1.01);
+        box-shadow: 0 0 6px rgba(192, 178, 131, 0.4);
     }
 }
 
 @media (max-width: 480px) {
-    .recommended-grid {
-        grid-template-columns: 1fr;
+    .main-content {
+        padding: 63px 75px 70px 5px;
     }
     
-    .collections-scroll {
-        gap: 10px;
+    .service-detail-photo {
+        height: 200px;
     }
-    .collection-chip {
-        min-width: 140px;
-        padding: 8px 12px;
+    
+    .service-detail-header h2 {
+        font-size: 18px;
     }
-    .collection-chip img {
-        width: 32px;
-        height: 32px;
+    
+    .service-detail-price-value {
+        font-size: 24px;
+    }
+    
+    .service-detail-rupee {
+        font-size: 18px;
+    }
+    
+    .about-heading {
+        font-size: 12px;
+    }
+    
+    .service-detail-description p {
+        font-size: 13px;
+    }
+    
+    .recommended-service-card {
+        width: 140px;
+    }
+    
+    .recommended-service-photo-square {
+        height: 110px;
+    }
+    
+    .browse-categories-section {
+        width: 70px;
+        right: 5px;
+        padding: 8px 3px;
+        top: 55px;
+        bottom: 55px;
+    }
+    
+    .browse-category-card {
+        width: 64px;
+        padding: 5px 2px;
+    }
+    
+    .browse-category-photo-square {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .browse-category-number {
+        width: 14px;
+        height: 14px;
+        font-size: 6px;
+    }
+    
+    .browse-category-name {
+        font-size: 5.5px;
     }
 }
 </style>
