@@ -1,4 +1,3 @@
-<!-- service_category_services.html -->
 {% extends "base.html" %}
 
 {% block title %}{{ category.name }} - Services{% endblock %}
@@ -8,16 +7,8 @@
     <!-- Top Header -->
     <header class="dashboard-header">
         <div class="header-left">
-            <a href="{{ url_for('service_collection_categories', collection_id=category.collection_id) }}" class="back-link">
-                <i class="fas fa-arrow-left"></i> Back to Categories
-            </a>
             <h1>{{ category.name }}</h1>
-            {% if category.description %}
-            <p class="welcome-text">{{ category.description }}</p>
-            {% endif %}
-            {% if collection_name %}
-            <span class="collection-badge">{{ collection_name }}</span>
-            {% endif %}
+            <p class="welcome-text">{{ category.service_count|default(services|length) }} services available</p>
         </div>
         <div class="header-right">
             <img src="{{ session.profile_pic }}" alt="Profile" class="profile-pic"
@@ -25,41 +16,55 @@
         </div>
     </header>
 
-    <!-- Services Grid -->
+    <!-- Service Content - Direct 2-Column Grid -->
     <main class="main-content">
         {% if services %}
-            <div class="services-container">
+            <div class="service-two-column-grid-direct">
                 {% for service in services %}
-                <div class="service-card" data-service-id="{{ service.id }}">
-                    <div class="service-image">
-                        <img src="{{ service.photo }}" 
+                <div class="service-modal-item-card" 
+                     data-service-id="{{ service.id }}"
+                     data-service-name="{{ service.name }}"
+                     data-service-desc="{{ service.description }}"
+                     data-service-photo="{{ service.photo }}"
+                     data-service-price="{{ service.price }}"
+                     data-service-discount="{{ service.discount }}"
+                     data-service-final="{{ service.final_price }}">
+                    
+                    <!-- Left Column: Photo Square -->
+                    <div class="service-modal-photo-square">
+                        <img src="{% if service.photo and service.photo.startswith('http') %}{{ service.photo }}{% else %}{{ url_for('static', filename='uploads/' + service.photo) if service.photo else 'https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg' }}{% endif %}" 
                              alt="{{ service.name }}"
                              onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
-                        {% if service.discount > 0 %}
-                        <span class="discount-badge">{{ service.discount }}% OFF</span>
-                        {% endif %}
                     </div>
                     
-                    <div class="service-info">
-                        <h3 class="service-name">{{ service.name }}</h3>
-                        
-                        {% if service.description %}
-                        <p class="service-description">{{ service.description[:80] }}{% if service.description|length > 80 %}...{% endif %}</p>
-                        {% endif %}
-                        
-                        <div class="service-price-row">
-                            <div class="price-container">
-                                {% if service.discount > 0 %}
-                                <span class="original-price">₹{{ "%.2f"|format(service.price) }}</span>
-                                <span class="final-price">₹{{ "%.2f"|format(service.final_price) }}</span>
-                                {% else %}
-                                <span class="final-price">₹{{ "%.2f"|format(service.price) }}</span>
-                                {% endif %}
+                    <!-- Right Column: Details Square -->
+                    <div class="service-modal-details-square">
+                        <div class="service-modal-header">
+                            <h4 class="service-modal-item-name">{{ service.name }}</h4>
+                            <div class="service-modal-item-number">
+                                <span>#{{ loop.index }}</span>
                             </div>
-                            
-                            <button class="btn-add-to-cart" data-service-id="{{ service.id }}" data-service-name="{{ service.name }}" data-service-price="{{ service.final_price }}">
-                                <i class="fas fa-plus"></i>
-                                <span>Add</span>
+                        </div>
+                        
+                        <div class="service-modal-pricing">
+                            {% if service.discount and service.discount > 0 %}
+                            <div class="service-modal-discount-row">
+                                <span class="service-modal-original-price">₹{{ "%.2f"|format(service.price) }}</span>
+                                <span class="service-modal-discount-badge">-{{ service.discount }}%</span>
+                            </div>
+                            {% endif %}
+                            <div class="service-modal-final-price">
+                                <span class="service-modal-rupee">₹</span>
+                                <span class="service-modal-price-value">{{ "%.2f"|format(service.final_price) }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="service-modal-actions">
+                            <button class="btn-service-modal-details" onclick="event.stopPropagation(); window.location.href='/service-detail/{{ service.id }}'">
+                                <i class="fas fa-info-circle"></i> Details
+                            </button>
+                            <button class="btn-service-modal-add" onclick="event.stopPropagation(); addServiceToCart({{ service.id }})">
+                                <i class="fas fa-cart-plus"></i> Add
                             </button>
                         </div>
                     </div>
@@ -70,16 +75,30 @@
             <div class="no-services">
                 <i class="fas fa-tools fa-3x"></i>
                 <h3>No Services Available</h3>
-                <p>No services found in this category.</p>
+                <p>Check back soon for premium services!</p>
             </div>
         {% endif %}
     </main>
 
-    <!-- Floating Cart Button -->
-    <div class="floating-cart" id="floatingCart" onclick="window.location.href='{{ url_for('cart') }}'">
-        <i class="fas fa-shopping-cart"></i>
-        <span class="cart-count" id="cartCount">0</span>
+    <!-- Right Side Vertical Categories - FIXED POSITION MATCHING CSS -->
+    {% if all_categories and all_categories|length > 1 %}
+    <div class="browse-categories-section">
+        <div class="browse-categories-scroll">
+            {% for cat in all_categories %}
+            <a href="{{ url_for('service_category_services', category_id=cat.id) }}" 
+               class="browse-category-card {% if cat.id == category.id %}active{% endif %}">
+                <div class="browse-category-photo-square">
+                    <img src="{{ cat.category_photo }}" alt="{{ cat.name }}">
+                    <div class="browse-category-number">
+                        <span>{{ loop.index }}</span>
+                    </div>
+                </div>
+                <div class="browse-category-name">{{ cat.name }}</div>
+            </a>
+            {% endfor %}
+        </div>
     </div>
+    {% endif %}
 
     <!-- Bottom Navigation -->
     <nav class="bottom-nav">
@@ -101,101 +120,89 @@
     </nav>
 </div>
 
+<!-- BOOKING NOTIFICATION -->
+<div id="bookingNotification" class="booking-notification-fixed" style="display: none;">
+    <div class="notification-fixed-content">
+        <div class="notification-fixed-icon">
+            <i class="fas fa-shopping-cart"></i>
+        </div>
+        <div class="notification-fixed-text">
+            <strong>Service Added Successfully!</strong>
+            <span>Added to your cart</span>
+        </div>
+        <div class="notification-fixed-actions">
+            <button class="btn-view-cart-fixed" onclick="window.location.href='/cart'">
+                View Cart
+            </button>
+            <button class="btn-close-fixed" onclick="closeBookingNotification()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const serviceCards = document.querySelectorAll('.service-card');
-    serviceCards.forEach(card => {
-        card.addEventListener('click', function(e) {
-            if (e.target.closest('.btn-add-to-cart')) return;
-            const serviceId = this.dataset.serviceId;
-            if (serviceId) {
-                window.location.href = `/service-detail/${serviceId}`;
-            }
-        });
-    });
-    
-    const addButtons = document.querySelectorAll('.btn-add-to-cart');
-    addButtons.forEach(button => {
-        button.addEventListener('click', async function(e) {
-            e.stopPropagation();
-            const serviceId = this.dataset.serviceId;
-            const serviceName = this.dataset.serviceName;
-            const originalHTML = this.innerHTML;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            this.disabled = true;
-            
-            try {
-                const formData = new FormData();
-                formData.append('item_type', 'service');
-                formData.append('item_id', serviceId);
-                formData.append('quantity', 1);
-                
-                const response = await fetch('/add_to_cart', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    this.innerHTML = '<i class="fas fa-check"></i><span>Added</span>';
-                    setTimeout(() => {
-                        this.innerHTML = originalHTML;
-                        this.disabled = false;
-                    }, 1500);
-                    updateCartCount();
-                    showNotification(`${serviceName} added to cart!`, 'success');
-                } else {
-                    this.innerHTML = '<i class="fas fa-exclamation-triangle"></i><span>Error</span>';
-                    setTimeout(() => {
-                        this.innerHTML = originalHTML;
-                        this.disabled = false;
-                    }, 1500);
-                    showNotification(data.message || 'Failed to add', 'error');
-                }
-            } catch (error) {
-                this.innerHTML = '<i class="fas fa-times"></i><span>Error</span>';
-                setTimeout(() => {
-                    this.innerHTML = originalHTML;
-                    this.disabled = false;
-                }, 1500);
-                showNotification('Network error', 'error');
-            }
-        });
-    });
-    
-    async function updateCartCount() {
-        try {
-            const response = await fetch('/cart-count');
-            const data = await response.json();
-            const cartCount = document.getElementById('cartCount');
-            if (cartCount) {
-                cartCount.textContent = data.count;
-                cartCount.style.display = data.count > 0 ? 'flex' : 'none';
-            }
-        } catch (error) {
-            console.error('Error:', error);
+function addServiceToCart(serviceId) {
+    fetch('/add_to_cart', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `item_type=service&item_id=${serviceId}&quantity=1`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showBookingNotification();
+        } else {
+            showBookingNotification();
         }
+    })
+    .catch(error => {
+        console.error("Add to cart error:", error);
+        showBookingNotification();
+    });
+}
+
+function showBookingNotification() {
+    const notification = document.getElementById('bookingNotification');
+    notification.style.display = 'block';
+    notification.offsetHeight;
+    notification.classList.add('show');
+    setTimeout(() => {
+        closeBookingNotification();
+    }, 5000);
+}
+
+function closeBookingNotification() {
+    const notification = document.getElementById('bookingNotification');
+    notification.classList.remove('show');
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 400);
+}
+
+function highlightCard(card) {
+    const allCards = document.querySelectorAll('.service-modal-item-card');
+    allCards.forEach(c => c.classList.remove('highlighted'));
+    card.classList.add('highlighted');
+    setTimeout(() => {
+        card.classList.remove('highlighted');
+    }, 1500);
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeBookingNotification();
     }
-    
-    function showNotification(message, type) {
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i><span>${message}</span>`;
-        document.body.appendChild(notification);
-        setTimeout(() => notification.classList.add('show'), 100);
-        setTimeout(() => {
-            notification.classList.remove('show');
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
-    }
-    
-    updateCartCount();
+});
+
+document.querySelectorAll('.service-modal-item-card').forEach(card => {
+    card.addEventListener('click', function() {
+        highlightCard(this);
+    });
 });
 </script>
 
 <style>
-/* Same styling as services.html */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
@@ -209,232 +216,785 @@ document.addEventListener('DOMContentLoaded', function() {
     --dark-border: #333333;
     --antique-bronze: #8e7d4d;
     --silver-mist: #A0A0A0;
-    --serif-font: 'Playfair Display', Georgia, serif;
-    --sans-font: 'Inter', sans-serif;
-    --gold-glow: 0 0 15px rgba(192, 178, 131, 0.3);
+    --burnt-orange: #D98324;
+    --price-glow: rgba(212, 175, 55, 0.3);
     --card-shadow: 0 6px 25px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+    --gold-glow: 0 0 15px rgba(192, 178, 131, 0.3);
+    --modal-glow: 0 0 30px rgba(0,0,0,0.8), 0 0 10px rgba(192, 178, 131, 0.1);
+    --serif-font: 'Playfair Display', Georgia, serif;
+    --sans-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-.back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--champagne-gold);
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 10px;
-    transition: all 0.3s;
-    font-family: var(--sans-font);
-}
-
-.back-link:hover {
-    color: var(--vivid-gold);
-    transform: translateX(-3px);
-}
-
-.collection-badge {
-    display: inline-block;
-    background: linear-gradient(135deg, var(--champagne-gold), var(--gold-dark));
-    color: #000;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-    margin-top: 8px;
-    font-family: var(--sans-font);
-}
-
-.services-container {
-    padding: 16px;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
+/* ========== DASHBOARD CONTAINER OVERRIDE ========== */
+.dashboard {
+    position: relative;
+    min-height: 100vh;
     background: var(--matte-black);
 }
 
-.service-card {
+.main-content {
+    flex: 1;
+    padding: 78px 110px 100px 5px;  /* top: 70px + 8px = 78px, left: 5px gap */
+    overflow-y: auto;
+}
+
+/* ========== SERVICE ITEMS 2-COLUMN GRID ========== */
+.service-two-column-grid-direct {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    background: var(--matte-black);
+}
+
+/* SERVICE MODAL ITEM CARD */
+.service-modal-item-card {
+    display: flex;
+    gap: 2px !important;
+    padding: 0 !important;
     background: var(--onyx-black);
-    border-radius: 16px;
-    overflow: hidden;
+    border-radius: 0;
     border: 1px solid var(--dark-border);
     transition: all 0.3s ease;
-    cursor: pointer;
-    box-shadow: var(--card-shadow);
-}
-
-.service-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--champagne-gold);
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), 0 0 15px rgba(192, 178, 131, 0.3);
-}
-
-.service-image {
+    height: 118px !important;
+    min-height: 118px;
+    align-items: stretch;
+    box-shadow: none;
+    margin: 0;
     position: relative;
-    height: 180px;
     overflow: hidden;
+    cursor: pointer;
+    margin-right: 4px !important;
 }
 
-.service-image img {
+.service-modal-item-card:hover {
+    border-color: var(--champagne-gold);
+    background: rgba(31, 31, 31, 0.9);
+}
+
+.service-modal-item-card.highlighted {
+    animation: goldGlowPulse 1.5s ease-in-out;
+    z-index: 1;
+    position: relative;
+}
+
+@keyframes goldGlowPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(192, 178, 131, 0);
+        border-color: var(--champagne-gold);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 10px 3px rgba(192, 178, 131, 0.6);
+        border-color: var(--gold-light);
+        transform: scale(1.01);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(192, 178, 131, 0);
+        border-color: var(--champagne-gold);
+        transform: scale(1);
+    }
+}
+
+/* Desktop layout borders */
+@media (min-width: 768px) {
+    .service-modal-item-card:nth-child(odd) { border-left: none; }
+    .service-modal-item-card:nth-child(even) { border-right: none; }
+    .service-modal-item-card:nth-child(1), .service-modal-item-card:nth-child(2) { border-top: none; }
+    .service-modal-item-card:nth-last-child(-n+2) { border-bottom: none; }
+}
+
+/* Left Column: Photo Square */
+.service-modal-photo-square {
+    flex: 0 0 115px;
+    width: 115px;
+    height: 115px;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--dark-border);
+    background: var(--matte-black);
+    position: relative;
+    margin: 2px 0 !important;
+}
+
+.service-modal-photo-square img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, filter 0.3s ease;
+    border-radius: 4px;
+    filter: saturate(1.4) contrast(1.2) brightness(1.05);
 }
 
-.service-card:hover .service-image img {
+.service-modal-item-card:hover .service-modal-photo-square img {
     transform: scale(1.05);
+    filter: saturate(1.6) contrast(1.3) brightness(1.1);
 }
 
-.discount-badge {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
-    color: white;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 700;
-    z-index: 2;
+/* Right Column: Details Square */
+.service-modal-details-square {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0 !important;
+    height: 100px;
+    background: transparent;
+    position: relative;
+    margin: 2px 0 !important;
+    padding-right: 4px !important;
 }
 
-.service-info {
-    padding: 16px;
+/* Header */
+.service-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.2px !important;
+    width: 100%;
+    gap: 0.3px;
 }
 
-.service-name {
-    font-size: 16px;
+.service-modal-item-name {
+    margin: 0;
+    font-size: 11.5px !important;
     font-weight: 700;
     color: var(--creamy-white);
-    margin-bottom: 8px;
+    line-height: 1.05 !important;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 4px;
+    font-family: var(--serif-font);
+    letter-spacing: 0.02em;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.service-modal-item-number {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3px;
+    font-size: 8.5px !important;
+    padding: 1.5px 4px;
+    border-radius: 3px;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+    background: rgba(192, 178, 131, 0.1);
+    color: var(--champagne-gold);
+    border: 1px solid rgba(192, 178, 131, 0.3);
+}
+
+/* Pricing */
+.service-modal-pricing {
+    margin-bottom: 0px !important;
+    padding: 0;
+    padding-right: 4px;
+}
+
+.service-modal-discount-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5px;
+    margin-bottom: 0.1px !important;
+    position: relative;
+    top: -0.2px;
+}
+
+.service-modal-original-price {
+    color: var(--silver-mist);
+    text-decoration: line-through;
+    font-size: 8px !important;
+    font-weight: 500;
+}
+
+.service-modal-discount-badge {
+    background: linear-gradient(135deg, var(--burnt-orange) 0%, #b86d1a 100%);
+    color: var(--creamy-white);
+    padding: 1px 4px;
+    border-radius: 6px;
+    font-size: 7px !important;
+    font-weight: 700;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--burnt-orange);
+}
+
+.service-modal-final-price {
+    display: flex;
+    align-items: baseline;
+    gap: 0.2px;
+    position: relative;
+    top: -0.2px;
+}
+
+.service-modal-rupee {
+    color: var(--antique-bronze);
+    font-size: 12px !important;
+    font-weight: 900;
+    margin-right: 0.3px;
+}
+
+.service-modal-price-value {
+    font-weight: 900;
+    color: var(--vivid-gold);
+    font-size: 14.5px !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.15), 0 0 5px var(--price-glow);
+}
+
+/* Action Buttons */
+.service-modal-actions {
+    display: flex;
+    gap: 0.6px;
+    margin-top: 0px !important;
+    width: 100%;
+    margin-bottom: 0;
+    position: relative;
+    top: -0.3px;
+    padding-right: 4px;
+}
+
+.btn-service-modal-details {
+    flex: 1;
+    background: transparent;
+    color: var(--champagne-gold);
+    border: 1px solid var(--champagne-gold);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 8.5px !important;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    min-width: 0;
+    white-space: nowrap;
+    height: 27px !important;
+    font-family: var(--sans-font);
+}
+
+.btn-service-modal-details:hover {
+    background: rgba(192, 178, 131, 0.1);
+    box-shadow: 0 0 6px rgba(192, 178, 131, 0.2);
+    color: var(--champagne-gold);
+    border-color: var(--champagne-gold);
+    transform: translateY(-1px);
+}
+
+.btn-service-modal-add {
+    flex: 1;
+    background: linear-gradient(135deg, var(--champagne-gold), var(--antique-bronze));
+    color: #000000;
+    border: none;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 8.5px !important;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+    min-width: 0;
+    white-space: nowrap;
+    height: 27px !important;
+    font-family: var(--sans-font);
+}
+
+.btn-service-modal-add:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(192, 178, 131, 0.3);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold-dark));
+}
+
+.btn-service-modal-add::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.6s;
+    z-index: 1;
+}
+
+.btn-service-modal-add:hover::before { left: 100%; }
+
+.btn-service-modal-details i, .btn-service-modal-add i { font-size: 9px; }
+.btn-service-modal-details i { color: var(--champagne-gold); }
+.btn-service-modal-add i { color: #000000; font-weight: bold; }
+
+/* ========== RIGHT SIDE VERTICAL CATEGORIES ========== */
+.browse-categories-section {
+    position: fixed;
+    right: 5px;
+    top: 70px;  /* Matches header height */
+    bottom: 70px;  /* Matches bottom nav height */
+    width: 100px;
+    background: rgba(13, 13, 13, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-left: 1px solid rgba(192, 178, 131, 0.4);
+    border-right: 1px solid rgba(192, 178, 131, 0.2);
+    z-index: 100;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 12px 5px;
+}
+
+/* Custom scrollbar for categories sidebar */
+.browse-categories-section::-webkit-scrollbar {
+    width: 3px;
+}
+
+.browse-categories-section::-webkit-scrollbar-track {
+    background: var(--dark-border);
+    border-radius: 10px;
+}
+
+.browse-categories-section::-webkit-scrollbar-thumb {
+    background: var(--champagne-gold);
+    border-radius: 10px;
+}
+
+.browse-categories-scroll {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: 100%;
+    overflow-y: visible;
+    overflow-x: visible;
+}
+
+/* Category Card */
+.browse-category-card {
+    flex-shrink: 0;
+    width: 90px;
+    background: rgba(26, 26, 26, 0.9);
+    border-radius: 12px;
+    border: 1px solid rgba(192, 178, 131, 0.2);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    padding: 8px 4px;
+}
+
+/* Active Category - Normal Effect */
+.browse-category-card.active {
+    border: 2px solid var(--champagne-gold);
+    box-shadow: 0 0 8px rgba(192, 178, 131, 0.4);
+    background: rgba(192, 178, 131, 0.08);
+    transform: scale(1.01);
+}
+
+.browse-category-card:hover {
+    border-color: var(--champagne-gold);
+    transform: translateX(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 10px rgba(192, 178, 131, 0.3);
+}
+
+.browse-category-photo-square {
+    width: 65px;
+    height: 65px;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    background: var(--matte-black);
+    border: 1px solid rgba(192, 178, 131, 0.3);
+    margin-bottom: 6px;
+    transition: all 0.3s ease;
+}
+
+.browse-category-card:hover .browse-category-photo-square,
+.browse-category-card.active .browse-category-photo-square {
+    border-color: var(--champagne-gold);
+}
+
+.browse-category-photo-square img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(1.2) contrast(1.1);
+}
+
+.browse-category-number {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--vivid-gold) 100%);
+    color: #000000;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 9px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    border: 1.5px solid var(--onyx-black);
+    z-index: 2;
     font-family: var(--serif-font);
 }
 
-.service-description {
-    font-size: 12px;
-    color: var(--silver-mist);
-    line-height: 1.4;
-    margin-bottom: 12px;
+.browse-category-name {
+    margin: 0;
+    color: var(--gold-light);
+    font-size: 7px;
+    font-weight: 600;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+    font-family: var(--sans-font);
+    letter-spacing: 0.3px;
+    line-height: 1.3;
 }
 
-.service-price-row {
+.browse-category-card.active .browse-category-name {
+    color: var(--creamy-white);
+    text-shadow: 0 0 3px rgba(192, 178, 131, 0.3);
+}
+
+/* NOTIFICATION */
+.booking-notification-fixed {
+    position: fixed;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    max-width: 400px;
+    background: var(--onyx-black);
+    border-radius: 12px;
+    border: 1px solid var(--champagne-gold);
+    z-index: 99999;
+    transition: top 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: var(--modal-glow);
+    overflow: hidden;
+}
+
+.booking-notification-fixed.show { top: 15px; }
+
+.notification-fixed-content {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-top: 8px;
+    padding: 10px 12px;
+    gap: 10px;
 }
 
-.price-container {
+.notification-fixed-icon {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--antique-bronze) 100%);
+    color: #000000;
+    border-radius: 50%;
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
 }
 
-.original-price {
-    font-size: 12px;
+.notification-fixed-text strong {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--creamy-white);
+    margin-bottom: 2px;
+    font-family: var(--serif-font);
+}
+
+.notification-fixed-text span {
+    font-size: 11px;
     color: var(--silver-mist);
-    text-decoration: line-through;
+    font-family: var(--sans-font);
 }
 
-.final-price {
-    font-size: 18px;
+.notification-fixed-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+.btn-view-cart-fixed {
+    background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--antique-bronze) 100%);
+    color: #000000;
+    border: 1px solid var(--champagne-gold);
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 11px;
     font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.3s;
+    font-family: var(--sans-font);
+}
+
+.btn-view-cart-fixed:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--gold-glow);
+    background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold-dark) 100%);
+}
+
+.btn-close-fixed {
+    background: #2A2A2A;
+    color: var(--silver-mist);
+    border: 1px solid var(--dark-border);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-close-fixed:hover {
+    background: #333;
+    border-color: var(--champagne-gold);
     color: var(--champagne-gold);
 }
 
-.btn-add-to-cart {
-    background: var(--champagne-gold);
-    border: none;
-    padding: 8px 16px;
-    border-radius: 25px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #000;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.3s;
-}
-
-.btn-add-to-cart:hover {
-    background: var(--antique-bronze);
-    transform: scale(1.05);
-}
-
-.floating-cart {
-    position: fixed;
-    bottom: 80px;
-    right: 20px;
-    width: 56px;
-    height: 56px;
-    background: linear-gradient(135deg, var(--champagne-gold), var(--vivid-gold));
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(192, 178, 131, 0.4);
-    transition: all 0.3s;
-    z-index: 100;
-}
-
-.floating-cart:hover {
-    transform: scale(1.1);
-}
-
-.floating-cart i {
-    font-size: 24px;
-    color: #000;
-}
-
-.cart-count {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background: #ff6b6b;
-    color: white;
-    border-radius: 50%;
-    width: 22px;
-    height: 22px;
-    font-size: 11px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.notification {
-    position: fixed;
-    bottom: 140px;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: var(--onyx-black);
-    color: var(--creamy-white);
-    padding: 12px 20px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    z-index: 1000;
-    transition: transform 0.3s ease;
-    border-left: 4px solid var(--champagne-gold);
-    white-space: nowrap;
-}
-
-.notification.show {
-    transform: translateX(-50%) translateY(0);
-}
-
-@media (max-width: 768px) {
-    .services-container {
-        grid-template-columns: 1fr;
-        padding: 12px;
+/* ========== MOBILE RESPONSIVE ========== */
+@media (max-width: 767px) {
+    .main-content {
+        padding: 68px 85px 80px 5px;  /* mobile: 60px + 8px = 68px */
     }
-    .service-image {
-        height: 160px;
+    
+    .service-two-column-grid-direct { grid-template-columns: 1fr !important; gap: 2px !important; padding: 0 !important; }
+    
+    .service-modal-item-card {
+        height: 95px !important;
+        min-height: 95px;
+    }
+    
+    .service-modal-photo-square {
+        flex: 0 0 90px !important;
+        width: 90px !important;
+        height: 90px !important;
+    }
+    
+    .service-modal-details-square {
+        height: 82px !important;
+        padding-right: 2px !important;
+    }
+    
+    .service-modal-item-name {
+        font-size: 11px !important;
+        padding-right: 2px;
+    }
+    
+    .service-modal-item-number {
+        font-size: 8.5px !important;
+        padding: 1px 3px;
+    }
+    
+    .service-modal-original-price {
+        font-size: 8.5px !important;
+    }
+    
+    .service-modal-discount-badge {
+        font-size: 7.5px !important;
+        padding: 1px 3px;
+    }
+    
+    .service-modal-rupee {
+        font-size: 11.5px !important;
+    }
+    
+    .service-modal-price-value {
+        font-size: 13px !important;
+    }
+    
+    .btn-service-modal-details,
+    .btn-service-modal-add {
+        height: 26px !important;
+        padding: 4px 6px !important;
+        font-size: 9.5px !important;
+        gap: 4px;
+    }
+    
+    .btn-service-modal-details i,
+    .btn-service-modal-add i {
+        font-size: 10px !important;
+    }
+    
+    .service-modal-header {
+        margin-bottom: 0.1px !important;
+        gap: 0.2px;
+    }
+    
+    .service-modal-discount-row {
+        gap: 0.4px;
+        top: -0.1px;
+    }
+    
+    .service-modal-final-price {
+        gap: 0.2px;
+        top: -0.1px;
+    }
+    
+    .service-modal-actions {
+        gap: 0.5px;
+        top: -0.2px;
+    }
+    
+    /* Mobile Right Side Categories */
+    .browse-categories-section {
+        top: 60px;
+        bottom: 60px;
+        width: 80px;
+        right: 5px;
+        background: rgba(13, 13, 13, 0.96);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        padding: 10px 4px;
+    }
+    
+    .browse-category-card {
+        width: 72px;
+        padding: 6px 3px;
+    }
+    
+    .browse-category-photo-square {
+        width: 55px;
+        height: 55px;
+        margin-bottom: 5px;
+    }
+    
+    .browse-category-number {
+        width: 16px;
+        height: 16px;
+        font-size: 7px;
+        top: -3px;
+        right: -3px;
+    }
+    
+    .browse-category-name {
+        font-size: 6px;
+    }
+    
+    .browse-categories-scroll {
+        gap: 10px;
+    }
+    
+    .browse-category-card.active {
+        transform: scale(1.01);
+        box-shadow: 0 0 6px rgba(192, 178, 131, 0.4);
     }
 }
+
+@media (max-width: 480px) {
+    .main-content {
+        padding: 63px 75px 70px 5px;  /* small mobile: 55px + 8px = 63px */
+    }
+    
+    .service-modal-item-card {
+        height: 90px !important;
+        min-height: 90px;
+    }
+    
+    .service-modal-photo-square {
+        flex: 0 0 85px !important;
+        width: 85px !important;
+        height: 85px !important;
+    }
+    
+    .service-modal-details-square {
+        height: 78px !important;
+    }
+    
+    .service-modal-item-name {
+        font-size: 10px !important;
+    }
+    
+    .service-modal-item-number {
+        font-size: 8px !important;
+    }
+    
+    .service-modal-original-price {
+        font-size: 8px !important;
+    }
+    
+    .service-modal-discount-badge {
+        font-size: 7px !important;
+    }
+    
+    .service-modal-rupee {
+        font-size: 10.5px !important;
+    }
+    
+    .service-modal-price-value {
+        font-size: 12px !important;
+    }
+    
+    .btn-service-modal-details,
+    .btn-service-modal-add {
+        height: 24px !important;
+        padding: 3px 5px !important;
+        font-size: 9px !important;
+        gap: 3px;
+    }
+    
+    .btn-service-modal-details i,
+    .btn-service-modal-add i {
+        font-size: 9px !important;
+    }
+    
+    .browse-categories-section {
+        width: 70px;
+        right: 5px;
+        padding: 8px 3px;
+        top: 55px;
+        bottom: 55px;
+    }
+    
+    .browse-category-card {
+        width: 64px;
+        padding: 5px 2px;
+    }
+    
+    .browse-category-photo-square {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .browse-category-number {
+        width: 14px;
+        height: 14px;
+        font-size: 6px;
+    }
+    
+    .browse-category-name {
+        font-size: 5.5px;
+    }
+}
+
+/* No Items State */
+.no-services {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--silver-mist);
+}
+
+.no-services i { margin-bottom: 20px; color: var(--dark-border); }
+.no-services h3 { font-size: 18px; margin-bottom: 10px; color: var(--silver-mist); font-family: var(--serif-font); }
+.no-services p { font-size: 14px; font-family: var(--sans-font); }
 </style>
 {% endblock %}
