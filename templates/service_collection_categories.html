@@ -92,7 +92,7 @@
     </div>
     {% endif %}
 
-    <!-- Bottom Navigation - Height will come from base.html -->
+    <!-- Bottom Navigation - SERVICES TAB ACTIVE with style.css colors -->
     <nav class="bottom-nav">
         <a href="{{ url_for('services') }}" class="nav-item active">
             <i class="fas fa-concierge-bell"></i><span>Services</span>
@@ -564,111 +564,128 @@ document.addEventListener('DOMContentLoaded', function() {
     text-shadow: 0 0 2px rgba(192, 178, 131, 0.3);
 }
 
-/* ========== BOTTOM NAVIGATION - EXACT MATCH WITH style.css (NO HEIGHT PROPERTIES) ========== */
-/* All height/padding will come from base.html - only colors and active states are defined here */
+/* ========== BOTTOM NAVIGATION - EXACT MATCH WITH style.css COLORS ========== */
+/* All colors use the same CSS variables as style.css with !important for force */
 
 .bottom-nav {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    display: flex !important;
+    justify-content: space-around !important;
+    align-items: center !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
     background: rgba(15, 15, 15, 0.98) !important;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-top: 1px solid rgba(192, 178, 131, 0.2);
-    z-index: 1000;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-top: 1px solid rgba(192, 178, 131, 0.2) !important;
+    z-index: 1000 !important;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3) !important;
 }
 
 .nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-decoration: none;
-    color: var(--text-charcoal);
-    border-radius: 16px;
-    position: relative;
-    font-family: 'Montserrat', sans-serif;
-    letter-spacing: 0.7px;
-    transition: all 0.2s ease;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-decoration: none !important;
+    border-radius: 16px !important;
+    position: relative !important;
+    font-family: 'Montserrat', sans-serif !important;
+    letter-spacing: 0.7px !important;
+    transition: all 0.2s ease !important;
 }
 
 .nav-item i {
-    font-size: 22px;
-    margin-bottom: 6px;
-    transition: all 0.2s ease;
+    font-size: 22px !important;
+    margin-bottom: 6px !important;
+    transition: all 0.2s ease !important;
 }
 
 .nav-item span {
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.7px;
-    transition: all 0.2s ease;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.7px !important;
+    transition: all 0.2s ease !important;
 }
 
-/* Active state - EXACTLY as in style.css */
+/* ACTIVE STATE - Using style.css variables with !important */
 .nav-item.active {
-    color: var(--matte-black-darkest);
-    background: linear-gradient(135deg, var(--champagne-primary), var(--champagne-light));
-    transform: translateY(-5px);
-    box-shadow: 0 6px 15px rgba(192, 178, 131, 0.3);
+    color: var(--matte-black-darkest) !important;
+    background: linear-gradient(135deg, var(--champagne-primary), var(--champagne-light)) !important;
+    transform: translateY(-5px) !important;
+    box-shadow: 0 6px 15px rgba(192, 178, 131, 0.3) !important;
 }
 
 .nav-item.active i,
 .nav-item.active span {
-    color: var(--matte-black-darkest);
+    color: var(--matte-black-darkest) !important;
 }
 
-/* Hover state - EXACTLY as in style.css */
+/* INACTIVE STATE - Using style.css variables with !important */
+.nav-item:not(.active) {
+    background: transparent !important;
+    color: var(--text-charcoal) !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.nav-item:not(.active) i,
+.nav-item:not(.active) span {
+    color: var(--text-charcoal) !important;
+}
+
+/* HOVER STATE - Using style.css variables with !important */
 .nav-item:hover:not(.active) {
-    color: var(--champagne-light);
-    background: rgba(192, 178, 131, 0.12);
-    transform: translateY(-3px);
+    color: var(--champagne-light) !important;
+    background: rgba(192, 178, 131, 0.12) !important;
+    transform: translateY(-3px) !important;
 }
 
-/* Mobile - Only colors, no height */
+.nav-item:hover:not(.active) i,
+.nav-item:hover:not(.active) span {
+    color: var(--champagne-light) !important;
+}
+
+/* MOBILE RESPONSIVE - Using style.css variables */
 @media (max-width: 480px) {
     .nav-item i {
-        font-size: 19px;
-        margin-bottom: 4px;
+        font-size: 19px !important;
+        margin-bottom: 4px !important;
     }
     
     .nav-item span {
-        font-size: 9.5px;
-        font-weight: 600;
-        letter-spacing: 0.4px;
+        font-size: 9.5px !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.4px !important;
     }
     
     .nav-item.active {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 12px rgba(192, 178, 131, 0.25);
+        transform: translateY(-3px) !important;
+        box-shadow: 0 6px 12px rgba(192, 178, 131, 0.25) !important;
     }
     
     .nav-item.active::after {
-        content: '';
-        position: absolute;
-        bottom: -3px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 24px;
-        height: 2.5px;
-        background: linear-gradient(90deg, var(--champagne-primary), var(--champagne-light));
-        border-radius: 3px;
+        content: '' !important;
+        position: absolute !important;
+        bottom: -3px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: 24px !important;
+        height: 2.5px !important;
+        background: linear-gradient(90deg, var(--champagne-primary), var(--champagne-light)) !important;
+        border-radius: 3px !important;
     }
 }
 
-/* Tablet - Only colors, no height */
+/* TABLET RESPONSIVE */
 @media (min-width: 481px) and (max-width: 768px) {
     .nav-item i {
-        font-size: 21px;
-        margin-bottom: 5px;
+        font-size: 21px !important;
+        margin-bottom: 5px !important;
     }
     
     .nav-item span {
-        font-size: 11px;
+        font-size: 11px !important;
     }
 }
 
