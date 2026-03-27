@@ -19,7 +19,7 @@
     <main class="main-content">
         <!-- Service Details Section -->
         <div class="service-detail-container">
-            <!-- Top: Photo -->
+            <!-- Top: Photo with FIXED ASPECT RATIO -->
             <div class="service-detail-photo">
                 <img src="{{ service.photo }}" alt="{{ service.name }}"
                      onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
@@ -159,7 +159,7 @@
     </nav>
 </div>
 
-<!-- BOOKING NOTIFICATION -->
+<!-- BOOKING NOTIFICATION - ORIGINAL SIZE (NOT COMPACT) -->
 <div id="bookingNotification" class="booking-notification-fixed" style="display: none;">
     <div class="notification-fixed-content">
         <div class="notification-fixed-icon">
@@ -260,7 +260,7 @@ function closeBookingNotification() {
     width: 100%;
 }
 
-/* ========== SERVICE DETAIL SECTION - VERTICAL LAYOUT (SAME FOR ALL DEVICES) ========== */
+/* ========== SERVICE DETAIL SECTION - VERTICAL LAYOUT WITH FIXED ASPECT RATIO ========== */
 .service-detail-container {
     display: flex;
     flex-direction: column;
@@ -274,9 +274,10 @@ function closeBookingNotification() {
     box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
 }
 
+/* FIXED ASPECT RATIO - SAME FOR ALL DEVICES */
 .service-detail-photo {
     width: 100%;
-    height: 350px;
+    aspect-ratio: 4 / 3;
     border-radius: 12px;
     overflow: hidden;
     border: 1px solid var(--dark-border);
@@ -480,7 +481,7 @@ function closeBookingNotification() {
 
 .recommended-service-photo-square {
     width: 100%;
-    height: 130px;
+    aspect-ratio: 1 / 1;
     position: relative;
     overflow: hidden;
 }
@@ -597,7 +598,7 @@ function closeBookingNotification() {
 
 .browse-category-horizontal-photo-square {
     width: 55px;
-    height: 55px;
+    aspect-ratio: 1 / 1;
     border-radius: 10px;
     overflow: hidden;
     position: relative;
@@ -672,7 +673,7 @@ function closeBookingNotification() {
 
 .browse-collection-horizontal-photo-square {
     width: 70px;
-    height: 70px;
+    aspect-ratio: 1 / 1;
     border-radius: 10px;
     overflow: hidden;
     position: relative;
@@ -786,14 +787,14 @@ function closeBookingNotification() {
     }
 }
 
-/* ========== NOTIFICATION ========== */
+/* ========== NOTIFICATION - ORIGINAL SIZE (NOT COMPACT) ========== */
 .booking-notification-fixed {
     position: fixed;
     top: -100px;
     left: 50%;
     transform: translateX(-50%);
     width: 95%;
-    max-width: 380px;
+    max-width: 400px;
     background: var(--onyx-black);
     border-radius: 12px;
     border: 1px solid var(--champagne-gold);
@@ -808,25 +809,25 @@ function closeBookingNotification() {
 .notification-fixed-content {
     display: flex;
     align-items: center;
-    padding: 8px 12px;
+    padding: 10px 12px;
     gap: 10px;
 }
 
 .notification-fixed-icon {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--antique-bronze) 100%);
     color: #000000;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 14px;
     flex-shrink: 0;
 }
 
 .notification-fixed-text strong {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 800;
     color: var(--creamy-white);
     margin-bottom: 2px;
@@ -834,7 +835,7 @@ function closeBookingNotification() {
 }
 
 .notification-fixed-text span {
-    font-size: 10px;
+    font-size: 11px;
     color: var(--silver-mist);
     font-family: var(--sans-font);
 }
@@ -845,9 +846,9 @@ function closeBookingNotification() {
     background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--antique-bronze) 100%);
     color: #000000;
     border: 1px solid var(--champagne-gold);
-    padding: 4px 8px;
+    padding: 5px 10px;
     border-radius: 5px;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
     cursor: pointer;
     white-space: nowrap;
@@ -863,11 +864,11 @@ function closeBookingNotification() {
     background: #2A2A2A;
     color: var(--silver-mist);
     border: 1px solid var(--dark-border);
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     cursor: pointer;
-    font-size: 10px;
+    font-size: 11px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -880,7 +881,7 @@ function closeBookingNotification() {
     color: var(--champagne-gold);
 }
 
-/* ========== MOBILE RESPONSIVE - ONLY SIZE ADJUSTMENTS, LAYOUT SAME ========== */
+/* ========== MOBILE RESPONSIVE ========== */
 @media (max-width: 768px) {
     .main-content {
         padding: 68px 10px 100px 10px;
@@ -890,10 +891,6 @@ function closeBookingNotification() {
     .service-detail-container {
         padding: 16px;
         gap: 16px;
-    }
-    
-    .service-detail-photo {
-        height: 300px;
     }
     
     .service-detail-header h2 {
@@ -912,10 +909,6 @@ function closeBookingNotification() {
         width: 140px;
     }
     
-    .recommended-service-photo-square {
-        height: 110px;
-    }
-    
     .browse-category-horizontal-card {
         width: 70px;
         padding: 6px 4px;
@@ -923,7 +916,6 @@ function closeBookingNotification() {
     
     .browse-category-horizontal-photo-square {
         width: 48px;
-        height: 48px;
     }
     
     .browse-category-horizontal-name {
@@ -937,7 +929,6 @@ function closeBookingNotification() {
     
     .browse-collection-horizontal-photo-square {
         width: 60px;
-        height: 60px;
     }
     
     .browse-collection-horizontal-name {
@@ -948,10 +939,6 @@ function closeBookingNotification() {
 @media (max-width: 480px) {
     .main-content {
         padding: 63px 8px 90px 8px;
-    }
-    
-    .service-detail-photo {
-        height: 280px;
     }
     
     .service-detail-header h2 {
@@ -980,10 +967,6 @@ function closeBookingNotification() {
         width: 125px;
     }
     
-    .recommended-service-photo-square {
-        height: 100px;
-    }
-    
     .recommended-service-name {
         font-size: 12px;
     }
@@ -994,7 +977,6 @@ function closeBookingNotification() {
     
     .browse-category-horizontal-photo-square {
         width: 45px;
-        height: 45px;
     }
     
     .browse-collection-horizontal-card {
@@ -1003,7 +985,6 @@ function closeBookingNotification() {
     
     .browse-collection-horizontal-photo-square {
         width: 55px;
-        height: 55px;
     }
 }
 </style>
