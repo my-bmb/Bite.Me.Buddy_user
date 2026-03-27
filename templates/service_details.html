@@ -65,6 +65,7 @@
             <h3 class="section-title">You Might Also Like</h3>
             <div class="recommended-horizontal-scroll">
                 {% for rec_service in recommended_services %}
+                {% if rec_service.id != service.id %}
                 <div class="recommended-service-card" onclick="window.location.href='/service-detail/{{ rec_service.id }}'">
                     <div class="recommended-service-photo-square">
                         <img src="{{ rec_service.photo }}" alt="{{ rec_service.name }}"
@@ -87,6 +88,7 @@
                         </div>
                     </div>
                 </div>
+                {% endif %}
                 {% endfor %}
             </div>
         </div>
@@ -251,7 +253,7 @@ function closeBookingNotification() {
 
 .main-content {
     flex: 1;
-    padding: 78px 5px 100px 5px;
+    padding: 78px 12px 100px 12px;
     overflow-y: auto;
     max-width: 1200px;
     margin: 0 auto;
@@ -261,13 +263,13 @@ function closeBookingNotification() {
 /* ========== SERVICE DETAIL SECTION ========== */
 .service-detail-container {
     display: flex;
-    gap: 30px;
+    gap: 15px;
     background: var(--onyx-black);
     border-radius: 16px;
     border: 1px solid var(--dark-border);
     overflow: hidden;
-    margin-bottom: 40px;
-    padding: 24px;
+    margin-bottom: 20px;
+    padding: 16px;
     box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
 }
 
@@ -290,14 +292,14 @@ function closeBookingNotification() {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 8px;
 }
 
 .service-detail-header h2 {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 800;
     color: var(--creamy-white);
-    margin: 0 0 8px 0;
+    margin: 0 0 4px 0;
     font-family: var(--serif-font);
     letter-spacing: 0.02em;
 }
@@ -306,9 +308,9 @@ function closeBookingNotification() {
     display: inline-block;
     background: rgba(192, 178, 131, 0.15);
     color: var(--champagne-gold);
-    padding: 4px 12px;
+    padding: 3px 10px;
     border-radius: 20px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     font-family: var(--sans-font);
     border: 1px solid rgba(192, 178, 131, 0.3);
@@ -316,100 +318,113 @@ function closeBookingNotification() {
 
 .service-detail-description p {
     color: var(--silver-mist);
-    font-size: 15px;
-    line-height: 1.6;
+    font-size: 13px;
+    line-height: 1.4;
     font-family: var(--sans-font);
+    margin: 0;
 }
 
 .service-detail-pricing {
-    padding: 12px 0;
+    padding: 4px 0;
 }
 
 .service-detail-discount-row {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
+    gap: 6px;
+    margin-bottom: 4px;
 }
 
 .service-detail-original-price {
     color: var(--silver-mist);
     text-decoration: line-through;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 500;
 }
 
 .service-detail-discount-badge {
     background: linear-gradient(135deg, var(--burnt-orange) 0%, #b86d1a 100%);
     color: var(--creamy-white);
-    padding: 4px 10px;
+    padding: 2px 7px;
     border-radius: 20px;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 700;
 }
 
 .service-detail-final-price {
     display: flex;
     align-items: baseline;
-    gap: 4px;
+    gap: 2px;
 }
 
 .service-detail-rupee {
     color: var(--antique-bronze);
-    font-size: 28px;
+    font-size: 22px;
     font-weight: 900;
 }
 
 .service-detail-price-value {
     font-weight: 900;
     color: var(--vivid-gold);
-    font-size: 36px;
+    font-size: 28px;
     text-shadow: 0 1px 2px rgba(0,0,0,0.15), 0 0 5px var(--price-glow);
 }
 
+/* ========== ADD TO CART BUTTON - BIGGER ========== */
 .btn-service-detail-add {
     background: linear-gradient(135deg, var(--champagne-gold), var(--antique-bronze));
     color: #000000;
     border: none;
     font-weight: bold;
-    padding: 12px 24px;
-    border-radius: 10px;
+    padding: 14px 32px;
+    border-radius: 12px;
     font-size: 16px;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
     font-family: var(--sans-font);
-    width: fit-content;
+    width: 100%;
+    max-width: 280px;
+}
+
+.btn-service-detail-add i {
+    font-size: 18px;
 }
 
 .btn-service-detail-add:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(192, 178, 131, 0.3);
+    box-shadow: 0 8px 25px rgba(192, 178, 131, 0.4);
     background: linear-gradient(135deg, var(--gold-light), var(--gold-dark));
+}
+
+.service-detail-actions {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 4px;
 }
 
 /* ========== SECTION STYLES ========== */
 .section-title {
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 700;
     color: var(--creamy-white);
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     font-family: var(--serif-font);
     letter-spacing: 0.02em;
     border-left: 3px solid var(--champagne-gold);
-    padding-left: 12px;
+    padding-left: 8px;
 }
 
 .recommended-section,
 .browse-category-section,
 .browse-collection-section {
-    margin-bottom: 40px;
+    margin-bottom: 20px;
 }
 
 /* ========== HORIZONTAL SCROLL CONTAINERS ========== */
@@ -418,8 +433,8 @@ function closeBookingNotification() {
 .collection-horizontal-scroll {
     display: flex;
     overflow-x: auto;
-    gap: 16px;
-    padding: 8px 4px 16px 4px;
+    gap: 10px;
+    padding: 4px 2px 10px 2px;
     scrollbar-width: thin;
     scrollbar-color: var(--champagne-gold) var(--dark-border);
 }
@@ -427,7 +442,7 @@ function closeBookingNotification() {
 .recommended-horizontal-scroll::-webkit-scrollbar,
 .category-horizontal-scroll::-webkit-scrollbar,
 .collection-horizontal-scroll::-webkit-scrollbar {
-    height: 6px;
+    height: 3px;
 }
 
 .recommended-horizontal-scroll::-webkit-scrollbar-track,
@@ -447,7 +462,7 @@ function closeBookingNotification() {
 /* ========== RECOMMENDED SERVICE CARDS ========== */
 .recommended-service-card {
     flex-shrink: 0;
-    width: 200px;
+    width: 150px;
     background: var(--onyx-black);
     border-radius: 12px;
     border: 1px solid var(--dark-border);
@@ -459,13 +474,13 @@ function closeBookingNotification() {
 
 .recommended-service-card:hover {
     border-color: var(--champagne-gold);
-    transform: translateY(-4px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 10px rgba(192, 178, 131, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 6px rgba(192, 178, 131, 0.3);
 }
 
 .recommended-service-photo-square {
     width: 100%;
-    height: 160px;
+    height: 120px;
     position: relative;
     overflow: hidden;
 }
@@ -483,10 +498,10 @@ function closeBookingNotification() {
 
 .recommended-service-number {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 28px;
-    height: 28px;
+    top: 5px;
+    right: 5px;
+    width: 22px;
+    height: 22px;
     background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--vivid-gold) 100%);
     color: #000000;
     border-radius: 50%;
@@ -494,21 +509,21 @@ function closeBookingNotification() {
     align-items: center;
     justify-content: center;
     font-weight: 900;
-    font-size: 12px;
+    font-size: 9px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     border: 2px solid var(--onyx-black);
     z-index: 2;
 }
 
 .recommended-service-details {
-    padding: 12px;
+    padding: 8px;
 }
 
 .recommended-service-name {
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 700;
     color: var(--creamy-white);
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -519,43 +534,43 @@ function closeBookingNotification() {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
 }
 
 .recommended-original-price {
     color: var(--silver-mist);
     text-decoration: line-through;
-    font-size: 11px;
+    font-size: 9px;
 }
 
 .recommended-discount-badge {
     background: linear-gradient(135deg, var(--burnt-orange) 0%, #b86d1a 100%);
     color: var(--creamy-white);
-    padding: 2px 6px;
-    border-radius: 10px;
-    font-size: 9px;
+    padding: 1px 4px;
+    border-radius: 6px;
+    font-size: 7px;
     font-weight: 700;
 }
 
 .recommended-final-price {
     display: flex;
     align-items: baseline;
-    gap: 2px;
+    gap: 1px;
     font-weight: 700;
     color: var(--vivid-gold);
-    font-size: 16px;
+    font-size: 13px;
 }
 
 .recommended-final-price span:first-child {
-    font-size: 12px;
+    font-size: 10px;
 }
 
 /* ========== CATEGORY HORIZONTAL CARDS ========== */
 .browse-category-horizontal-card {
     flex-shrink: 0;
-    width: 100px;
+    width: 70px;
     background: rgba(26, 26, 26, 0.9);
-    border-radius: 12px;
+    border-radius: 10px;
     border: 1px solid rgba(192, 178, 131, 0.2);
     transition: all 0.3s ease;
     overflow: hidden;
@@ -565,30 +580,30 @@ function closeBookingNotification() {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 12px 8px;
+    padding: 6px 4px;
 }
 
 .browse-category-horizontal-card.active {
     border: 2px solid var(--champagne-gold);
-    box-shadow: 0 0 8px rgba(192, 178, 131, 0.4);
+    box-shadow: 0 0 5px rgba(192, 178, 131, 0.4);
     background: rgba(192, 178, 131, 0.08);
 }
 
 .browse-category-horizontal-card:hover {
     border-color: var(--champagne-gold);
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4), 0 0 8px rgba(192, 178, 131, 0.3);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4), 0 0 5px rgba(192, 178, 131, 0.3);
 }
 
 .browse-category-horizontal-photo-square {
-    width: 70px;
-    height: 70px;
-    border-radius: 10px;
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
     overflow: hidden;
     position: relative;
     background: var(--matte-black);
     border: 1px solid rgba(192, 178, 131, 0.3);
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 
 .browse-category-horizontal-photo-square img {
@@ -599,10 +614,10 @@ function closeBookingNotification() {
 
 .browse-category-horizontal-number {
     position: absolute;
-    top: -3px;
-    right: -3px;
-    width: 20px;
-    height: 20px;
+    top: -2px;
+    right: -2px;
+    width: 16px;
+    height: 16px;
     background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--vivid-gold) 100%);
     color: #000000;
     border-radius: 50%;
@@ -610,14 +625,14 @@ function closeBookingNotification() {
     align-items: center;
     justify-content: center;
     font-weight: 900;
-    font-size: 9px;
+    font-size: 7px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     border: 1px solid var(--onyx-black);
 }
 
 .browse-category-horizontal-name {
     color: var(--gold-light);
-    font-size: 11px;
+    font-size: 9px;
     font-weight: 600;
     text-align: center;
     overflow: hidden;
@@ -634,9 +649,9 @@ function closeBookingNotification() {
 /* ========== COLLECTION HORIZONTAL CARDS ========== */
 .browse-collection-horizontal-card {
     flex-shrink: 0;
-    width: 140px;
+    width: 95px;
     background: rgba(26, 26, 26, 0.9);
-    border-radius: 12px;
+    border-radius: 10px;
     border: 1px solid rgba(192, 178, 131, 0.2);
     transition: all 0.3s ease;
     overflow: hidden;
@@ -646,24 +661,24 @@ function closeBookingNotification() {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 12px 8px;
+    padding: 8px 4px;
 }
 
 .browse-collection-horizontal-card:hover {
     border-color: var(--champagne-gold);
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4), 0 0 8px rgba(192, 178, 131, 0.3);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4), 0 0 5px rgba(192, 178, 131, 0.3);
 }
 
 .browse-collection-horizontal-photo-square {
-    width: 90px;
-    height: 90px;
-    border-radius: 10px;
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
     overflow: hidden;
     position: relative;
     background: var(--matte-black);
     border: 1px solid rgba(192, 178, 131, 0.3);
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 
 .browse-collection-horizontal-photo-square img {
@@ -674,10 +689,10 @@ function closeBookingNotification() {
 
 .browse-collection-horizontal-number {
     position: absolute;
-    top: -3px;
-    right: -3px;
-    width: 22px;
-    height: 22px;
+    top: -2px;
+    right: -2px;
+    width: 16px;
+    height: 16px;
     background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--vivid-gold) 100%);
     color: #000000;
     border-radius: 50%;
@@ -685,14 +700,14 @@ function closeBookingNotification() {
     align-items: center;
     justify-content: center;
     font-weight: 900;
-    font-size: 10px;
+    font-size: 7px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     border: 1px solid var(--onyx-black);
 }
 
 .browse-collection-horizontal-name {
     color: var(--gold-light);
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 600;
     text-align: center;
     overflow: hidden;
@@ -700,12 +715,12 @@ function closeBookingNotification() {
     white-space: nowrap;
     width: 100%;
     font-family: var(--serif-font);
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 
 .browse-collection-horizontal-count {
     color: var(--silver-mist);
-    font-size: 10px;
+    font-size: 8px;
     font-weight: 500;
     text-align: center;
     font-family: var(--sans-font);
@@ -778,9 +793,9 @@ function closeBookingNotification() {
     left: 50%;
     transform: translateX(-50%);
     width: 95%;
-    max-width: 400px;
+    max-width: 350px;
     background: var(--onyx-black);
-    border-radius: 12px;
+    border-radius: 10px;
     border: 1px solid var(--champagne-gold);
     z-index: 99999;
     transition: top 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
@@ -793,46 +808,46 @@ function closeBookingNotification() {
 .notification-fixed-content {
     display: flex;
     align-items: center;
-    padding: 10px 12px;
-    gap: 10px;
+    padding: 6px 10px;
+    gap: 8px;
 }
 
 .notification-fixed-icon {
-    width: 32px;
-    height: 32px;
+    width: 24px;
+    height: 24px;
     background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--antique-bronze) 100%);
     color: #000000;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 10px;
     flex-shrink: 0;
 }
 
 .notification-fixed-text strong {
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 800;
     color: var(--creamy-white);
-    margin-bottom: 2px;
+    margin-bottom: 1px;
     font-family: var(--serif-font);
 }
 
 .notification-fixed-text span {
-    font-size: 11px;
+    font-size: 9px;
     color: var(--silver-mist);
     font-family: var(--sans-font);
 }
 
-.notification-fixed-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.notification-fixed-actions { display: flex; gap: 5px; flex-shrink: 0; }
 
 .btn-view-cart-fixed {
     background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--antique-bronze) 100%);
     color: #000000;
     border: 1px solid var(--champagne-gold);
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 11px;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 9px;
     font-weight: 700;
     cursor: pointer;
     white-space: nowrap;
@@ -848,11 +863,11 @@ function closeBookingNotification() {
     background: #2A2A2A;
     color: var(--silver-mist);
     border: 1px solid var(--dark-border);
-    width: 28px;
-    height: 28px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     cursor: pointer;
-    font-size: 11px;
+    font-size: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -873,99 +888,149 @@ function closeBookingNotification() {
     
     .service-detail-container {
         flex-direction: column;
-        padding: 16px;
+        padding: 12px;
+        gap: 12px;
     }
     
     .service-detail-photo {
         flex: 0 0 auto;
         width: 100%;
-        height: 250px;
+        height: 300px;
     }
     
     .service-detail-header h2 {
-        font-size: 22px;
+        font-size: 20px;
     }
     
     .service-detail-price-value {
-        font-size: 28px;
+        font-size: 26px;
     }
     
     .service-detail-rupee {
-        font-size: 22px;
+        font-size: 20px;
+    }
+    
+    .btn-service-detail-add {
+        padding: 12px 28px;
+        font-size: 15px;
+        max-width: 100%;
     }
     
     .recommended-service-card {
-        width: 160px;
+        width: 130px;
     }
     
     .recommended-service-photo-square {
-        height: 130px;
+        height: 100px;
     }
     
     .browse-category-horizontal-card {
-        width: 85px;
-        padding: 8px 4px;
+        width: 65px;
+        padding: 5px 3px;
     }
     
     .browse-category-horizontal-photo-square {
-        width: 60px;
-        height: 60px;
+        width: 42px;
+        height: 42px;
     }
     
     .browse-category-horizontal-name {
-        font-size: 10px;
+        font-size: 8px;
     }
     
     .browse-collection-horizontal-card {
-        width: 120px;
+        width: 85px;
+        padding: 6px 3px;
     }
     
     .browse-collection-horizontal-photo-square {
-        width: 80px;
-        height: 80px;
+        width: 55px;
+        height: 55px;
     }
     
     .browse-collection-horizontal-name {
-        font-size: 11px;
+        font-size: 9px;
+    }
+    
+    .browse-collection-horizontal-count {
+        font-size: 7px;
     }
 }
 
 @media (max-width: 480px) {
     .main-content {
-        padding: 63px 10px 100px 10px;
+        padding: 63px 8px 90px 8px;
+    }
+    
+    .service-detail-photo {
+        height: 280px;
+    }
+    
+    .service-detail-header h2 {
+        font-size: 18px;
+    }
+    
+    .service-detail-price-value {
+        font-size: 24px;
+    }
+    
+    .service-detail-rupee {
+        font-size: 18px;
+    }
+    
+    .btn-service-detail-add {
+        padding: 10px 24px;
+        font-size: 14px;
+    }
+    
+    .btn-service-detail-add i {
+        font-size: 16px;
+    }
+    
+    .section-title {
+        font-size: 14px;
+        margin-bottom: 8px;
     }
     
     .recommended-service-card {
-        width: 140px;
+        width: 115px;
     }
     
     .recommended-service-photo-square {
-        height: 110px;
+        height: 90px;
+    }
+    
+    .recommended-service-name {
+        font-size: 11px;
+    }
+    
+    .recommended-final-price {
+        font-size: 12px;
     }
     
     .browse-category-horizontal-card {
-        width: 75px;
+        width: 60px;
     }
     
     .browse-category-horizontal-photo-square {
-        width: 55px;
-        height: 55px;
+        width: 38px;
+        height: 38px;
+    }
+    
+    .browse-category-horizontal-name {
+        font-size: 7px;
     }
     
     .browse-collection-horizontal-card {
-        width: 100px;
+        width: 75px;
     }
     
     .browse-collection-horizontal-photo-square {
-        width: 70px;
-        height: 70px;
+        width: 48px;
+        height: 48px;
     }
     
     .browse-collection-horizontal-name {
-        font-size: 10px;
-    }
-    
-    .browse-collection-horizontal-count {
         font-size: 8px;
     }
 }
