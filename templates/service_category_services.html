@@ -100,10 +100,11 @@
     </div>
     {% endif %}
 
-    <!-- Bottom Navigation -->
+    <!-- Bottom Navigation - EXACT SAME STYLING AS service_collection_categories.html -->
     <nav class="bottom-nav">
-        <a href="{{ url_for('services') }}" class="nav-item active">
-            <i class="fas fa-concierge-bell"></i><span>Services</span>
+        <a href="{{ url_for('services') }}" class="nav-item active" style="background: linear-gradient(135deg, var(--champagne-primary), var(--champagne-light)) !important; color: var(--matte-black-darkest) !important; transform: translateY(-3px) !important; box-shadow: 0 6px 15px rgba(192, 178, 131, 0.3) !important; position: relative !important;">
+            <i class="fas fa-concierge-bell" style="color: var(--matte-black-darkest) !important;"></i><span style="color: var(--matte-black-darkest) !important;">Services</span>
+            <span class="active-underline"></span>
         </a>
         <a href="{{ url_for('menu') }}" class="nav-item">
             <i class="fas fa-utensils"></i><span>Menu</span>
@@ -208,6 +209,8 @@ document.querySelectorAll('.service-modal-item-card').forEach(card => {
 :root {
     --matte-black: #0D0D0D;
     --champagne-gold: #C0B283;
+    --champagne-primary: #C0B283;
+    --champagne-light: #D4C5A1;
     --onyx-black: #1A1A1A;
     --vivid-gold: #D4AF37;
     --creamy-white: #F4F1E1;
@@ -216,6 +219,8 @@ document.querySelectorAll('.service-modal-item-card').forEach(card => {
     --dark-border: #333333;
     --antique-bronze: #8e7d4d;
     --silver-mist: #A0A0A0;
+    --text-charcoal: #A6A6A6;
+    --matte-black-darkest: #050505;
     --burnt-orange: #D98324;
     --price-glow: rgba(212, 175, 55, 0.3);
     --card-shadow: 0 6px 25px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -673,6 +678,78 @@ document.querySelectorAll('.service-modal-item-card').forEach(card => {
 .browse-category-card.active .browse-category-name {
     color: var(--creamy-white);
     text-shadow: 0 0 3px rgba(192, 178, 131, 0.3);
+}
+
+/* ========== ACTIVE TAB UNDERLINE - EXACT SAME AS service_collection_categories.html ========== */
+.active-underline {
+    position: absolute;
+    bottom: -3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 2.5px;
+    background: linear-gradient(90deg, var(--champagne-primary), var(--champagne-light));
+    border-radius: 3px;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        width: 0;
+        opacity: 0;
+    }
+    to {
+        width: 24px;
+        opacity: 1;
+    }
+}
+
+/* Mobile version - exactly matches original */
+@media (max-width: 480px) {
+    .active-underline {
+        bottom: -3px !important;
+        width: 24px !important;
+        height: 2.5px !important;
+    }
+}
+
+/* ========== IMPORTANT: BOTTOM NAVIGATION OVERRIDE FOR ACTIVE SERVICES TAB ========== */
+/* These styles will override the base.css to ensure Services tab is properly highlighted */
+
+/* Desktop and Tablet - 3px up */
+.bottom-nav .nav-item.active {
+    background: linear-gradient(135deg, var(--champagne-primary), var(--champagne-light)) !important;
+    color: var(--matte-black-darkest) !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 6px 15px rgba(192, 178, 131, 0.3) !important;
+    position: relative !important;
+}
+
+.bottom-nav .nav-item.active i,
+.bottom-nav .nav-item.active span {
+    color: var(--matte-black-darkest) !important;
+}
+
+/* Ensure other nav items don't get affected */
+.bottom-nav .nav-item:not(.active) {
+    background: transparent !important;
+    color: var(--text-charcoal) !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.bottom-nav .nav-item:not(.active):hover {
+    background: rgba(192, 178, 131, 0.12) !important;
+    color: var(--champagne-light) !important;
+    transform: translateY(-3px) !important;
+}
+
+/* Mobile - 1.5px up */
+@media (max-width: 480px) {
+    .bottom-nav .nav-item.active {
+        transform: translateY(-1.5px) !important;
+        box-shadow: 0 6px 12px rgba(192, 178, 131, 0.25) !important;
+    }
 }
 
 /* NOTIFICATION */
