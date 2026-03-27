@@ -92,10 +92,10 @@
     </div>
     {% endif %}
 
-    <!-- Bottom Navigation - SERVICES TAB ACTIVE -->
+    <!-- Bottom Navigation - SERVICES TAB ACTIVE with IMPORTANT to override CSS -->
     <nav class="bottom-nav">
-        <a href="{{ url_for('services') }}" class="nav-item active">
-            <i class="fas fa-concierge-bell"></i><span>Services</span>
+        <a href="{{ url_for('services') }}" class="nav-item active" style="background: linear-gradient(135deg, #C0B283, #D4AF37) !important; color: #000000 !important; transform: translateY(-5px) !important; box-shadow: 0 6px 15px rgba(192, 178, 131, 0.3) !important;">
+            <i class="fas fa-concierge-bell" style="color: #000000 !important;"></i><span style="color: #000000 !important;">Services</span>
         </a>
         <a href="{{ url_for('menu') }}" class="nav-item">
             <i class="fas fa-utensils"></i><span>Menu</span>
@@ -563,68 +563,32 @@ document.addEventListener('DOMContentLoaded', function() {
     text-shadow: 0 0 2px rgba(192, 178, 131, 0.3);
 }
 
-/* ========== BOTTOM NAVIGATION STYLES ========== */
-.bottom-nav {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(15, 15, 15, 0.98) !important;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-top: 1px solid rgba(192, 178, 131, 0.2);
-    z-index: 1000;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+/* ========== IMPORTANT: BOTTOM NAVIGATION OVERRIDE FOR ACTIVE SERVICES TAB ========== */
+/* These styles will override the base.css to ensure Services tab is properly highlighted */
+.bottom-nav .nav-item.active {
+    background: linear-gradient(135deg, #C0B283, #D4AF37) !important;
+    color: #000000 !important;
+    transform: translateY(-5px) !important;
+    box-shadow: 0 6px 15px rgba(192, 178, 131, 0.3) !important;
 }
 
-.nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-decoration: none;
-    color: #A6A6A6;
-    padding: 12px 20px;
-    border-radius: 16px;
-    position: relative;
-    font-family: 'Montserrat', sans-serif;
-    letter-spacing: 0.7px;
-    transition: all 0.2s ease;
+.bottom-nav .nav-item.active i,
+.bottom-nav .nav-item.active span {
+    color: #000000 !important;
 }
 
-.nav-item i {
-    font-size: 22px;
-    margin-bottom: 6px;
-    transition: all 0.2s ease;
+/* Ensure other nav items don't get affected */
+.bottom-nav .nav-item:not(.active) {
+    background: transparent !important;
+    color: #A6A6A6 !important;
+    transform: none !important;
+    box-shadow: none !important;
 }
 
-.nav-item span {
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.7px;
-    transition: all 0.2s ease;
-}
-
-/* Active state - Services tab is active */
-.nav-item.active {
-    color: #000000;
-    background: linear-gradient(135deg, #C0B283, #D4AF37);
-    transform: translateY(-5px);
-    box-shadow: 0 6px 15px rgba(192, 178, 131, 0.3);
-}
-
-.nav-item.active i,
-.nav-item.active span {
-    color: #000000;
-}
-
-/* Hover state */
-.nav-item:hover:not(.active) {
-    color: #D4C5A1;
-    background: rgba(192, 178, 131, 0.12);
-    transform: translateY(-3px);
+.bottom-nav .nav-item:not(.active):hover {
+    background: rgba(192, 178, 131, 0.12) !important;
+    color: #D4C5A1 !important;
+    transform: translateY(-3px) !important;
 }
 
 /* ========== DESKTOP & TABLET ========== */
@@ -789,33 +753,13 @@ document.addEventListener('DOMContentLoaded', function() {
         font-size: 7px;
     }
     
-    /* Mobile Bottom Navigation */
-    .bottom-nav {
-        background: rgba(15, 15, 15, 0.98) !important;
+    /* Mobile Bottom Navigation - Active state override */
+    .bottom-nav .nav-item.active {
+        transform: translateY(-3px) !important;
+        box-shadow: 0 6px 12px rgba(192, 178, 131, 0.25) !important;
     }
     
-    .nav-item {
-        padding: 7px 12px;
-        border-radius: 14px;
-    }
-    
-    .nav-item i {
-        font-size: 19px;
-        margin-bottom: 4px;
-    }
-    
-    .nav-item span {
-        font-size: 9.5px;
-        font-weight: 600;
-        letter-spacing: 0.4px;
-    }
-    
-    .nav-item.active {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 12px rgba(192, 178, 131, 0.25);
-    }
-    
-    .nav-item.active::after {
+    .bottom-nav .nav-item.active::after {
         content: '';
         position: absolute;
         bottom: -3px;
@@ -907,26 +851,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     .browse-collection-name {
         font-size: 6px;
-    }
-}
-
-/* Tablet Bottom Navigation adjustments */
-@media (min-width: 481px) and (max-width: 768px) {
-    .bottom-nav {
-        background: rgba(15, 15, 15, 0.98) !important;
-    }
-    
-    .nav-item {
-        padding: 10px 16px;
-    }
-    
-    .nav-item i {
-        font-size: 21px;
-        margin-bottom: 5px;
-    }
-    
-    .nav-item span {
-        font-size: 11px;
     }
 }
 
