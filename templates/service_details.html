@@ -880,7 +880,7 @@ function closeBookingNotification() {
     color: var(--champagne-gold);
 }
 
-/* ========== MOBILE RESPONSIVE - VERTICAL LAYOUT ========== */
+/* ========== MOBILE RESPONSIVE - VERTICAL LAYOUT WITH REDUCED HEIGHT ========== */
 @media (max-width: 768px) {
     .main-content {
         padding: 68px 10px 100px 10px;
@@ -888,8 +888,9 @@ function closeBookingNotification() {
     
     .service-detail-container {
         flex-direction: column;
-        padding: 16px;
-        gap: 16px;
+        padding: 14px;
+        gap: 14px;
+        margin-bottom: 20px;
     }
     
     .service-detail-photo {
@@ -898,65 +899,23 @@ function closeBookingNotification() {
         aspect-ratio: 4 / 3;
     }
     
-    .service-detail-header h2 {
-        font-size: 22px;
-    }
-    
-    .service-detail-price-value {
-        font-size: 28px;
-    }
-    
-    .service-detail-rupee {
-        font-size: 22px;
-    }
-    
-    .btn-service-detail-add {
-        width: 100%;
-        justify-content: center;
-    }
-    
-    .service-detail-actions {
-        justify-content: center;
-    }
-    
-    .recommended-service-card {
-        width: 150px;
-    }
-    
-    .browse-category-horizontal-card {
-        width: 75px;
-        padding: 8px 4px;
-    }
-    
-    .browse-category-horizontal-photo-square {
-        width: 52px;
-    }
-    
-    .browse-category-horizontal-name {
-        font-size: 9px;
-    }
-    
-    .browse-collection-horizontal-card {
-        width: 105px;
-        padding: 8px 4px;
-    }
-    
-    .browse-collection-horizontal-photo-square {
-        width: 65px;
-    }
-    
-    .browse-collection-horizontal-name {
-        font-size: 10px;
-    }
-}
-
-@media (max-width: 480px) {
-    .main-content {
-        padding: 63px 10px 90px 10px;
+    .service-detail-info {
+        gap: 8px;
     }
     
     .service-detail-header h2 {
         font-size: 20px;
+        margin-bottom: 2px;
+    }
+    
+    .service-detail-category {
+        padding: 2px 8px;
+        font-size: 10px;
+    }
+    
+    .service-detail-description p {
+        font-size: 12px;
+        line-height: 1.4;
     }
     
     .service-detail-price-value {
@@ -967,42 +926,226 @@ function closeBookingNotification() {
         font-size: 20px;
     }
     
+    .service-detail-pricing {
+        padding: 2px 0;
+    }
+    
     .btn-service-detail-add {
+        width: 100%;
+        justify-content: center;
         padding: 8px 16px;
         font-size: 13px;
     }
     
-    .section-title {
-        font-size: 16px;
-        margin-bottom: 12px;
+    .service-detail-actions {
+        justify-content: center;
     }
     
+    .section-title {
+        font-size: 16px;
+        margin-bottom: 10px;
+        padding-left: 8px;
+    }
+    
+    .recommended-section,
+    .browse-category-section,
+    .browse-collection-section {
+        margin-bottom: 20px;
+    }
+    
+    .recommended-horizontal-scroll,
+    .category-horizontal-scroll,
+    .collection-horizontal-scroll {
+        gap: 10px;
+        padding: 2px 2px 8px 2px;
+    }
+    
+    /* Recommended Cards - Reduced Height */
     .recommended-service-card {
         width: 130px;
     }
     
+    .recommended-service-details {
+        padding: 6px;
+    }
+    
     .recommended-service-name {
+        font-size: 11px;
+        margin-bottom: 4px;
+    }
+    
+    .recommended-service-pricing {
+        gap: 3px;
+    }
+    
+    .recommended-final-price {
         font-size: 12px;
     }
     
+    .recommended-final-price span:first-child {
+        font-size: 9px;
+    }
+    
+    .recommended-original-price {
+        font-size: 8px;
+    }
+    
+    .recommended-discount-badge {
+        padding: 1px 3px;
+        font-size: 7px;
+    }
+    
+    /* Category Cards - Reduced Height */
     .browse-category-horizontal-card {
-        width: 70px;
+        width: 65px;
+        padding: 6px 4px;
     }
     
     .browse-category-horizontal-photo-square {
-        width: 48px;
+        width: 45px;
+        margin-bottom: 4px;
     }
     
+    .browse-category-horizontal-name {
+        font-size: 8px;
+    }
+    
+    .browse-category-horizontal-number {
+        width: 14px;
+        height: 14px;
+        font-size: 6px;
+        top: -1px;
+        right: -1px;
+    }
+    
+    /* Collection Cards - Reduced Height */
     .browse-collection-horizontal-card {
-        width: 95px;
+        width: 90px;
+        padding: 6px 4px;
     }
     
     .browse-collection-horizontal-photo-square {
-        width: 60px;
+        width: 55px;
+        margin-bottom: 4px;
     }
     
     .browse-collection-horizontal-name {
         font-size: 9px;
+        margin-bottom: 2px;
+    }
+    
+    .browse-collection-horizontal-count {
+        font-size: 7px;
+    }
+    
+    .browse-collection-horizontal-number {
+        width: 14px;
+        height: 14px;
+        font-size: 6px;
+        top: -1px;
+        right: -1px;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        padding: 63px 8px 85px 8px;
+    }
+    
+    .service-detail-container {
+        padding: 12px;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    
+    .service-detail-header h2 {
+        font-size: 18px;
+    }
+    
+    .service-detail-price-value {
+        font-size: 24px;
+    }
+    
+    .service-detail-rupee {
+        font-size: 18px;
+    }
+    
+    .btn-service-detail-add {
+        padding: 6px 14px;
+        font-size: 12px;
+    }
+    
+    .section-title {
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+    
+    .recommended-section,
+    .browse-category-section,
+    .browse-collection-section {
+        margin-bottom: 16px;
+    }
+    
+    /* Recommended Cards - Even Smaller */
+    .recommended-service-card {
+        width: 110px;
+    }
+    
+    .recommended-service-details {
+        padding: 5px;
+    }
+    
+    .recommended-service-name {
+        font-size: 10px;
+        margin-bottom: 3px;
+    }
+    
+    .recommended-final-price {
+        font-size: 11px;
+    }
+    
+    .recommended-final-price span:first-child {
+        font-size: 8px;
+    }
+    
+    /* Category Cards - Even Smaller */
+    .browse-category-horizontal-card {
+        width: 60px;
+        padding: 5px 3px;
+    }
+    
+    .browse-category-horizontal-photo-square {
+        width: 40px;
+        margin-bottom: 3px;
+    }
+    
+    .browse-category-horizontal-name {
+        font-size: 7px;
+    }
+    
+    /* Collection Cards - Even Smaller */
+    .browse-collection-horizontal-card {
+        width: 80px;
+        padding: 5px 3px;
+    }
+    
+    .browse-collection-horizontal-photo-square {
+        width: 48px;
+        margin-bottom: 3px;
+    }
+    
+    .browse-collection-horizontal-name {
+        font-size: 8px;
+    }
+    
+    .browse-collection-horizontal-count {
+        font-size: 6px;
+    }
+    
+    .recommended-horizontal-scroll,
+    .category-horizontal-scroll,
+    .collection-horizontal-scroll {
+        gap: 8px;
     }
 }
 </style>
