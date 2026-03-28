@@ -94,37 +94,13 @@
         </div>
         {% endif %}
 
-        <!-- Browse By Category Section - EXCLUDING Current Category -->
-        {% if other_categories %}
-        <div class="browse-category-section">
-            <h3 class="section-title">Browse By Category</h3>
-            <div class="category-horizontal-scroll">
-                {% for cat in other_categories %}
-                <a href="javascript:void(0)" 
-                   onclick="loadCategoryServices({{ cat.id }}, '{{ cat.name }}')"
-                   class="browse-category-horizontal-card"
-                   data-category-id="{{ cat.id }}"
-                   data-category-name="{{ cat.name }}">
-                    <div class="browse-category-horizontal-photo-square">
-                        <img src="{{ cat.category_photo }}" alt="{{ cat.name }}">
-                        <div class="browse-category-horizontal-number">
-                            <span>{{ loop.index }}</span>
-                        </div>
-                    </div>
-                    <div class="browse-category-horizontal-name">{{ cat.name }}</div>
-                </a>
-                {% endfor %}
-            </div>
-            <!-- Border below Browse By Category -->
-            <div class="category-section-border"></div>
-        </div>
-
-        <!-- Category Services Section - Always Visible -->
-        <div id="categoryServicesSection" class="category-services-section">
-            <div id="categoryServicesScroll" class="category-services-horizontal-scroll">
-                <!-- Initial cards will be loaded from backend -->
-                {% if first_category_services and first_category_services|length > 0 %}
-                    {% for cat_service in first_category_services %}
+        <!-- All Categories with their Services (Horizontal Scroll) -->
+        {% if all_categories_with_services %}
+            {% for cat_data in all_categories_with_services %}
+            <div class="category-services-section">
+                <h3 class="section-title">{{ cat_data.category.name }}</h3>
+                <div class="category-services-horizontal-scroll">
+                    {% for cat_service in cat_data.services %}
                     {% if cat_service.id != service.id %}
                     <div class="category-service-card" onclick="window.location.href='/service-detail/{{ cat_service.id }}'">
                         <div class="category-service-photo-square">
@@ -150,11 +126,9 @@
                     </div>
                     {% endif %}
                     {% endfor %}
-                {% else %}
-                    <div class="no-services-message">No services available in this category</div>
-                {% endif %}
+                </div>
             </div>
-        </div>
+            {% endfor %}
         {% endif %}
 
         <!-- Browse By Collection Section -->
@@ -223,82 +197,6 @@
 </div>
 
 <script>
-// Store current service ID
-const currentServiceId = {{ service.id }};
-
-function loadCategoryServices(categoryId, categoryName) {
-    // Update active state on category cards
-    document.querySelectorAll('.browse-category-horizontal-card').forEach(card => {
-        if (card.getAttribute('data-category-id') == categoryId) {
-            card.classList.add('active');
-        } else {
-            card.classList.remove('active');
-        }
-    });
-    
-    // Fetch services for this category
-    fetch(`/get_category_services/${categoryId}`)
-        .then(response => response.json())
-        .then(data => {
-            const scrollContainer = document.getElementById('categoryServicesScroll');
-            
-            if (data.services && data.services.length > 0) {
-                let html = '';
-                let index = 1;
-                
-                data.services.forEach(service => {
-                    // Skip current service if it's the same
-                    if (service.id != currentServiceId) {
-                        html += `
-                            <div class="category-service-card" onclick="window.location.href='/service-detail/${service.id}'">
-                                <div class="category-service-photo-square">
-                                    <img src="${service.photo}" alt="${service.name}"
-                                         onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
-                                    <div class="category-service-number">
-                                        <span>${index}</span>
-                                    </div>
-                                </div>
-                                <div class="category-service-details">
-                                    <div class="category-service-name">${escapeHtml(service.name)}</div>
-                                    <div class="category-service-pricing">
-                                        ${service.discount && service.discount > 0 ? `
-                                            <span class="category-original-price">₹${parseFloat(service.price).toFixed(2)}</span>
-                                            <span class="category-discount-badge">-${service.discount}%</span>
-                                        ` : ''}
-                                        <div class="category-final-price">
-                                            <span>₹</span>
-                                            <span>${parseFloat(service.final_price).toFixed(2)}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                        index++;
-                    }
-                });
-                
-                if (index === 1) {
-                    html = '<div class="no-services-message">No other services available in this category</div>';
-                }
-                
-                scrollContainer.innerHTML = html;
-            } else {
-                scrollContainer.innerHTML = '<div class="no-services-message">No services available in this category</div>';
-            }
-        })
-        .catch(error => {
-            console.error('Error loading category services:', error);
-            document.getElementById('categoryServicesScroll').innerHTML = '<div class="no-services-message">Error loading services</div>';
-        });
-}
-
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
 function addServiceToCart(serviceId) {
     fetch('/add_to_cart', {
         method: 'POST',
@@ -544,14 +442,6 @@ function closeBookingNotification() {
 .browse-category-section,
 .browse-collection-section {
     margin-bottom: 30px;
-}
-
-/* ========== BORDER BELOW BROWSE BY CATEGORY ========== */
-.category-section-border {
-    margin-top: 20px;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--champagne-gold), transparent);
-    width: 100%;
 }
 
 /* ========== HORIZONTAL SCROLL CONTAINERS ========== */
@@ -800,87 +690,6 @@ function closeBookingNotification() {
 
 .category-final-price span:first-child {
     font-size: 11px;
-}
-
-/* ========== CATEGORY HORIZONTAL CARDS (Original Small Cards) ========== */
-.browse-category-horizontal-card {
-    flex-shrink: 0;
-    width: 85px;
-    background: rgba(26, 26, 26, 0.9);
-    border-radius: 12px;
-    border: 1px solid rgba(192, 178, 131, 0.2);
-    transition: all 0.3s ease;
-    overflow: hidden;
-    cursor: pointer;
-    text-decoration: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 6px;
-}
-
-.browse-category-horizontal-card.active {
-    border: 2px solid var(--champagne-gold);
-    box-shadow: 0 0 6px rgba(192, 178, 131, 0.4);
-    background: rgba(192, 178, 131, 0.08);
-}
-
-.browse-category-horizontal-card:hover {
-    border-color: var(--champagne-gold);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 6px rgba(192, 178, 131, 0.3);
-}
-
-.browse-category-horizontal-photo-square {
-    width: 60px;
-    aspect-ratio: 1 / 1;
-    border-radius: 10px;
-    overflow: hidden;
-    position: relative;
-    background: var(--matte-black);
-    border: 1px solid rgba(192, 178, 131, 0.3);
-    margin-bottom: 6px;
-}
-
-.browse-category-horizontal-photo-square img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.browse-category-horizontal-number {
-    position: absolute;
-    top: -2px;
-    right: -2px;
-    width: 18px;
-    height: 18px;
-    background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--vivid-gold) 100%);
-    color: #000000;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 900;
-    font-size: 8px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--onyx-black);
-}
-
-.browse-category-horizontal-name {
-    color: var(--gold-light);
-    font-size: 10px;
-    font-weight: 600;
-    text-align: center;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    width: 100%;
-    font-family: var(--sans-font);
-}
-
-.browse-category-horizontal-card.active .browse-category-horizontal-name {
-    color: var(--creamy-white);
 }
 
 /* ========== COLLECTION HORIZONTAL CARDS ========== */
@@ -1204,10 +1013,6 @@ function closeBookingNotification() {
         margin-bottom: 25px;
     }
     
-    .category-section-border {
-        margin-top: 15px;
-    }
-    
     .recommended-horizontal-scroll,
     .category-services-horizontal-scroll,
     .category-horizontal-scroll,
@@ -1229,19 +1034,6 @@ function closeBookingNotification() {
     .recommended-service-name,
     .category-service-name {
         font-size: 12px;
-    }
-    
-    .browse-category-horizontal-card {
-        width: 75px;
-        padding: 8px 4px;
-    }
-    
-    .browse-category-horizontal-photo-square {
-        width: 52px;
-    }
-    
-    .browse-category-horizontal-name {
-        font-size: 9px;
     }
     
     .browse-collection-horizontal-card {
@@ -1298,10 +1090,6 @@ function closeBookingNotification() {
         margin-bottom: 20px;
     }
     
-    .category-section-border {
-        margin-top: 12px;
-    }
-    
     .recommended-horizontal-scroll,
     .category-services-horizontal-scroll,
     .category-horizontal-scroll,
@@ -1327,14 +1115,6 @@ function closeBookingNotification() {
     .recommended-final-price,
     .category-final-price {
         font-size: 12px;
-    }
-    
-    .browse-category-horizontal-card {
-        width: 70px;
-    }
-    
-    .browse-category-horizontal-photo-square {
-        width: 48px;
     }
     
     .browse-collection-horizontal-card {
