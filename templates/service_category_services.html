@@ -80,10 +80,13 @@
         {% endif %}
     </main>
 
-    <!-- Right Side Vertical Categories - ALWAYS SHOW if categories exist (even if 1) -->
+    <!-- Right Side Vertical Categories with HEADER -->
     {% if all_categories %}
     <div class="browse-categories-section">
         <div class="browse-categories-scroll">
+            <div class="categories-header">
+                <span>CATEGORIES</span>
+            </div>
             {% for cat in all_categories %}
             <a href="{{ url_for('service_category_services', category_id=cat.id) }}" 
                class="browse-category-card {% if cat.id == category.id %}active{% endif %}">
@@ -541,7 +544,7 @@ document.querySelectorAll('.service-modal-item-card').forEach(card => {
 .btn-service-modal-details i { color: var(--champagne-gold); }
 .btn-service-modal-add i { color: #000000; font-weight: bold; }
 
-/* ========== RIGHT SIDE VERTICAL CATEGORIES ========== */
+/* ========== RIGHT SIDE VERTICAL CATEGORIES WITH HEADER ========== */
 .browse-categories-section {
     position: fixed;
     right: 5px;
@@ -556,7 +559,7 @@ document.querySelectorAll('.service-modal-item-card').forEach(card => {
     z-index: 100;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 12px 5px;
+    padding: 8px 5px;
 }
 
 /* Custom scrollbar for categories sidebar */
@@ -577,10 +580,27 @@ document.querySelectorAll('.service-modal-item-card').forEach(card => {
 .browse-categories-scroll {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
     height: 100%;
     overflow-y: visible;
     overflow-x: visible;
+}
+
+/* CATEGORIES HEADER - EXACTLY LIKE COLLECTIONS HEADER */
+.categories-header {
+    text-align: center;
+    margin-bottom: 4px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(192, 178, 131, 0.3);
+}
+
+.categories-header span {
+    font-size: 8px;
+    font-weight: 700;
+    color: var(--champagne-gold);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: var(--sans-font);
 }
 
 /* Category Card */
@@ -941,7 +961,7 @@ document.querySelectorAll('.service-modal-item-card').forEach(card => {
         background: rgba(13, 13, 13, 0.96);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
-        padding: 10px 4px;
+        padding: 8px 3px;
     }
     
     .browse-category-card {
@@ -968,7 +988,16 @@ document.querySelectorAll('.service-modal-item-card').forEach(card => {
     }
     
     .browse-categories-scroll {
-        gap: 10px;
+        gap: 6px;
+    }
+    
+    .categories-header {
+        margin-bottom: 2px;
+        padding-bottom: 3px;
+    }
+    
+    .categories-header span {
+        font-size: 7px;
     }
     
     .browse-category-card.active {
@@ -1037,7 +1066,7 @@ document.querySelectorAll('.service-modal-item-card').forEach(card => {
     .browse-categories-section {
         width: 70px;
         right: 5px;
-        padding: 8px 3px;
+        padding: 6px 2px;
         top: 55px;
         bottom: 55px;
     }
