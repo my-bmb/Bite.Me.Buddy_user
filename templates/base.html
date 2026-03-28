@@ -5,87 +5,97 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Flask App{% endblock %}</title>
     
-    <!-- BROWSER & MOBILE UI COLORS - DARK GRAY FOR BOTH MODES -->
-    <meta name="theme-color" content="#87794e" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#87794e" media="(prefers-color-scheme: dark)">
+    <!-- BROWSER & MOBILE UI COLORS -->
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
     
-    <!-- iOS specific - top status bar -->
+    <!-- iOS specific -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="Flask App">
     
-    <!-- Windows Phone / Microsoft -->
-    <meta name="msapplication-TileColor" content="#87794e">
-    <meta name="msapplication-navbutton-color" content="#87794e">
+    <!-- Windows Phone -->
+    <meta name="msapplication-TileColor" content="#000000">
+    <meta name="msapplication-navbutton-color" content="#000000">
     
-    <!-- Android / Chrome specific -->
+    <!-- Android -->
     <meta name="mobile-web-app-capable" content="yes">
-    
-    <!-- Force dark color scheme for bottom navigation bar -->
     <meta name="color-scheme" content="dark">
     
     {% block head_meta %}{% endblock %}
     
-    <!-- Fonts and Icons - Let style.css handle all fonts -->
+    <!-- Fonts and Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Page Transition Styles -->
+    <!-- Page Transition Styles - Pure Black Theme -->
     <style>
-        /* Page transition base styles */
-        body {
-            opacity: 0;  /* Start hidden for fade-in */
-            transition: opacity 0.3s ease-in-out;
-            margin: 0;
-            padding: 0;
-        }
-        
-        /* Fade-in state after page loads */
-        body.page-loaded {
-            opacity: 1;
-        }
-        
-        /* Fade-out state during page transition */
-        body.fade-out {
-            opacity: 0;
-            pointer-events: none;
-        }
-        
-        /* Prevent white flash - IMPORTANT */
-        html, body {
-            background-color: #1a1a1a; /* Dark background to prevent white flash */
-        }
-        
-        /* Prevent FOUC (Flash of Unstyled Content) */
-        .js-loading {
-            opacity: 0;
-        }
-        
-        /* Smooth scroll behavior */
+        /* Pure black theme - NO WHITE FLASH */
         html {
+            background-color: #000000; /* Pure black immediately */
             scroll-behavior: smooth;
         }
         
-        /* Force dark theme UI elements - ONLY for browser, NOT for content */
-        :root {
-            color-scheme: dark !important;
+        body {
+            background-color: #000000;
+            margin: 0;
+            padding: 0;
+            opacity: 1;
+            transition: opacity 0.15s ease-out;
         }
         
-        /* Bottom navigation - ensure black background with dark gray border */
+        /* Soft fade-out - NOT completely invisible */
+        body.fade-out {
+            opacity: 0.4; /* Keep at 40% opacity - no blank screen */
+            pointer-events: none;
+        }
+        
+        /* Soft fade-in effect */
+        @keyframes softFadeIn {
+            0% {
+                opacity: 0.6;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+        
+        body.fade-in {
+            animation: softFadeIn 0.2s ease-out forwards;
+        }
+        
+        /* Ensure all content has pure black background */
+        .content-wrapper,
+        .main-content,
+        .container {
+            background-color: #000000;
+        }
+        
+        /* Prevent any white backgrounds */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Bottom navigation - pure black */
         .bottom-nav {
-            background: rgba(15, 15, 15, 0.98) !important;
-            border-top: 1px solid #444444 !important;
+            background: rgba(0, 0, 0, 0.98) !important;
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
         }
         
-        /* Safe area insets only */
+        /* Safe area insets */
         .dashboard {
             padding-top: env(safe-area-inset-top, 0);
             padding-bottom: env(safe-area-inset-bottom, 0);
         }
         
-        /* Light mode override - ONLY for browser UI */
+        /* Force dark color scheme */
+        :root {
+            color-scheme: dark !important;
+        }
+        
         @media (prefers-color-scheme: light) {
             :root {
                 color-scheme: dark !important;
@@ -118,61 +128,47 @@
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     {% block scripts %}{% endblock %}
     
-    <!-- Page Transition JavaScript -->
+    <!-- Optimized Page Transition JavaScript -->
     <script>
         (function() {
             'use strict';
             
-            // Apply dark theme to browser UI
-            if (window.matchMedia) {
-                const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
-                if (prefersLight) {
-                    document.documentElement.style.colorScheme = 'dark';
-                }
-            }
-            
-            // Page transition functionality
+            // Configuration
+            const TRANSITION_DURATION = 150; // ms - fast transition
             let isTransitioning = false;
             let pendingUrl = null;
-            let fadeInTimeout = null;
             
             /**
-             * Check if a link should trigger page transition
-             * @param {HTMLAnchorElement} link - The anchor element
-             * @returns {boolean} - True if transition should be applied
+             * Check if link should trigger transition
              */
             function shouldTransition(link) {
-                // Don't transition if:
-                // 1. Link has target="_blank"
+                // Skip if conditions met
                 if (link.target === '_blank') return false;
-                
-                // 2. Link has data-no-transition attribute
                 if (link.hasAttribute('data-no-transition')) return false;
-                
-                // 3. Link is external (different origin)
-                const currentOrigin = window.location.origin;
-                const linkOrigin = link.href ? new URL(link.href, window.location.href).origin : currentOrigin;
-                if (linkOrigin !== currentOrigin) return false;
-                
-                // 4. Link is an anchor link (#)
-                if (link.getAttribute('href') === '#') return false;
-                if (link.getAttribute('href') && link.getAttribute('href').startsWith('#')) return false;
-                
-                // 5. Link has JavaScript: protocol
-                if (link.getAttribute('href') && link.getAttribute('href').toLowerCase().startsWith('javascript:')) return false;
-                
-                // 6. Link is a download link
                 if (link.hasAttribute('download')) return false;
-                
-                // 7. Link has button role or form submit
                 if (link.getAttribute('role') === 'button') return false;
+                
+                // Skip anchor links
+                const href = link.getAttribute('href');
+                if (!href || href === '#' || href.startsWith('#')) return false;
+                
+                // Skip javascript: links
+                if (href.toLowerCase().startsWith('javascript:')) return false;
+                
+                // Skip external links
+                try {
+                    const currentOrigin = window.location.origin;
+                    const linkOrigin = new URL(href, window.location.href).origin;
+                    if (linkOrigin !== currentOrigin) return false;
+                } catch (e) {
+                    return false;
+                }
                 
                 return true;
             }
             
             /**
-             * Perform page transition to new URL
-             * @param {string} url - The URL to navigate to
+             * Perform soft fade-out transition
              */
             function transitionTo(url) {
                 if (isTransitioning) {
@@ -182,81 +178,58 @@
                 
                 isTransitioning = true;
                 
-                // Add fade-out class to body
+                // Add soft fade-out class (opacity: 0.4)
                 document.body.classList.add('fade-out');
-                document.body.classList.remove('page-loaded');
                 
-                // Wait for transition to complete, then navigate
+                // Fast transition - navigate after short delay
                 setTimeout(function() {
                     window.location.href = url;
-                }, 300); // Match CSS transition duration (0.3s)
+                }, TRANSITION_DURATION);
             }
             
             /**
-             * Handle link click events
-             * @param {Event} event - Click event
+             * Handle link clicks
              */
             function handleLinkClick(event) {
                 const link = event.currentTarget;
                 
-                // Check if transition should be applied
                 if (!shouldTransition(link)) {
                     return;
                 }
                 
-                // Get the href
                 const href = link.getAttribute('href');
-                if (!href || href === '') {
-                    return;
-                }
+                if (!href) return;
                 
-                // Don't transition if it's the same page (just refresh)
+                // Skip if same page
                 const currentPath = window.location.pathname;
                 const targetPath = new URL(href, window.location.href).pathname;
-                if (currentPath === targetPath) {
-                    return;
-                }
+                if (currentPath === targetPath) return;
                 
-                // Prevent default navigation
+                // Prevent default and start transition
                 event.preventDefault();
-                
-                // Start transition
                 transitionTo(href);
             }
             
             /**
-             * Handle back/forward navigation
+             * Apply soft fade-in on page load
              */
-            function handlePopState() {
-                if (!isTransitioning) {
-                    // On popstate, we don't need to fade out as it's already loading
-                    // Just ensure body is visible with fade-in
-                    document.body.classList.remove('fade-out');
-                    
-                    // Trigger fade-in
-                    if (fadeInTimeout) clearTimeout(fadeInTimeout);
-                    fadeInTimeout = setTimeout(function() {
-                        document.body.classList.add('page-loaded');
-                    }, 10);
-                }
-            }
-            
-            /**
-             * Trigger fade-in effect on page load
-             */
-            function triggerFadeIn() {
-                // Clear any pending timeouts
-                if (fadeInTimeout) clearTimeout(fadeInTimeout);
+            function applyFadeIn() {
+                // Remove fade-out if present
+                document.body.classList.remove('fade-out');
                 
-                // Small delay to ensure DOM is ready, then fade in
-                fadeInTimeout = setTimeout(function() {
-                    document.body.classList.add('page-loaded');
-                    document.body.classList.remove('fade-out');
-                    
-                    // Reset transition state
+                // Add fade-in animation
+                document.body.classList.add('fade-in');
+                
+                // Remove animation class after it completes
+                setTimeout(function() {
+                    document.body.classList.remove('fade-in');
+                }, 200);
+                
+                // Reset transition flag
+                setTimeout(function() {
                     isTransitioning = false;
                     
-                    // Process any pending navigation
+                    // Process pending navigation
                     if (pendingUrl) {
                         const url = pendingUrl;
                         pendingUrl = null;
@@ -266,26 +239,32 @@
             }
             
             /**
+             * Handle back/forward navigation
+             */
+            function handlePopState() {
+                if (!isTransitioning) {
+                    // Quick fade-in for back navigation
+                    document.body.classList.remove('fade-out');
+                    document.body.classList.add('fade-in');
+                    
+                    setTimeout(function() {
+                        document.body.classList.remove('fade-in');
+                    }, 200);
+                }
+            }
+            
+            /**
              * Initialize page transitions
              */
             function initPageTransitions() {
-                // Start with body hidden (opacity: 0)
-                document.body.classList.remove('page-loaded');
-                document.body.classList.remove('fade-out');
+                // Apply fade-in on page load
+                applyFadeIn();
                 
-                // Trigger fade-in after a short delay
-                triggerFadeIn();
-                
-                // Remove any loading class
-                document.documentElement.classList.remove('js-loading');
-                
-                // Add click listeners to all internal links
+                // Bind click handlers to all links
                 function bindLinks() {
                     const links = document.querySelectorAll('a[href]');
                     links.forEach(function(link) {
-                        // Remove existing listener to avoid duplicates
                         link.removeEventListener('click', handleLinkClick);
-                        // Add new listener
                         link.addEventListener('click', handleLinkClick);
                     });
                 }
@@ -293,16 +272,15 @@
                 // Initial binding
                 bindLinks();
                 
-                // Watch for dynamically added content (like AJAX-loaded content)
+                // Watch for dynamically added content
                 const observer = new MutationObserver(function(mutations) {
                     mutations.forEach(function(mutation) {
                         if (mutation.addedNodes.length) {
                             mutation.addedNodes.forEach(function(node) {
-                                if (node.nodeType === 1) { // Element node
+                                if (node.nodeType === 1) {
                                     if (node.tagName === 'A' && node.hasAttribute('href')) {
                                         node.addEventListener('click', handleLinkClick);
                                     }
-                                    // Check for links inside added node
                                     const links = node.querySelectorAll('a[href]');
                                     links.forEach(function(link) {
                                         link.addEventListener('click', handleLinkClick);
@@ -313,7 +291,6 @@
                     });
                 });
                 
-                // Start observing
                 observer.observe(document.body, {
                     childList: true,
                     subtree: true
@@ -322,40 +299,25 @@
                 // Handle back/forward navigation
                 window.addEventListener('popstate', handlePopState);
                 
-                // Handle page visibility changes (for when returning to the tab)
+                // Handle page visibility (returning to tab)
                 document.addEventListener('visibilitychange', function() {
-                    if (!document.hidden) {
-                        // Page is visible again, trigger fade-in if needed
-                        if (!document.body.classList.contains('page-loaded')) {
-                            triggerFadeIn();
-                        }
+                    if (!document.hidden && !document.body.classList.contains('fade-out')) {
+                        document.body.classList.add('fade-in');
+                        setTimeout(function() {
+                            document.body.classList.remove('fade-in');
+                        }, 200);
                     }
                 });
                 
-                // Handle page load completion
+                // Ensure fade-in on page load complete
                 window.addEventListener('load', function() {
-                    // Ensure fade-in happens even if DOMContentLoaded fired early
-                    if (!document.body.classList.contains('page-loaded')) {
-                        triggerFadeIn();
+                    if (!document.body.classList.contains('fade-out')) {
+                        applyFadeIn();
                     }
-                    isTransitioning = false;
-                    
-                    // Process any pending navigation
-                    if (pendingUrl) {
-                        const url = pendingUrl;
-                        pendingUrl = null;
-                        transitionTo(url);
-                    }
-                });
-                
-                // Handle beforeunload for form submissions
-                window.addEventListener('beforeunload', function() {
-                    // Don't add fade-out for form submissions to avoid flicker
-                    // Only for links handled by our system
                 });
             }
             
-            // Initialize when DOM is ready
+            // Start when DOM is ready
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', initPageTransitions);
             } else {
@@ -364,11 +326,12 @@
         })();
     </script>
     
-    <!-- Fallback for any links that might not have been caught -->
+    <!-- Fallback for no JavaScript -->
     <noscript>
         <style>
             body {
                 opacity: 1 !important;
+                background-color: #000000;
             }
         </style>
     </noscript>
