@@ -65,7 +65,7 @@
             <div class="category-items-section">
                 <h3 class="section-title">{{ cat_data.category.name }}</h3>
                 <div class="category-items-horizontal-scroll">
-                    {% for cat_item in cat_data.items %}
+                    {% for cat_item in cat_data.get('items', []) %}
                     {% if cat_item.id != menu_item.id %}
                     <div class="category-item-card" onclick="window.location.href='/menu-item/{{ cat_item.id }}'">
                         <div class="category-item-photo-square">
