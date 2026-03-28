@@ -59,31 +59,31 @@
             </div>
         </div>
 
-        <!-- You Might Also Like Section -->
-        {% if recommended_services %}
+        <!-- You Might Also Like Section - Current Category Services -->
+        {% if category_services and category_services|length > 1 %}
         <div class="recommended-section">
             <h3 class="section-title">You Might Also Like</h3>
             <div class="recommended-horizontal-scroll">
-                {% for rec_service in recommended_services %}
-                {% if rec_service.id != service.id %}
-                <div class="recommended-service-card" onclick="window.location.href='/service-detail/{{ rec_service.id }}'">
+                {% for cat_service in category_services %}
+                {% if cat_service.id != service.id %}
+                <div class="recommended-service-card" onclick="window.location.href='/service-detail/{{ cat_service.id }}'">
                     <div class="recommended-service-photo-square">
-                        <img src="{{ rec_service.photo }}" alt="{{ rec_service.name }}"
+                        <img src="{{ cat_service.photo }}" alt="{{ cat_service.name }}"
                              onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
                         <div class="recommended-service-number">
                             <span>{{ loop.index }}</span>
                         </div>
                     </div>
                     <div class="recommended-service-details">
-                        <div class="recommended-service-name">{{ rec_service.name }}</div>
+                        <div class="recommended-service-name">{{ cat_service.name }}</div>
                         <div class="recommended-service-pricing">
-                            {% if rec_service.discount and rec_service.discount > 0 %}
-                            <span class="recommended-original-price">₹{{ "%.2f"|format(rec_service.price) }}</span>
-                            <span class="recommended-discount-badge">-{{ rec_service.discount }}%</span>
+                            {% if cat_service.discount and cat_service.discount > 0 %}
+                            <span class="recommended-original-price">₹{{ "%.2f"|format(cat_service.price) }}</span>
+                            <span class="recommended-discount-badge">-{{ cat_service.discount }}%</span>
                             {% endif %}
                             <div class="recommended-final-price">
                                 <span>₹</span>
-                                <span>{{ "%.2f"|format(rec_service.final_price) }}</span>
+                                <span>{{ "%.2f"|format(cat_service.final_price) }}</span>
                             </div>
                         </div>
                     </div>
@@ -94,15 +94,15 @@
         </div>
         {% endif %}
 
-        <!-- Browse By Category Section with Border -->
-        {% if all_categories %}
+        <!-- Browse By Category Section - EXCLUDING Current Category -->
+        {% if other_categories %}
         <div class="browse-category-section">
             <h3 class="section-title">Browse By Category</h3>
             <div class="category-horizontal-scroll">
-                {% for cat in all_categories %}
+                {% for cat in other_categories %}
                 <a href="javascript:void(0)" 
                    onclick="loadCategoryServices({{ cat.id }}, '{{ cat.name }}')"
-                   class="browse-category-horizontal-card {% if cat.id == category.id %}active{% endif %}"
+                   class="browse-category-horizontal-card"
                    data-category-id="{{ cat.id }}"
                    data-category-name="{{ cat.name }}">
                     <div class="browse-category-horizontal-photo-square">
@@ -118,14 +118,13 @@
             <!-- Border below Browse By Category -->
             <div class="category-section-border"></div>
         </div>
-        {% endif %}
 
-        <!-- Category Services Section - Dynamic Content (Header Removed) -->
-        <div id="categoryServicesSection" class="category-services-section" style="display: {% if category %}block{% else %}none{% endif %};">
+        <!-- Category Services Section - Always Visible -->
+        <div id="categoryServicesSection" class="category-services-section">
             <div id="categoryServicesScroll" class="category-services-horizontal-scroll">
-                <!-- Services will be loaded here dynamically -->
-                {% if category_services %}
-                    {% for cat_service in category_services %}
+                <!-- Initial cards will be loaded from backend -->
+                {% if first_category_services and first_category_services|length > 0 %}
+                    {% for cat_service in first_category_services %}
                     {% if cat_service.id != service.id %}
                     <div class="category-service-card" onclick="window.location.href='/service-detail/{{ cat_service.id }}'">
                         <div class="category-service-photo-square">
@@ -156,6 +155,7 @@
                 {% endif %}
             </div>
         </div>
+        {% endif %}
 
         <!-- Browse By Collection Section -->
         {% if all_collections %}
@@ -235,9 +235,6 @@ function loadCategoryServices(categoryId, categoryName) {
             card.classList.remove('active');
         }
     });
-    
-    // Show the section (header removed, so no title update needed)
-    document.getElementById('categoryServicesSection').style.display = 'block';
     
     // Fetch services for this category
     fetch(`/get_category_services/${categoryId}`)
