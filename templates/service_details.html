@@ -59,41 +59,6 @@
             </div>
         </div>
 
-        <!-- You Might Also Like Section - Current Category Services -->
-        {% if category_services and category_services|length > 1 %}
-        <div class="recommended-section">
-            <h3 class="section-title">You Might Also Like</h3>
-            <div class="recommended-horizontal-scroll">
-                {% for cat_service in category_services %}
-                {% if cat_service.id != service.id %}
-                <div class="recommended-service-card" onclick="window.location.href='/service-detail/{{ cat_service.id }}'">
-                    <div class="recommended-service-photo-square">
-                        <img src="{{ cat_service.photo }}" alt="{{ cat_service.name }}"
-                             onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
-                        <div class="recommended-service-number">
-                            <span>{{ loop.index }}</span>
-                        </div>
-                    </div>
-                    <div class="recommended-service-details">
-                        <div class="recommended-service-name">{{ cat_service.name }}</div>
-                        <div class="recommended-service-pricing">
-                            {% if cat_service.discount and cat_service.discount > 0 %}
-                            <span class="recommended-original-price">₹{{ "%.2f"|format(cat_service.price) }}</span>
-                            <span class="recommended-discount-badge">-{{ cat_service.discount }}%</span>
-                            {% endif %}
-                            <div class="recommended-final-price">
-                                <span>₹</span>
-                                <span>{{ "%.2f"|format(cat_service.final_price) }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-
         <!-- All Categories with their Services (Horizontal Scroll) -->
         {% if all_categories_with_services %}
             {% for cat_data in all_categories_with_services %}
@@ -437,17 +402,13 @@ function closeBookingNotification() {
     padding-left: 10px;
 }
 
-.recommended-section,
 .category-services-section,
-.browse-category-section,
 .browse-collection-section {
     margin-bottom: 30px;
 }
 
 /* ========== HORIZONTAL SCROLL CONTAINERS ========== */
-.recommended-horizontal-scroll,
 .category-services-horizontal-scroll,
-.category-horizontal-scroll,
 .collection-horizontal-scroll {
     display: flex;
     overflow-x: auto;
@@ -457,136 +418,24 @@ function closeBookingNotification() {
     scrollbar-color: var(--champagne-gold) var(--dark-border);
 }
 
-.recommended-horizontal-scroll::-webkit-scrollbar,
 .category-services-horizontal-scroll::-webkit-scrollbar,
-.category-horizontal-scroll::-webkit-scrollbar,
 .collection-horizontal-scroll::-webkit-scrollbar {
     height: 4px;
 }
 
-.recommended-horizontal-scroll::-webkit-scrollbar-track,
 .category-services-horizontal-scroll::-webkit-scrollbar-track,
-.category-horizontal-scroll::-webkit-scrollbar-track,
 .collection-horizontal-scroll::-webkit-scrollbar-track {
     background: var(--dark-border);
     border-radius: 10px;
 }
 
-.recommended-horizontal-scroll::-webkit-scrollbar-thumb,
 .category-services-horizontal-scroll::-webkit-scrollbar-thumb,
-.category-horizontal-scroll::-webkit-scrollbar-thumb,
 .collection-horizontal-scroll::-webkit-scrollbar-thumb {
     background: var(--champagne-gold);
     border-radius: 10px;
 }
 
-/* ========== RECOMMENDED SERVICE CARDS ========== */
-.recommended-service-card {
-    flex-shrink: 0;
-    width: 180px;
-    background: var(--onyx-black);
-    border-radius: 12px;
-    border: 1px solid var(--dark-border);
-    transition: all 0.3s ease;
-    cursor: pointer;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.recommended-service-card:hover {
-    border-color: var(--champagne-gold);
-    transform: translateY(-3px);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4), 0 0 8px rgba(192, 178, 131, 0.3);
-}
-
-.recommended-service-photo-square {
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    position: relative;
-    overflow: hidden;
-}
-
-.recommended-service-photo-square img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
-
-.recommended-service-card:hover .recommended-service-photo-square img {
-    transform: scale(1.05);
-}
-
-.recommended-service-number {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    width: 24px;
-    height: 24px;
-    background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--vivid-gold) 100%);
-    color: #000000;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 900;
-    font-size: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    border: 2px solid var(--onyx-black);
-    z-index: 2;
-}
-
-.recommended-service-details {
-    padding: 10px;
-}
-
-.recommended-service-name {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--creamy-white);
-    margin-bottom: 6px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-family: var(--serif-font);
-}
-
-.recommended-service-pricing {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 5px;
-}
-
-.recommended-original-price {
-    color: var(--silver-mist);
-    text-decoration: line-through;
-    font-size: 10px;
-}
-
-.recommended-discount-badge {
-    background: linear-gradient(135deg, var(--burnt-orange) 0%, #b86d1a 100%);
-    color: var(--creamy-white);
-    padding: 2px 5px;
-    border-radius: 8px;
-    font-size: 8px;
-    font-weight: 700;
-}
-
-.recommended-final-price {
-    display: flex;
-    align-items: baseline;
-    gap: 2px;
-    font-weight: 700;
-    color: var(--vivid-gold);
-    font-size: 14px;
-}
-
-.recommended-final-price span:first-child {
-    font-size: 11px;
-}
-
-/* ========== CATEGORY SERVICES CARDS (Same as Recommended) ========== */
+/* ========== CATEGORY SERVICES CARDS ========== */
 .category-service-card {
     flex-shrink: 0;
     width: 180px;
@@ -1006,32 +855,25 @@ function closeBookingNotification() {
         padding-left: 8px;
     }
     
-    .recommended-section,
     .category-services-section,
-    .browse-category-section,
     .browse-collection-section {
         margin-bottom: 25px;
     }
     
-    .recommended-horizontal-scroll,
     .category-services-horizontal-scroll,
-    .category-horizontal-scroll,
     .collection-horizontal-scroll {
         gap: 12px;
         padding: 6px 2px 10px 2px;
     }
     
-    .recommended-service-card,
     .category-service-card {
         width: 150px;
     }
     
-    .recommended-service-details,
     .category-service-details {
         padding: 8px;
     }
     
-    .recommended-service-name,
     .category-service-name {
         font-size: 12px;
     }
@@ -1083,36 +925,28 @@ function closeBookingNotification() {
         margin-bottom: 12px;
     }
     
-    .recommended-section,
     .category-services-section,
-    .browse-category-section,
     .browse-collection-section {
         margin-bottom: 20px;
     }
     
-    .recommended-horizontal-scroll,
     .category-services-horizontal-scroll,
-    .category-horizontal-scroll,
     .collection-horizontal-scroll {
         gap: 10px;
     }
     
-    .recommended-service-card,
     .category-service-card {
         width: 130px;
     }
     
-    .recommended-service-details,
     .category-service-details {
         padding: 6px;
     }
     
-    .recommended-service-name,
     .category-service-name {
         font-size: 11px;
     }
     
-    .recommended-final-price,
     .category-final-price {
         font-size: 12px;
     }
