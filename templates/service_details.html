@@ -94,14 +94,17 @@
         </div>
         {% endif %}
 
-        <!-- Browse By Category Section -->
+        <!-- Browse By Category Section with Border -->
         {% if all_categories %}
         <div class="browse-category-section">
             <h3 class="section-title">Browse By Category</h3>
             <div class="category-horizontal-scroll">
                 {% for cat in all_categories %}
-                <a href="{{ url_for('service_category_services', category_id=cat.id) }}" 
-                   class="browse-category-horizontal-card {% if cat.id == category.id %}active{% endif %}">
+                <a href="javascript:void(0)" 
+                   onclick="loadCategoryServices({{ cat.id }}, '{{ cat.name }}')"
+                   class="browse-category-horizontal-card {% if cat.id == category.id %}active{% endif %}"
+                   data-category-id="{{ cat.id }}"
+                   data-category-name="{{ cat.name }}">
                     <div class="browse-category-horizontal-photo-square">
                         <img src="{{ cat.category_photo }}" alt="{{ cat.name }}">
                         <div class="browse-category-horizontal-number">
@@ -112,8 +115,47 @@
                 </a>
                 {% endfor %}
             </div>
+            <!-- Border below Browse By Category -->
+            <div class="category-section-border"></div>
         </div>
         {% endif %}
+
+        <!-- Category Services Section - Dynamic Content (Header Removed) -->
+        <div id="categoryServicesSection" class="category-services-section" style="display: {% if category %}block{% else %}none{% endif %};">
+            <div id="categoryServicesScroll" class="category-services-horizontal-scroll">
+                <!-- Services will be loaded here dynamically -->
+                {% if category_services %}
+                    {% for cat_service in category_services %}
+                    {% if cat_service.id != service.id %}
+                    <div class="category-service-card" onclick="window.location.href='/service-detail/{{ cat_service.id }}'">
+                        <div class="category-service-photo-square">
+                            <img src="{{ cat_service.photo }}" alt="{{ cat_service.name }}"
+                                 onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
+                            <div class="category-service-number">
+                                <span>{{ loop.index }}</span>
+                            </div>
+                        </div>
+                        <div class="category-service-details">
+                            <div class="category-service-name">{{ cat_service.name }}</div>
+                            <div class="category-service-pricing">
+                                {% if cat_service.discount and cat_service.discount > 0 %}
+                                <span class="category-original-price">₹{{ "%.2f"|format(cat_service.price) }}</span>
+                                <span class="category-discount-badge">-{{ cat_service.discount }}%</span>
+                                {% endif %}
+                                <div class="category-final-price">
+                                    <span>₹</span>
+                                    <span>{{ "%.2f"|format(cat_service.final_price) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <div class="no-services-message">No services available in this category</div>
+                {% endif %}
+            </div>
+        </div>
 
         <!-- Browse By Collection Section -->
         {% if all_collections %}
@@ -181,6 +223,85 @@
 </div>
 
 <script>
+// Store current service ID
+const currentServiceId = {{ service.id }};
+
+function loadCategoryServices(categoryId, categoryName) {
+    // Update active state on category cards
+    document.querySelectorAll('.browse-category-horizontal-card').forEach(card => {
+        if (card.getAttribute('data-category-id') == categoryId) {
+            card.classList.add('active');
+        } else {
+            card.classList.remove('active');
+        }
+    });
+    
+    // Show the section (header removed, so no title update needed)
+    document.getElementById('categoryServicesSection').style.display = 'block';
+    
+    // Fetch services for this category
+    fetch(`/get_category_services/${categoryId}`)
+        .then(response => response.json())
+        .then(data => {
+            const scrollContainer = document.getElementById('categoryServicesScroll');
+            
+            if (data.services && data.services.length > 0) {
+                let html = '';
+                let index = 1;
+                
+                data.services.forEach(service => {
+                    // Skip current service if it's the same
+                    if (service.id != currentServiceId) {
+                        html += `
+                            <div class="category-service-card" onclick="window.location.href='/service-detail/${service.id}'">
+                                <div class="category-service-photo-square">
+                                    <img src="${service.photo}" alt="${service.name}"
+                                         onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
+                                    <div class="category-service-number">
+                                        <span>${index}</span>
+                                    </div>
+                                </div>
+                                <div class="category-service-details">
+                                    <div class="category-service-name">${escapeHtml(service.name)}</div>
+                                    <div class="category-service-pricing">
+                                        ${service.discount && service.discount > 0 ? `
+                                            <span class="category-original-price">₹${parseFloat(service.price).toFixed(2)}</span>
+                                            <span class="category-discount-badge">-${service.discount}%</span>
+                                        ` : ''}
+                                        <div class="category-final-price">
+                                            <span>₹</span>
+                                            <span>${parseFloat(service.final_price).toFixed(2)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        index++;
+                    }
+                });
+                
+                if (index === 1) {
+                    html = '<div class="no-services-message">No other services available in this category</div>';
+                }
+                
+                scrollContainer.innerHTML = html;
+            } else {
+                scrollContainer.innerHTML = '<div class="no-services-message">No services available in this category</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading category services:', error);
+            document.getElementById('categoryServicesScroll').innerHTML = '<div class="no-services-message">Error loading services</div>';
+        });
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 function addServiceToCart(serviceId) {
     fetch('/add_to_cart', {
         method: 'POST',
@@ -409,12 +530,12 @@ function closeBookingNotification() {
     margin-top: 4px;
 }
 
-/* ========== SECTION STYLES - COMPACT ========== */
+/* ========== SECTION STYLES ========== */
 .section-title {
     font-size: 18px;
     font-weight: 700;
     color: var(--creamy-white);
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     font-family: var(--serif-font);
     letter-spacing: 0.02em;
     border-left: 3px solid var(--champagne-gold);
@@ -422,30 +543,42 @@ function closeBookingNotification() {
 }
 
 .recommended-section,
+.category-services-section,
 .browse-category-section,
 .browse-collection-section {
-    margin-bottom: 25px;
+    margin-bottom: 30px;
+}
+
+/* ========== BORDER BELOW BROWSE BY CATEGORY ========== */
+.category-section-border {
+    margin-top: 20px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--champagne-gold), transparent);
+    width: 100%;
 }
 
 /* ========== HORIZONTAL SCROLL CONTAINERS ========== */
 .recommended-horizontal-scroll,
+.category-services-horizontal-scroll,
 .category-horizontal-scroll,
 .collection-horizontal-scroll {
     display: flex;
     overflow-x: auto;
-    gap: 12px;
-    padding: 4px 2px 12px 2px;
+    gap: 16px;
+    padding: 8px 2px 12px 2px;
     scrollbar-width: thin;
     scrollbar-color: var(--champagne-gold) var(--dark-border);
 }
 
 .recommended-horizontal-scroll::-webkit-scrollbar,
+.category-services-horizontal-scroll::-webkit-scrollbar,
 .category-horizontal-scroll::-webkit-scrollbar,
 .collection-horizontal-scroll::-webkit-scrollbar {
     height: 4px;
 }
 
 .recommended-horizontal-scroll::-webkit-scrollbar-track,
+.category-services-horizontal-scroll::-webkit-scrollbar-track,
 .category-horizontal-scroll::-webkit-scrollbar-track,
 .collection-horizontal-scroll::-webkit-scrollbar-track {
     background: var(--dark-border);
@@ -453,13 +586,14 @@ function closeBookingNotification() {
 }
 
 .recommended-horizontal-scroll::-webkit-scrollbar-thumb,
+.category-services-horizontal-scroll::-webkit-scrollbar-thumb,
 .category-horizontal-scroll::-webkit-scrollbar-thumb,
 .collection-horizontal-scroll::-webkit-scrollbar-thumb {
     background: var(--champagne-gold);
     border-radius: 10px;
 }
 
-/* ========== RECOMMENDED SERVICE CARDS - COMPACT ========== */
+/* ========== RECOMMENDED SERVICE CARDS ========== */
 .recommended-service-card {
     flex-shrink: 0;
     width: 180px;
@@ -565,7 +699,113 @@ function closeBookingNotification() {
     font-size: 11px;
 }
 
-/* ========== CATEGORY HORIZONTAL CARDS - COMPACT ========== */
+/* ========== CATEGORY SERVICES CARDS (Same as Recommended) ========== */
+.category-service-card {
+    flex-shrink: 0;
+    width: 180px;
+    background: var(--onyx-black);
+    border-radius: 12px;
+    border: 1px solid var(--dark-border);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.category-service-card:hover {
+    border-color: var(--champagne-gold);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4), 0 0 8px rgba(192, 178, 131, 0.3);
+}
+
+.category-service-photo-square {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.category-service-photo-square img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.category-service-card:hover .category-service-photo-square img {
+    transform: scale(1.05);
+}
+
+.category-service-number {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--vivid-gold) 100%);
+    color: #000000;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    border: 2px solid var(--onyx-black);
+    z-index: 2;
+}
+
+.category-service-details {
+    padding: 10px;
+}
+
+.category-service-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--creamy-white);
+    margin-bottom: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--serif-font);
+}
+
+.category-service-pricing {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+}
+
+.category-original-price {
+    color: var(--silver-mist);
+    text-decoration: line-through;
+    font-size: 10px;
+}
+
+.category-discount-badge {
+    background: linear-gradient(135deg, var(--burnt-orange) 0%, #b86d1a 100%);
+    color: var(--creamy-white);
+    padding: 2px 5px;
+    border-radius: 8px;
+    font-size: 8px;
+    font-weight: 700;
+}
+
+.category-final-price {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    font-weight: 700;
+    color: var(--vivid-gold);
+    font-size: 14px;
+}
+
+.category-final-price span:first-child {
+    font-size: 11px;
+}
+
+/* ========== CATEGORY HORIZONTAL CARDS (Original Small Cards) ========== */
 .browse-category-horizontal-card {
     flex-shrink: 0;
     width: 85px;
@@ -646,7 +886,7 @@ function closeBookingNotification() {
     color: var(--creamy-white);
 }
 
-/* ========== COLLECTION HORIZONTAL CARDS - COMPACT ========== */
+/* ========== COLLECTION HORIZONTAL CARDS ========== */
 .browse-collection-horizontal-card {
     flex-shrink: 0;
     width: 120px;
@@ -724,6 +964,19 @@ function closeBookingNotification() {
     font-weight: 500;
     text-align: center;
     font-family: var(--sans-font);
+}
+
+/* No Services Message */
+.no-services-message {
+    text-align: center;
+    color: var(--silver-mist);
+    padding: 40px 20px;
+    font-family: var(--sans-font);
+    font-size: 14px;
+    background: var(--onyx-black);
+    border-radius: 12px;
+    border: 1px solid var(--dark-border);
+    min-width: 300px;
 }
 
 /* ========== ACTIVE TAB UNDERLINE ========== */
@@ -880,7 +1133,7 @@ function closeBookingNotification() {
     color: var(--champagne-gold);
 }
 
-/* ========== MOBILE RESPONSIVE - VERTICAL LAYOUT WITH REDUCED HEIGHT ========== */
+/* ========== MOBILE RESPONSIVE ========== */
 @media (max-width: 768px) {
     .main-content {
         padding: 68px 10px 100px 10px;
@@ -943,107 +1196,68 @@ function closeBookingNotification() {
     
     .section-title {
         font-size: 16px;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
         padding-left: 8px;
     }
     
     .recommended-section,
+    .category-services-section,
     .browse-category-section,
     .browse-collection-section {
-        margin-bottom: 20px;
+        margin-bottom: 25px;
+    }
+    
+    .category-section-border {
+        margin-top: 15px;
     }
     
     .recommended-horizontal-scroll,
+    .category-services-horizontal-scroll,
     .category-horizontal-scroll,
     .collection-horizontal-scroll {
-        gap: 10px;
-        padding: 2px 2px 8px 2px;
+        gap: 12px;
+        padding: 6px 2px 10px 2px;
     }
     
-    /* Recommended Cards - Reduced Height */
-    .recommended-service-card {
-        width: 130px;
+    .recommended-service-card,
+    .category-service-card {
+        width: 150px;
     }
     
-    .recommended-service-details {
-        padding: 6px;
+    .recommended-service-details,
+    .category-service-details {
+        padding: 8px;
     }
     
-    .recommended-service-name {
-        font-size: 11px;
-        margin-bottom: 4px;
-    }
-    
-    .recommended-service-pricing {
-        gap: 3px;
-    }
-    
-    .recommended-final-price {
+    .recommended-service-name,
+    .category-service-name {
         font-size: 12px;
     }
     
-    .recommended-final-price span:first-child {
-        font-size: 9px;
-    }
-    
-    .recommended-original-price {
-        font-size: 8px;
-    }
-    
-    .recommended-discount-badge {
-        padding: 1px 3px;
-        font-size: 7px;
-    }
-    
-    /* Category Cards - Reduced Height */
     .browse-category-horizontal-card {
-        width: 65px;
-        padding: 6px 4px;
+        width: 75px;
+        padding: 8px 4px;
     }
     
     .browse-category-horizontal-photo-square {
-        width: 45px;
-        margin-bottom: 4px;
+        width: 52px;
     }
     
     .browse-category-horizontal-name {
-        font-size: 8px;
+        font-size: 9px;
     }
     
-    .browse-category-horizontal-number {
-        width: 14px;
-        height: 14px;
-        font-size: 6px;
-        top: -1px;
-        right: -1px;
-    }
-    
-    /* Collection Cards - Reduced Height */
     .browse-collection-horizontal-card {
-        width: 90px;
-        padding: 6px 4px;
+        width: 105px;
+        padding: 8px 4px;
     }
     
     .browse-collection-horizontal-photo-square {
-        width: 55px;
-        margin-bottom: 4px;
+        width: 65px;
     }
     
     .browse-collection-horizontal-name {
-        font-size: 9px;
-        margin-bottom: 2px;
-    }
-    
-    .browse-collection-horizontal-count {
-        font-size: 7px;
-    }
-    
-    .browse-collection-horizontal-number {
-        width: 14px;
-        height: 14px;
-        font-size: 6px;
-        top: -1px;
-        right: -1px;
+        font-size: 10px;
     }
 }
 
@@ -1077,75 +1291,65 @@ function closeBookingNotification() {
     
     .section-title {
         font-size: 14px;
-        margin-bottom: 8px;
+        margin-bottom: 12px;
     }
     
     .recommended-section,
+    .category-services-section,
     .browse-category-section,
     .browse-collection-section {
-        margin-bottom: 16px;
+        margin-bottom: 20px;
     }
     
-    /* Recommended Cards - Even Smaller */
-    .recommended-service-card {
-        width: 110px;
-    }
-    
-    .recommended-service-details {
-        padding: 5px;
-    }
-    
-    .recommended-service-name {
-        font-size: 10px;
-        margin-bottom: 3px;
-    }
-    
-    .recommended-final-price {
-        font-size: 11px;
-    }
-    
-    .recommended-final-price span:first-child {
-        font-size: 8px;
-    }
-    
-    /* Category Cards - Even Smaller */
-    .browse-category-horizontal-card {
-        width: 60px;
-        padding: 5px 3px;
-    }
-    
-    .browse-category-horizontal-photo-square {
-        width: 40px;
-        margin-bottom: 3px;
-    }
-    
-    .browse-category-horizontal-name {
-        font-size: 7px;
-    }
-    
-    /* Collection Cards - Even Smaller */
-    .browse-collection-horizontal-card {
-        width: 80px;
-        padding: 5px 3px;
-    }
-    
-    .browse-collection-horizontal-photo-square {
-        width: 48px;
-        margin-bottom: 3px;
-    }
-    
-    .browse-collection-horizontal-name {
-        font-size: 8px;
-    }
-    
-    .browse-collection-horizontal-count {
-        font-size: 6px;
+    .category-section-border {
+        margin-top: 12px;
     }
     
     .recommended-horizontal-scroll,
+    .category-services-horizontal-scroll,
     .category-horizontal-scroll,
     .collection-horizontal-scroll {
-        gap: 8px;
+        gap: 10px;
+    }
+    
+    .recommended-service-card,
+    .category-service-card {
+        width: 130px;
+    }
+    
+    .recommended-service-details,
+    .category-service-details {
+        padding: 6px;
+    }
+    
+    .recommended-service-name,
+    .category-service-name {
+        font-size: 11px;
+    }
+    
+    .recommended-final-price,
+    .category-final-price {
+        font-size: 12px;
+    }
+    
+    .browse-category-horizontal-card {
+        width: 70px;
+    }
+    
+    .browse-category-horizontal-photo-square {
+        width: 48px;
+    }
+    
+    .browse-collection-horizontal-card {
+        width: 95px;
+    }
+    
+    .browse-collection-horizontal-photo-square {
+        width: 60px;
+    }
+    
+    .browse-collection-horizontal-name {
+        font-size: 9px;
     }
 }
 </style>
