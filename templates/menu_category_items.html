@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ category.name }} - Menu Items{% endblock %}
+{% block title %}{{ category.name }} - Items{% endblock %}
 
 {% block content %}
 <div class="dashboard">
@@ -16,12 +16,12 @@
         </div>
     </header>
 
-    <!-- Menu Content - Direct 2-Column Grid -->
+    <!-- Items Content - Direct 2-Column Grid -->
     <main class="main-content">
         {% if menu_items %}
-            <div class="menu-two-column-grid-direct">
+            <div class="items-two-column-grid-direct">
                 {% for item in menu_items %}
-                <div class="menu-modal-item-card" 
+                <div class="item-modal-card" 
                      data-item-id="{{ item.id }}"
                      data-item-name="{{ item.name }}"
                      data-item-desc="{{ item.description }}"
@@ -31,39 +31,39 @@
                      data-item-final="{{ item.final_price }}">
                     
                     <!-- Left Column: Photo Square -->
-                    <div class="menu-modal-photo-square">
+                    <div class="item-modal-photo-square">
                         <img src="{% if item.photo and item.photo.startswith('http') %}{{ item.photo }}{% else %}{{ url_for('static', filename='uploads/' + item.photo) if item.photo else 'https://res.cloudinary.com/demo/image/upload/v1633427556/sample_food.jpg' }}{% endif %}" 
                              alt="{{ item.name }}"
                              onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_food.jpg'">
                     </div>
                     
                     <!-- Right Column: Details Square -->
-                    <div class="menu-modal-details-square">
-                        <div class="menu-modal-header">
-                            <h4 class="menu-modal-item-name">{{ item.name }}</h4>
-                            <div class="menu-modal-item-number">
+                    <div class="item-modal-details-square">
+                        <div class="item-modal-header">
+                            <h4 class="item-modal-item-name">{{ item.name }}</h4>
+                            <div class="item-modal-item-number">
                                 <span>#{{ loop.index }}</span>
                             </div>
                         </div>
                         
-                        <div class="menu-modal-pricing">
+                        <div class="item-modal-pricing">
                             {% if item.discount and item.discount > 0 %}
-                            <div class="menu-modal-discount-row">
-                                <span class="menu-modal-original-price">₹{{ "%.2f"|format(item.price) }}</span>
-                                <span class="menu-modal-discount-badge">-{{ item.discount }}%</span>
+                            <div class="item-modal-discount-row">
+                                <span class="item-modal-original-price">₹{{ "%.2f"|format(item.price) }}</span>
+                                <span class="item-modal-discount-badge">-{{ item.discount }}%</span>
                             </div>
                             {% endif %}
-                            <div class="menu-modal-final-price">
-                                <span class="menu-modal-rupee">₹</span>
-                                <span class="menu-modal-price-value">{{ "%.2f"|format(item.final_price) }}</span>
+                            <div class="item-modal-final-price">
+                                <span class="item-modal-rupee">₹</span>
+                                <span class="item-modal-price-value">{{ "%.2f"|format(item.final_price) }}</span>
                             </div>
                         </div>
                         
-                        <div class="menu-modal-actions">
-                            <button class="btn-menu-modal-details" onclick="event.stopPropagation(); window.location.href='/menu-item/{{ item.id }}'">
+                        <div class="item-modal-actions">
+                            <button class="btn-item-modal-details" onclick="event.stopPropagation(); window.location.href='/menu-item/{{ item.id }}'">
                                 <i class="fas fa-info-circle"></i> Details
                             </button>
-                            <button class="btn-menu-modal-add" onclick="event.stopPropagation(); addMenuItemToCart({{ item.id }})">
+                            <button class="btn-item-modal-add" onclick="event.stopPropagation(); addMenuItemToCart({{ item.id }})">
                                 <i class="fas fa-cart-plus"></i> Add
                             </button>
                         </div>
@@ -72,18 +72,21 @@
                 {% endfor %}
             </div>
         {% else %}
-            <div class="no-services">
+            <div class="no-items">
                 <i class="fas fa-utensils fa-3x"></i>
-                <h3>No Menu Items Available</h3>
-                <p>Check back soon for premium selections!</p>
+                <h3>No Items Available</h3>
+                <p>Check back soon for new items!</p>
             </div>
         {% endif %}
     </main>
 
-    <!-- Right Side Vertical Categories - FIXED POSITION MATCHING CSS -->
-    {% if all_categories and all_categories|length > 1 %}
+    <!-- Right Side Vertical Categories with HEADER -->
+    {% if all_categories %}
     <div class="browse-categories-section">
         <div class="browse-categories-scroll">
+            <div class="categories-header">
+                <span>CATEGORIES</span>
+            </div>
             {% for cat in all_categories %}
             <a href="{{ url_for('menu_category_items', category_id=cat.id) }}" 
                class="browse-category-card {% if cat.id == category.id %}active{% endif %}">
@@ -100,13 +103,14 @@
     </div>
     {% endif %}
 
-    <!-- Bottom Navigation -->
+    <!-- Bottom Navigation - MENU TAB ACTIVE -->
     <nav class="bottom-nav">
         <a href="{{ url_for('services') }}" class="nav-item">
             <i class="fas fa-concierge-bell"></i><span>Services</span>
         </a>
-        <a href="{{ url_for('menu') }}" class="nav-item active">
-            <i class="fas fa-utensils"></i><span>Menu</span>
+        <a href="{{ url_for('menu') }}" class="nav-item active" style="background: linear-gradient(135deg, var(--champagne-primary), var(--champagne-light)) !important; color: var(--matte-black-darkest) !important; transform: translateY(-3px) !important; box-shadow: 0 6px 15px rgba(192, 178, 131, 0.3) !important; position: relative !important;">
+            <i class="fas fa-utensils" style="color: var(--matte-black-darkest) !important;"></i><span style="color: var(--matte-black-darkest) !important;">Menu</span>
+            <span class="active-underline"></span>
         </a>
         <a href="{{ url_for('cart') }}" class="nav-item">
             <i class="fas fa-shopping-cart"></i><span>Cart</span>
@@ -120,8 +124,8 @@
     </nav>
 </div>
 
-<!-- BOOKING NOTIFICATION -->
-<div id="bookingNotification" class="booking-notification-fixed" style="display: none;">
+<!-- ADD TO CART NOTIFICATION -->
+<div id="cartNotification" class="cart-notification-fixed" style="display: none;">
     <div class="notification-fixed-content">
         <div class="notification-fixed-icon">
             <i class="fas fa-shopping-cart"></i>
@@ -134,7 +138,7 @@
             <button class="btn-view-cart-fixed" onclick="window.location.href='/cart'">
                 View Cart
             </button>
-            <button class="btn-close-fixed" onclick="closeBookingNotification()">
+            <button class="btn-close-fixed" onclick="closeCartNotification()">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -151,29 +155,29 @@ function addMenuItemToCart(itemId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showBookingNotification();
+            showCartNotification();
         } else {
-            showBookingNotification();
+            showCartNotification();
         }
     })
     .catch(error => {
         console.error("Add to cart error:", error);
-        showBookingNotification();
+        showCartNotification();
     });
 }
 
-function showBookingNotification() {
-    const notification = document.getElementById('bookingNotification');
+function showCartNotification() {
+    const notification = document.getElementById('cartNotification');
     notification.style.display = 'block';
     notification.offsetHeight;
     notification.classList.add('show');
     setTimeout(() => {
-        closeBookingNotification();
+        closeCartNotification();
     }, 5000);
 }
 
-function closeBookingNotification() {
-    const notification = document.getElementById('bookingNotification');
+function closeCartNotification() {
+    const notification = document.getElementById('cartNotification');
     notification.classList.remove('show');
     setTimeout(() => {
         notification.style.display = 'none';
@@ -181,7 +185,7 @@ function closeBookingNotification() {
 }
 
 function highlightCard(card) {
-    const allCards = document.querySelectorAll('.menu-modal-item-card');
+    const allCards = document.querySelectorAll('.item-modal-card');
     allCards.forEach(c => c.classList.remove('highlighted'));
     card.classList.add('highlighted');
     setTimeout(() => {
@@ -191,11 +195,11 @@ function highlightCard(card) {
 
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-        closeBookingNotification();
+        closeCartNotification();
     }
 });
 
-document.querySelectorAll('.menu-modal-item-card').forEach(card => {
+document.querySelectorAll('.item-modal-card').forEach(card => {
     card.addEventListener('click', function() {
         highlightCard(this);
     });
@@ -208,6 +212,8 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 :root {
     --matte-black: #0D0D0D;
     --champagne-gold: #C0B283;
+    --champagne-primary: #C0B283;
+    --champagne-light: #D4C5A1;
     --onyx-black: #1A1A1A;
     --vivid-gold: #D4AF37;
     --creamy-white: #F4F1E1;
@@ -216,6 +222,8 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     --dark-border: #333333;
     --antique-bronze: #8e7d4d;
     --silver-mist: #A0A0A0;
+    --text-charcoal: #A6A6A6;
+    --matte-black-darkest: #050505;
     --burnt-orange: #D98324;
     --price-glow: rgba(212, 175, 55, 0.3);
     --card-shadow: 0 6px 25px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -234,12 +242,12 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 
 .main-content {
     flex: 1;
-    padding: 78px 110px 100px 5px;  /* top: 70px + 8px = 78px, left: 5px gap */
+    padding: 78px 110px 100px 5px;
     overflow-y: auto;
 }
 
-/* ========== MENU ITEMS 2-COLUMN GRID ========== */
-.menu-two-column-grid-direct {
+/* ========== ITEMS 2-COLUMN GRID ========== */
+.items-two-column-grid-direct {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 2px;
@@ -249,8 +257,8 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     background: var(--matte-black);
 }
 
-/* MENU MODAL ITEM CARD */
-.menu-modal-item-card {
+/* ITEM MODAL CARD */
+.item-modal-card {
     display: flex;
     gap: 2px !important;
     padding: 0 !important;
@@ -269,12 +277,12 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     margin-right: 4px !important;
 }
 
-.menu-modal-item-card:hover {
+.item-modal-card:hover {
     border-color: var(--champagne-gold);
     background: rgba(31, 31, 31, 0.9);
 }
 
-.menu-modal-item-card.highlighted {
+.item-modal-card.highlighted {
     animation: goldGlowPulse 1.5s ease-in-out;
     z-index: 1;
     position: relative;
@@ -300,14 +308,14 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 
 /* Desktop layout borders */
 @media (min-width: 768px) {
-    .menu-modal-item-card:nth-child(odd) { border-left: none; }
-    .menu-modal-item-card:nth-child(even) { border-right: none; }
-    .menu-modal-item-card:nth-child(1), .menu-modal-item-card:nth-child(2) { border-top: none; }
-    .menu-modal-item-card:nth-last-child(-n+2) { border-bottom: none; }
+    .item-modal-card:nth-child(odd) { border-left: none; }
+    .item-modal-card:nth-child(even) { border-right: none; }
+    .item-modal-card:nth-child(1), .item-modal-card:nth-child(2) { border-top: none; }
+    .item-modal-card:nth-last-child(-n+2) { border-bottom: none; }
 }
 
 /* Left Column: Photo Square */
-.menu-modal-photo-square {
+.item-modal-photo-square {
     flex: 0 0 115px;
     width: 115px;
     height: 115px;
@@ -319,7 +327,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     margin: 2px 0 !important;
 }
 
-.menu-modal-photo-square img {
+.item-modal-photo-square img {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -328,13 +336,13 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     filter: saturate(1.4) contrast(1.2) brightness(1.05);
 }
 
-.menu-modal-item-card:hover .menu-modal-photo-square img {
+.item-modal-card:hover .item-modal-photo-square img {
     transform: scale(1.05);
     filter: saturate(1.6) contrast(1.3) brightness(1.1);
 }
 
 /* Right Column: Details Square */
-.menu-modal-details-square {
+.item-modal-details-square {
     flex: 1;
     min-width: 0;
     display: flex;
@@ -349,7 +357,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 }
 
 /* Header */
-.menu-modal-header {
+.item-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -358,7 +366,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     gap: 0.3px;
 }
 
-.menu-modal-item-name {
+.item-modal-item-name {
     margin: 0;
     font-size: 11.5px !important;
     font-weight: 700;
@@ -375,7 +383,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-.menu-modal-item-number {
+.item-modal-item-number {
     display: inline-flex;
     align-items: center;
     gap: 0.3px;
@@ -391,13 +399,13 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 }
 
 /* Pricing */
-.menu-modal-pricing {
+.item-modal-pricing {
     margin-bottom: 0px !important;
     padding: 0;
     padding-right: 4px;
 }
 
-.menu-modal-discount-row {
+.item-modal-discount-row {
     display: flex;
     align-items: center;
     gap: 0.5px;
@@ -406,14 +414,14 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     top: -0.2px;
 }
 
-.menu-modal-original-price {
+.item-modal-original-price {
     color: var(--silver-mist);
     text-decoration: line-through;
     font-size: 8px !important;
     font-weight: 500;
 }
 
-.menu-modal-discount-badge {
+.item-modal-discount-badge {
     background: linear-gradient(135deg, var(--burnt-orange) 0%, #b86d1a 100%);
     color: var(--creamy-white);
     padding: 1px 4px;
@@ -424,7 +432,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     border: 1px solid var(--burnt-orange);
 }
 
-.menu-modal-final-price {
+.item-modal-final-price {
     display: flex;
     align-items: baseline;
     gap: 0.2px;
@@ -432,14 +440,14 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     top: -0.2px;
 }
 
-.menu-modal-rupee {
+.item-modal-rupee {
     color: var(--antique-bronze);
     font-size: 12px !important;
     font-weight: 900;
     margin-right: 0.3px;
 }
 
-.menu-modal-price-value {
+.item-modal-price-value {
     font-weight: 900;
     color: var(--vivid-gold);
     font-size: 14.5px !important;
@@ -447,7 +455,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 }
 
 /* Action Buttons */
-.menu-modal-actions {
+.item-modal-actions {
     display: flex;
     gap: 0.6px;
     margin-top: 0px !important;
@@ -458,7 +466,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     padding-right: 4px;
 }
 
-.btn-menu-modal-details {
+.btn-item-modal-details {
     flex: 1;
     background: transparent;
     color: var(--champagne-gold);
@@ -480,7 +488,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     font-family: var(--sans-font);
 }
 
-.btn-menu-modal-details:hover {
+.btn-item-modal-details:hover {
     background: rgba(192, 178, 131, 0.1);
     box-shadow: 0 0 6px rgba(192, 178, 131, 0.2);
     color: var(--champagne-gold);
@@ -488,7 +496,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     transform: translateY(-1px);
 }
 
-.btn-menu-modal-add {
+.btn-item-modal-add {
     flex: 1;
     background: linear-gradient(135deg, var(--champagne-gold), var(--antique-bronze));
     color: #000000;
@@ -512,13 +520,13 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     font-family: var(--sans-font);
 }
 
-.btn-menu-modal-add:hover {
+.btn-item-modal-add:hover {
     transform: translateY(-1px);
     box-shadow: 0 3px 6px rgba(192, 178, 131, 0.3);
     background: linear-gradient(135deg, var(--gold-light), var(--gold-dark));
 }
 
-.btn-menu-modal-add::before {
+.btn-item-modal-add::before {
     content: '';
     position: absolute;
     top: 0;
@@ -530,18 +538,18 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     z-index: 1;
 }
 
-.btn-menu-modal-add:hover::before { left: 100%; }
+.btn-item-modal-add:hover::before { left: 100%; }
 
-.btn-menu-modal-details i, .btn-menu-modal-add i { font-size: 9px; }
-.btn-menu-modal-details i { color: var(--champagne-gold); }
-.btn-menu-modal-add i { color: #000000; font-weight: bold; }
+.btn-item-modal-details i, .btn-item-modal-add i { font-size: 9px; }
+.btn-item-modal-details i { color: var(--champagne-gold); }
+.btn-item-modal-add i { color: #000000; font-weight: bold; }
 
-/* ========== RIGHT SIDE VERTICAL CATEGORIES ========== */
+/* ========== RIGHT SIDE VERTICAL CATEGORIES WITH HEADER ========== */
 .browse-categories-section {
     position: fixed;
     right: 5px;
-    top: 70px;  /* Matches header height */
-    bottom: 70px;  /* Matches bottom nav height */
+    top: 70px;
+    bottom: 70px;
     width: 100px;
     background: rgba(13, 13, 13, 0.95);
     backdrop-filter: blur(12px);
@@ -551,10 +559,9 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     z-index: 100;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 12px 5px;
+    padding: 8px 5px;
 }
 
-/* Custom scrollbar for categories sidebar */
 .browse-categories-section::-webkit-scrollbar {
     width: 3px;
 }
@@ -572,13 +579,29 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 .browse-categories-scroll {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
     height: 100%;
     overflow-y: visible;
     overflow-x: visible;
 }
 
-/* Category Card */
+/* CATEGORIES HEADER - EXACTLY LIKE COLLECTIONS HEADER */
+.categories-header {
+    text-align: center;
+    margin-bottom: 4px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(192, 178, 131, 0.3);
+}
+
+.categories-header span {
+    font-size: 8px;
+    font-weight: 700;
+    color: var(--champagne-gold);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: var(--sans-font);
+}
+
 .browse-category-card {
     flex-shrink: 0;
     width: 90px;
@@ -597,7 +620,6 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     padding: 8px 4px;
 }
 
-/* Active Category - Normal Effect */
 .browse-category-card.active {
     border: 2px solid var(--champagne-gold);
     box-shadow: 0 0 8px rgba(192, 178, 131, 0.4);
@@ -675,8 +697,74 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     text-shadow: 0 0 3px rgba(192, 178, 131, 0.3);
 }
 
+/* ========== ACTIVE TAB UNDERLINE ========== */
+.active-underline {
+    position: absolute;
+    bottom: -3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 2.5px;
+    background: linear-gradient(90deg, var(--champagne-primary), var(--champagne-light));
+    border-radius: 3px;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        width: 0;
+        opacity: 0;
+    }
+    to {
+        width: 24px;
+        opacity: 1;
+    }
+}
+
+@media (max-width: 480px) {
+    .active-underline {
+        bottom: -3px !important;
+        width: 24px !important;
+        height: 2.5px !important;
+    }
+}
+
+/* ========== BOTTOM NAVIGATION OVERRIDE FOR ACTIVE MENU TAB ========== */
+.bottom-nav .nav-item.active {
+    background: linear-gradient(135deg, var(--champagne-primary), var(--champagne-light)) !important;
+    color: var(--matte-black-darkest) !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 6px 15px rgba(192, 178, 131, 0.3) !important;
+    position: relative !important;
+}
+
+.bottom-nav .nav-item.active i,
+.bottom-nav .nav-item.active span {
+    color: var(--matte-black-darkest) !important;
+}
+
+.bottom-nav .nav-item:not(.active) {
+    background: transparent !important;
+    color: var(--text-charcoal) !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.bottom-nav .nav-item:not(.active):hover {
+    background: rgba(192, 178, 131, 0.12) !important;
+    color: var(--champagne-light) !important;
+    transform: translateY(-3px) !important;
+}
+
+@media (max-width: 480px) {
+    .bottom-nav .nav-item.active {
+        transform: translateY(-1.5px) !important;
+        box-shadow: 0 6px 12px rgba(192, 178, 131, 0.25) !important;
+    }
+}
+
 /* NOTIFICATION */
-.booking-notification-fixed {
+.cart-notification-fixed {
     position: fixed;
     top: -100px;
     left: 50%;
@@ -692,7 +780,7 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     overflow: hidden;
 }
 
-.booking-notification-fixed.show { top: 15px; }
+.cart-notification-fixed.show { top: 15px; }
 
 .notification-fixed-content {
     display: flex;
@@ -774,85 +862,60 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 /* ========== MOBILE RESPONSIVE ========== */
 @media (max-width: 767px) {
     .main-content {
-        padding: 68px 85px 80px 5px;  /* mobile: 60px + 8px = 68px */
+        padding: 68px 85px 80px 5px;
     }
     
-    .menu-two-column-grid-direct { grid-template-columns: 1fr !important; gap: 2px !important; padding: 0 !important; }
+    .items-two-column-grid-direct { grid-template-columns: 1fr !important; gap: 2px !important; padding: 0 !important; }
     
-    .menu-modal-item-card {
+    .item-modal-card {
         height: 95px !important;
         min-height: 95px;
     }
     
-    .menu-modal-photo-square {
+    .item-modal-photo-square {
         flex: 0 0 90px !important;
         width: 90px !important;
         height: 90px !important;
     }
     
-    .menu-modal-details-square {
+    .item-modal-details-square {
         height: 82px !important;
         padding-right: 2px !important;
     }
     
-    .menu-modal-item-name {
+    .item-modal-item-name {
         font-size: 11px !important;
         padding-right: 2px;
     }
     
-    .menu-modal-item-number {
+    .item-modal-item-number {
         font-size: 8.5px !important;
         padding: 1px 3px;
     }
     
-    .menu-modal-original-price {
+    .item-modal-original-price {
         font-size: 8.5px !important;
     }
     
-    .menu-modal-discount-badge {
+    .item-modal-discount-badge {
         font-size: 7.5px !important;
         padding: 1px 3px;
     }
     
-    .menu-modal-rupee {
+    .item-modal-rupee {
         font-size: 11.5px !important;
     }
     
-    .menu-modal-price-value {
+    .item-modal-price-value {
         font-size: 13px !important;
     }
     
-    .btn-menu-modal-details,
-    .btn-menu-modal-add {
+    .btn-item-modal-details,
+    .btn-item-modal-add {
         height: 26px !important;
         padding: 4px 6px !important;
         font-size: 9.5px !important;
         gap: 4px;
-    }
-    
-    .btn-menu-modal-details i,
-    .btn-menu-modal-add i {
-        font-size: 10px !important;
-    }
-    
-    .menu-modal-header {
-        margin-bottom: 0.1px !important;
-        gap: 0.2px;
-    }
-    
-    .menu-modal-discount-row {
-        gap: 0.4px;
-        top: -0.1px;
-    }
-    
-    .menu-modal-final-price {
-        gap: 0.2px;
-        top: -0.1px;
-    }
-    
-    .menu-modal-actions {
-        gap: 0.5px;
-        top: -0.2px;
     }
     
     /* Mobile Right Side Categories */
@@ -864,11 +927,11 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
         background: rgba(13, 13, 13, 0.96);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
-        padding: 10px 4px;
+        padding: 8px 3px;
     }
     
     .browse-category-card {
-        width: 72px;
+        width: 74px;
         padding: 6px 3px;
     }
     
@@ -891,76 +954,55 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
     }
     
     .browse-categories-scroll {
-        gap: 10px;
+        gap: 6px;
     }
     
-    .browse-category-card.active {
-        transform: scale(1.01);
-        box-shadow: 0 0 6px rgba(192, 178, 131, 0.4);
+    .categories-header {
+        margin-bottom: 2px;
+        padding-bottom: 3px;
+    }
+    
+    .categories-header span {
+        font-size: 7px;
     }
 }
 
 @media (max-width: 480px) {
     .main-content {
-        padding: 63px 75px 70px 5px;  /* small mobile: 55px + 8px = 63px */
+        padding: 63px 75px 70px 5px;
     }
     
-    .menu-modal-item-card {
+    .item-modal-card {
         height: 90px !important;
         min-height: 90px;
     }
     
-    .menu-modal-photo-square {
+    .item-modal-photo-square {
         flex: 0 0 85px !important;
         width: 85px !important;
         height: 85px !important;
     }
     
-    .menu-modal-details-square {
+    .item-modal-details-square {
         height: 78px !important;
     }
     
-    .menu-modal-item-name {
+    .item-modal-item-name {
         font-size: 10px !important;
     }
     
-    .menu-modal-item-number {
-        font-size: 8px !important;
-    }
-    
-    .menu-modal-original-price {
-        font-size: 8px !important;
-    }
-    
-    .menu-modal-discount-badge {
-        font-size: 7px !important;
-    }
-    
-    .menu-modal-rupee {
-        font-size: 10.5px !important;
-    }
-    
-    .menu-modal-price-value {
-        font-size: 12px !important;
-    }
-    
-    .btn-menu-modal-details,
-    .btn-menu-modal-add {
+    .btn-item-modal-details,
+    .btn-item-modal-add {
         height: 24px !important;
         padding: 3px 5px !important;
         font-size: 9px !important;
         gap: 3px;
     }
     
-    .btn-menu-modal-details i,
-    .btn-menu-modal-add i {
-        font-size: 9px !important;
-    }
-    
     .browse-categories-section {
-        width: 70px;
+        width: 68px;
         right: 5px;
-        padding: 8px 3px;
+        padding: 6px 2px;
         top: 55px;
         bottom: 55px;
     }
@@ -987,14 +1029,14 @@ document.querySelectorAll('.menu-modal-item-card').forEach(card => {
 }
 
 /* No Items State */
-.no-services {
+.no-items {
     text-align: center;
     padding: 60px 20px;
     color: var(--silver-mist);
 }
 
-.no-services i { margin-bottom: 20px; color: var(--dark-border); }
-.no-services h3 { font-size: 18px; margin-bottom: 10px; color: var(--silver-mist); font-family: var(--serif-font); }
-.no-services p { font-size: 14px; font-family: var(--sans-font); }
+.no-items i { margin-bottom: 20px; color: var(--dark-border); }
+.no-items h3 { font-size: 18px; margin-bottom: 10px; color: var(--silver-mist); font-family: var(--serif-font); }
+.no-items p { font-size: 14px; font-family: var(--sans-font); }
 </style>
 {% endblock %}
