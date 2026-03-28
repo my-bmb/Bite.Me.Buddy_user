@@ -5,57 +5,67 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Flask App{% endblock %}</title>
     
-    <!-- BROWSER & MOBILE UI COLORS -->
-    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+    <!-- BROWSER & MOBILE UI COLORS - DARK GRAY FOR BOTH MODES -->
+    <meta name="theme-color" content="#87794e" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#87794e" media="(prefers-color-scheme: dark)">
     
-    <!-- iOS specific -->
+    <!-- iOS specific - top status bar -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="Flask App">
     
-    <!-- Windows Phone -->
-    <meta name="msapplication-TileColor" content="#000000">
-    <meta name="msapplication-navbutton-color" content="#000000">
+    <!-- Windows Phone / Microsoft -->
+    <meta name="msapplication-TileColor" content="#87794e">
+    <meta name="msapplication-navbutton-color" content="#87794e">
     
-    <!-- Android -->
+    <!-- Android / Chrome specific -->
     <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- Force dark color scheme for bottom navigation bar -->
     <meta name="color-scheme" content="dark">
     
     {% block head_meta %}{% endblock %}
     
-    <!-- Fonts and Icons -->
+    <!-- Fonts and Icons - Let style.css handle all fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Page Transition Styles - Pure Black Theme -->
+    <!-- Ultra Smooth Page Transition Styles - NO FLICKER -->
     <style>
-        /* Pure black theme - NO WHITE FLASH */
+        /* Complete dark background - NO WHITE EVER */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         html {
-            background-color: #000000; /* Pure black immediately */
+            background-color: #0a0a0a;
             scroll-behavior: smooth;
         }
         
         body {
-            background-color: #000000;
+            background-color: #0a0a0a;
             margin: 0;
             padding: 0;
             opacity: 1;
-            transition: opacity 0.15s ease-out;
+            transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1); /* Smoother easing */
+            will-change: opacity; /* GPU acceleration */
         }
         
-        /* Soft fade-out - NOT completely invisible */
+        /* Ultra smooth fade-out - very subtle */
         body.fade-out {
-            opacity: 0.4; /* Keep at 40% opacity - no blank screen */
+            opacity: 0.85; /* Almost invisible fade - just 15% reduction */
             pointer-events: none;
+            transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
-        /* Soft fade-in effect */
-        @keyframes softFadeIn {
+        /* Ultra smooth fade-in - barely noticeable but eliminates flicker */
+        @keyframes ultraSmoothFadeIn {
             0% {
-                opacity: 0.6;
+                opacity: 0.92;
             }
             100% {
                 opacity: 1;
@@ -63,43 +73,50 @@
         }
         
         body.fade-in {
-            animation: softFadeIn 0.2s ease-out forwards;
+            animation: ultraSmoothFadeIn 0.15s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
         
-        /* Ensure all content has pure black background */
-        .content-wrapper,
-        .main-content,
-        .container {
-            background-color: #000000;
+        /* Force dark theme UI elements - ONLY for browser, NOT for content */
+        :root {
+            color-scheme: dark !important;
         }
         
-        /* Prevent any white backgrounds */
-        * {
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        /* Bottom navigation - pure black */
+        /* Bottom navigation - preserve original styling */
         .bottom-nav {
-            background: rgba(0, 0, 0, 0.98) !important;
-            backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+            background: rgba(15, 15, 15, 0.98) !important;
+            border-top: 1px solid #444444 !important;
+            transform: translateZ(0); /* GPU acceleration */
+            backface-visibility: hidden;
         }
         
-        /* Safe area insets */
+        /* Safe area insets only */
         .dashboard {
             padding-top: env(safe-area-inset-top, 0);
             padding-bottom: env(safe-area-inset-bottom, 0);
         }
         
-        /* Force dark color scheme */
-        :root {
-            color-scheme: dark !important;
-        }
-        
+        /* Light mode override - ONLY for browser UI */
         @media (prefers-color-scheme: light) {
             :root {
                 color-scheme: dark !important;
             }
+        }
+        
+        /* Prevent any white backgrounds - force dark everywhere */
+        .container, .wrapper, main, section, div {
+            background-color: transparent;
+        }
+        
+        /* GPU acceleration for all animated elements */
+        body, .bottom-nav, .flash-messages {
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Prevent tap highlight on mobile */
+        * {
+            -webkit-tap-highlight-color: transparent;
         }
     </style>
 </head>
@@ -128,15 +145,27 @@
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     {% block scripts %}{% endblock %}
     
-    <!-- Optimized Page Transition JavaScript -->
+    <!-- Ultra Smooth Page Transition JavaScript - No Flicker -->
     <script>
         (function() {
             'use strict';
             
-            // Configuration
-            const TRANSITION_DURATION = 150; // ms - fast transition
+            // Apply dark theme to browser UI
+            if (window.matchMedia) {
+                const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+                if (prefersLight) {
+                    document.documentElement.style.colorScheme = 'dark';
+                }
+            }
+            
+            // Configuration - ultra fast transitions
+            const TRANSITION_DURATION = 180; // ms - fast but smooth
             let isTransitioning = false;
             let pendingUrl = null;
+            let transitionTimer = null;
+            
+            // Preload next page hint (optional - improves perceived performance)
+            let preloadLink = null;
             
             /**
              * Check if link should trigger transition
@@ -155,6 +184,10 @@
                 // Skip javascript: links
                 if (href.toLowerCase().startsWith('javascript:')) return false;
                 
+                // Skip mailto: and tel: links
+                if (href.toLowerCase().startsWith('mailto:')) return false;
+                if (href.toLowerCase().startsWith('tel:')) return false;
+                
                 // Skip external links
                 try {
                     const currentOrigin = window.location.origin;
@@ -168,7 +201,21 @@
             }
             
             /**
-             * Perform soft fade-out transition
+             * Prefetch next page for faster loading
+             */
+            function prefetchPage(url) {
+                if (preloadLink) {
+                    document.head.removeChild(preloadLink);
+                }
+                
+                preloadLink = document.createElement('link');
+                preloadLink.rel = 'prefetch';
+                preloadLink.href = url;
+                document.head.appendChild(preloadLink);
+            }
+            
+            /**
+             * Perform ultra smooth fade-out transition
              */
             function transitionTo(url) {
                 if (isTransitioning) {
@@ -178,11 +225,17 @@
                 
                 isTransitioning = true;
                 
-                // Add soft fade-out class (opacity: 0.4)
+                // Prefetch next page for faster loading
+                prefetchPage(url);
+                
+                // Add ultra smooth fade-out class (only 15% reduction)
                 document.body.classList.add('fade-out');
                 
-                // Fast transition - navigate after short delay
-                setTimeout(function() {
+                // Clear any existing timer
+                if (transitionTimer) clearTimeout(transitionTimer);
+                
+                // Navigate after transition completes
+                transitionTimer = setTimeout(function() {
                     window.location.href = url;
                 }, TRANSITION_DURATION);
             }
@@ -207,25 +260,29 @@
                 
                 // Prevent default and start transition
                 event.preventDefault();
+                event.stopPropagation();
                 transitionTo(href);
             }
             
             /**
-             * Apply soft fade-in on page load
+             * Apply ultra smooth fade-in on page load
              */
             function applyFadeIn() {
+                // Clear any pending timers
+                if (transitionTimer) clearTimeout(transitionTimer);
+                
                 // Remove fade-out if present
                 document.body.classList.remove('fade-out');
                 
-                // Add fade-in animation
+                // Add ultra smooth fade-in animation
                 document.body.classList.add('fade-in');
                 
                 // Remove animation class after it completes
                 setTimeout(function() {
                     document.body.classList.remove('fade-in');
-                }, 200);
+                }, 150);
                 
-                // Reset transition flag
+                // Reset transition flag after a short delay
                 setTimeout(function() {
                     isTransitioning = false;
                     
@@ -249,7 +306,8 @@
                     
                     setTimeout(function() {
                         document.body.classList.remove('fade-in');
-                    }, 200);
+                        isTransitioning = false;
+                    }, 150);
                 }
             }
             
@@ -264,7 +322,9 @@
                 function bindLinks() {
                     const links = document.querySelectorAll('a[href]');
                     links.forEach(function(link) {
+                        // Remove existing listener to avoid duplicates
                         link.removeEventListener('click', handleLinkClick);
+                        // Add new listener
                         link.addEventListener('click', handleLinkClick);
                     });
                 }
@@ -272,8 +332,10 @@
                 // Initial binding
                 bindLinks();
                 
-                // Watch for dynamically added content
+                // Watch for dynamically added content (like AJAX-loaded content)
                 const observer = new MutationObserver(function(mutations) {
+                    let needsBind = false;
+                    
                     mutations.forEach(function(mutation) {
                         if (mutation.addedNodes.length) {
                             mutation.addedNodes.forEach(function(node) {
@@ -281,16 +343,23 @@
                                     if (node.tagName === 'A' && node.hasAttribute('href')) {
                                         node.addEventListener('click', handleLinkClick);
                                     }
-                                    const links = node.querySelectorAll('a[href]');
-                                    links.forEach(function(link) {
-                                        link.addEventListener('click', handleLinkClick);
-                                    });
+                                    if (node.querySelectorAll) {
+                                        const links = node.querySelectorAll('a[href]');
+                                        if (links.length > 0) {
+                                            needsBind = true;
+                                        }
+                                    }
                                 }
                             });
                         }
                     });
+                    
+                    if (needsBind) {
+                        bindLinks();
+                    }
                 });
                 
+                // Start observing
                 observer.observe(document.body, {
                     childList: true,
                     subtree: true
@@ -305,7 +374,7 @@
                         document.body.classList.add('fade-in');
                         setTimeout(function() {
                             document.body.classList.remove('fade-in');
-                        }, 200);
+                        }, 150);
                     }
                 });
                 
@@ -314,6 +383,11 @@
                     if (!document.body.classList.contains('fade-out')) {
                         applyFadeIn();
                     }
+                });
+                
+                // Handle beforeunload - cleanup
+                window.addEventListener('beforeunload', function() {
+                    if (transitionTimer) clearTimeout(transitionTimer);
                 });
             }
             
@@ -331,7 +405,7 @@
         <style>
             body {
                 opacity: 1 !important;
-                background-color: #000000;
+                background-color: #0a0a0a;
             }
         </style>
     </noscript>
