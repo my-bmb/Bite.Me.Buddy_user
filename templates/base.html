@@ -24,8 +24,50 @@
     <!-- Force dark color scheme for bottom navigation bar -->
     <meta name="color-scheme" content="dark">
     
-    <!-- Minimal CSS - only for browser UI, NO font/text styling -->
+    {% block head_meta %}{% endblock %}
+    
+    <!-- Fonts and Icons - Let style.css handle all fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Page Transition Styles -->
     <style>
+        /* Page transition base styles */
+        body {
+            opacity: 0;  /* Start hidden for fade-in */
+            transition: opacity 0.3s ease-in-out;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Fade-in state after page loads */
+        body.page-loaded {
+            opacity: 1;
+        }
+        
+        /* Fade-out state during page transition */
+        body.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        /* Prevent white flash - IMPORTANT */
+        html, body {
+            background-color: #1a1a1a; /* Dark background to prevent white flash */
+        }
+        
+        /* Prevent FOUC (Flash of Unstyled Content) */
+        .js-loading {
+            opacity: 0;
+        }
+        
+        /* Smooth scroll behavior */
+        html {
+            scroll-behavior: smooth;
+        }
+        
         /* Force dark theme UI elements - ONLY for browser, NOT for content */
         :root {
             color-scheme: dark !important;
@@ -50,14 +92,6 @@
             }
         }
     </style>
-    
-    {% block head_meta %}{% endblock %}
-    
-    <!-- Fonts and Icons - Let style.css handle all fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <!-- Flash Messages -->
@@ -84,8 +118,11 @@
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     {% block scripts %}{% endblock %}
     
+    <!-- Page Transition JavaScript -->
     <script>
         (function() {
+            'use strict';
+            
             // Apply dark theme to browser UI
             if (window.matchMedia) {
                 const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
@@ -93,7 +130,247 @@
                     document.documentElement.style.colorScheme = 'dark';
                 }
             }
+            
+            // Page transition functionality
+            let isTransitioning = false;
+            let pendingUrl = null;
+            let fadeInTimeout = null;
+            
+            /**
+             * Check if a link should trigger page transition
+             * @param {HTMLAnchorElement} link - The anchor element
+             * @returns {boolean} - True if transition should be applied
+             */
+            function shouldTransition(link) {
+                // Don't transition if:
+                // 1. Link has target="_blank"
+                if (link.target === '_blank') return false;
+                
+                // 2. Link has data-no-transition attribute
+                if (link.hasAttribute('data-no-transition')) return false;
+                
+                // 3. Link is external (different origin)
+                const currentOrigin = window.location.origin;
+                const linkOrigin = link.href ? new URL(link.href, window.location.href).origin : currentOrigin;
+                if (linkOrigin !== currentOrigin) return false;
+                
+                // 4. Link is an anchor link (#)
+                if (link.getAttribute('href') === '#') return false;
+                if (link.getAttribute('href') && link.getAttribute('href').startsWith('#')) return false;
+                
+                // 5. Link has JavaScript: protocol
+                if (link.getAttribute('href') && link.getAttribute('href').toLowerCase().startsWith('javascript:')) return false;
+                
+                // 6. Link is a download link
+                if (link.hasAttribute('download')) return false;
+                
+                // 7. Link has button role or form submit
+                if (link.getAttribute('role') === 'button') return false;
+                
+                return true;
+            }
+            
+            /**
+             * Perform page transition to new URL
+             * @param {string} url - The URL to navigate to
+             */
+            function transitionTo(url) {
+                if (isTransitioning) {
+                    pendingUrl = url;
+                    return;
+                }
+                
+                isTransitioning = true;
+                
+                // Add fade-out class to body
+                document.body.classList.add('fade-out');
+                document.body.classList.remove('page-loaded');
+                
+                // Wait for transition to complete, then navigate
+                setTimeout(function() {
+                    window.location.href = url;
+                }, 300); // Match CSS transition duration (0.3s)
+            }
+            
+            /**
+             * Handle link click events
+             * @param {Event} event - Click event
+             */
+            function handleLinkClick(event) {
+                const link = event.currentTarget;
+                
+                // Check if transition should be applied
+                if (!shouldTransition(link)) {
+                    return;
+                }
+                
+                // Get the href
+                const href = link.getAttribute('href');
+                if (!href || href === '') {
+                    return;
+                }
+                
+                // Don't transition if it's the same page (just refresh)
+                const currentPath = window.location.pathname;
+                const targetPath = new URL(href, window.location.href).pathname;
+                if (currentPath === targetPath) {
+                    return;
+                }
+                
+                // Prevent default navigation
+                event.preventDefault();
+                
+                // Start transition
+                transitionTo(href);
+            }
+            
+            /**
+             * Handle back/forward navigation
+             */
+            function handlePopState() {
+                if (!isTransitioning) {
+                    // On popstate, we don't need to fade out as it's already loading
+                    // Just ensure body is visible with fade-in
+                    document.body.classList.remove('fade-out');
+                    
+                    // Trigger fade-in
+                    if (fadeInTimeout) clearTimeout(fadeInTimeout);
+                    fadeInTimeout = setTimeout(function() {
+                        document.body.classList.add('page-loaded');
+                    }, 10);
+                }
+            }
+            
+            /**
+             * Trigger fade-in effect on page load
+             */
+            function triggerFadeIn() {
+                // Clear any pending timeouts
+                if (fadeInTimeout) clearTimeout(fadeInTimeout);
+                
+                // Small delay to ensure DOM is ready, then fade in
+                fadeInTimeout = setTimeout(function() {
+                    document.body.classList.add('page-loaded');
+                    document.body.classList.remove('fade-out');
+                    
+                    // Reset transition state
+                    isTransitioning = false;
+                    
+                    // Process any pending navigation
+                    if (pendingUrl) {
+                        const url = pendingUrl;
+                        pendingUrl = null;
+                        transitionTo(url);
+                    }
+                }, 50);
+            }
+            
+            /**
+             * Initialize page transitions
+             */
+            function initPageTransitions() {
+                // Start with body hidden (opacity: 0)
+                document.body.classList.remove('page-loaded');
+                document.body.classList.remove('fade-out');
+                
+                // Trigger fade-in after a short delay
+                triggerFadeIn();
+                
+                // Remove any loading class
+                document.documentElement.classList.remove('js-loading');
+                
+                // Add click listeners to all internal links
+                function bindLinks() {
+                    const links = document.querySelectorAll('a[href]');
+                    links.forEach(function(link) {
+                        // Remove existing listener to avoid duplicates
+                        link.removeEventListener('click', handleLinkClick);
+                        // Add new listener
+                        link.addEventListener('click', handleLinkClick);
+                    });
+                }
+                
+                // Initial binding
+                bindLinks();
+                
+                // Watch for dynamically added content (like AJAX-loaded content)
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.addedNodes.length) {
+                            mutation.addedNodes.forEach(function(node) {
+                                if (node.nodeType === 1) { // Element node
+                                    if (node.tagName === 'A' && node.hasAttribute('href')) {
+                                        node.addEventListener('click', handleLinkClick);
+                                    }
+                                    // Check for links inside added node
+                                    const links = node.querySelectorAll('a[href]');
+                                    links.forEach(function(link) {
+                                        link.addEventListener('click', handleLinkClick);
+                                    });
+                                }
+                            });
+                        }
+                    });
+                });
+                
+                // Start observing
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+                
+                // Handle back/forward navigation
+                window.addEventListener('popstate', handlePopState);
+                
+                // Handle page visibility changes (for when returning to the tab)
+                document.addEventListener('visibilitychange', function() {
+                    if (!document.hidden) {
+                        // Page is visible again, trigger fade-in if needed
+                        if (!document.body.classList.contains('page-loaded')) {
+                            triggerFadeIn();
+                        }
+                    }
+                });
+                
+                // Handle page load completion
+                window.addEventListener('load', function() {
+                    // Ensure fade-in happens even if DOMContentLoaded fired early
+                    if (!document.body.classList.contains('page-loaded')) {
+                        triggerFadeIn();
+                    }
+                    isTransitioning = false;
+                    
+                    // Process any pending navigation
+                    if (pendingUrl) {
+                        const url = pendingUrl;
+                        pendingUrl = null;
+                        transitionTo(url);
+                    }
+                });
+                
+                // Handle beforeunload for form submissions
+                window.addEventListener('beforeunload', function() {
+                    // Don't add fade-out for form submissions to avoid flicker
+                    // Only for links handled by our system
+                });
+            }
+            
+            // Initialize when DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initPageTransitions);
+            } else {
+                initPageTransitions();
+            }
         })();
     </script>
+    
+    <!-- Fallback for any links that might not have been caught -->
+    <noscript>
+        <style>
+            body {
+                opacity: 1 !important;
+            }
+        </style>
+    </noscript>
 </body>
 </html>
