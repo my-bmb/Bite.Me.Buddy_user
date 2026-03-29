@@ -34,7 +34,7 @@
                     {% endif %}
                 </div>
                 
-                <!-- Description with safe rendering of HTML/CSS/JS -->
+                <!-- Description with safe rendering - NO CARD, NO SCROLLING, NATURAL FLOW -->
                 <div class="service-detail-description">
                     {{ service.description | safe if service.description else '' }}
                 </div>
@@ -293,13 +293,19 @@ function closeBookingNotification() {
     border: 1px solid rgba(192, 178, 131, 0.3);
 }
 
-/* ========== DESCRIPTION STYLES - RAW HTML RENDERING ========== */
+/* ========== DESCRIPTION STYLES - NO CARD, NO SCROLLING, NATURAL FLOW ========== */
 .service-detail-description {
     width: 100%;
     color: var(--silver-mist);
     font-size: 13px;
     line-height: 1.5;
     font-family: var(--sans-font);
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    /* No max-height, no overflow - natural flow */
+    overflow: visible;
 }
 
 .service-detail-description * {
@@ -315,6 +321,45 @@ function closeBookingNotification() {
 .service-detail-description iframe,
 .service-detail-description video {
     max-width: 100%;
+}
+
+/* ========== ADD TO CART BUTTON - LARGER HEIGHT ========== */
+.btn-service-detail-add {
+    background: linear-gradient(135deg, var(--champagne-gold), var(--antique-bronze));
+    color: #000000;
+    border: none;
+    font-weight: bold;
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-size: 16px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    font-family: var(--sans-font);
+    width: fit-content;
+    min-height: 52px;
+}
+
+.btn-service-detail-add i {
+    font-size: 18px;
+}
+
+.btn-service-detail-add:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(192, 178, 131, 0.3);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold-dark));
+}
+
+.service-detail-actions {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 6px;
 }
 
 .service-detail-pricing {
@@ -361,44 +406,6 @@ function closeBookingNotification() {
     color: var(--vivid-gold);
     font-size: 28px;
     text-shadow: 0 1px 2px rgba(0,0,0,0.15), 0 0 5px var(--price-glow);
-}
-
-/* ========== ADD TO CART BUTTON ========== */
-.btn-service-detail-add {
-    background: linear-gradient(135deg, var(--champagne-gold), var(--antique-bronze));
-    color: #000000;
-    border: none;
-    font-weight: bold;
-    padding: 10px 20px;
-    border-radius: 10px;
-    font-size: 14px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    font-family: var(--sans-font);
-    width: fit-content;
-}
-
-.btn-service-detail-add i {
-    font-size: 14px;
-}
-
-.btn-service-detail-add:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(192, 178, 131, 0.3);
-    background: linear-gradient(135deg, var(--gold-light), var(--gold-dark));
-}
-
-.service-detail-actions {
-    display: flex;
-    justify-content: flex-start;
-    margin-top: 4px;
 }
 
 /* ========== SECTION STYLES ========== */
@@ -795,9 +802,12 @@ function closeBookingNotification() {
         font-size: 10px;
     }
     
+    /* Description - natural flow, no scrolling, wider width */
     .service-detail-description {
-        font-size: 12px;
-        line-height: 1.4;
+        font-size: 13px;
+        line-height: 1.5;
+        width: 100%;
+        overflow: visible;
     }
     
     .service-detail-price-value {
@@ -812,11 +822,17 @@ function closeBookingNotification() {
         padding: 2px 0;
     }
     
+    /* Button larger on mobile too */
     .btn-service-detail-add {
         width: 100%;
         justify-content: center;
-        padding: 8px 16px;
-        font-size: 13px;
+        padding: 14px 20px;
+        font-size: 15px;
+        min-height: 52px;
+    }
+    
+    .btn-service-detail-add i {
+        font-size: 18px;
     }
     
     .service-detail-actions {
@@ -881,6 +897,14 @@ function closeBookingNotification() {
         font-size: 18px;
     }
     
+    /* Description - natural flow, no scrolling, wider width */
+    .service-detail-description {
+        font-size: 12px;
+        line-height: 1.45;
+        width: 100%;
+        overflow: visible;
+    }
+    
     .service-detail-price-value {
         font-size: 24px;
     }
@@ -890,8 +914,13 @@ function closeBookingNotification() {
     }
     
     .btn-service-detail-add {
-        padding: 6px 14px;
-        font-size: 12px;
+        padding: 12px 16px;
+        font-size: 14px;
+        min-height: 48px;
+    }
+    
+    .btn-service-detail-add i {
+        font-size: 16px;
     }
     
     .section-title {
