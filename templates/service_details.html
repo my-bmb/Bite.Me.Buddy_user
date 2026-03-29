@@ -34,31 +34,9 @@
                     {% endif %}
                 </div>
                 
-                <!-- Dynamic Description: Rendered in isolated iframe with DARK background -->
-                <div class="service-dynamic-description">
-                    {% if service.description and service.description|trim %}
-                    {% set full_html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>* { margin: 0; padding: 0; box-sizing: border-box; } body { background: #1A1A1A; margin: 0; padding: 16px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; color: #F4F1E1; line-height: 1.6; font-size: 14px; } img { max-width: 100%; height: auto; border-radius: 8px; } video { max-width: 100%; border-radius: 8px; } iframe { max-width: 100%; border-radius: 8px; } a { color: #C0B283; text-decoration: none; } a:hover { text-decoration: underline; } h1, h2, h3, h4, h5, h6 { color: #F4F1E1; margin-top: 0; margin-bottom: 12px; font-family: "Playfair Display", Georgia, serif; } p { margin-bottom: 12px; } ul, ol { margin-bottom: 12px; padding-left: 20px; } li { margin-bottom: 4px; } table { width: 100%; border-collapse: collapse; margin-bottom: 12px; } th, td { border: 1px solid #333; padding: 8px; text-align: left; } th { background: #2A2A2A; color: #C0B283; } button, .btn { background: linear-gradient(135deg, #C0B283, #8e7d4d); color: #000; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; } button:hover { transform: translateY(-1px); }</style></head><body>' + service.description|safe + '</body></html>' %}
-                    <div class="dynamic-description-label">
-                        <i class="fas fa-code"></i> Service Details
-                    </div>
-                    <div class="iframe-responsive-container">
-                        <iframe 
-                            id="dynamicDescriptionIframe"
-                            class="dynamic-iframe"
-                            srcdoc="{{ full_html }}"
-                            sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals"
-                            referrerpolicy="no-referrer"
-                            loading="lazy"
-                            title="{{ service.name }} - Interactive Description"
-                            onload="resizeIframe(this)">
-                        </iframe>
-                    </div>
-                    {% else %}
-                    <div class="no-description-fallback">
-                        <i class="fas fa-info-circle"></i>
-                        <p>No detailed description available for this service.</p>
-                    </div>
-                    {% endif %}
+                <!-- Description with safe rendering of HTML/CSS/JS -->
+                <div class="service-detail-description">
+                    {{ service.description | safe if service.description else '' }}
                 </div>
                 
                 <div class="service-detail-pricing">
@@ -157,7 +135,7 @@
     </nav>
 </div>
 
-<!-- BOOKING NOTIFICATION -->
+<!-- BOOKING NOTIFICATION - ORIGINAL SIZE (NOT COMPACT) -->
 <div id="bookingNotification" class="booking-notification-fixed" style="display: none;">
     <div class="notification-fixed-content">
         <div class="notification-fixed-icon">
@@ -216,44 +194,6 @@ function closeBookingNotification() {
         notification.style.display = 'none';
     }, 400);
 }
-
-function resizeIframe(iframe) {
-    if (!iframe) return;
-    try {
-        if (iframe.contentWindow && iframe.contentWindow.document) {
-            const body = iframe.contentWindow.document.body;
-            const html = iframe.contentWindow.document.documentElement;
-            const height = Math.max(
-                body.scrollHeight, body.offsetHeight,
-                html.clientHeight, html.scrollHeight, html.offsetHeight
-            );
-            iframe.style.height = Math.max(height, 100) + 'px';
-        } else {
-            iframe.style.height = '300px';
-        }
-    } catch (e) {
-        iframe.style.height = '300px';
-    }
-}
-
-window.addEventListener('message', function(event) {
-    if (event.data && event.data.type === 'resizeIframe' && event.data.height) {
-        const iframe = document.getElementById('dynamicDescriptionIframe');
-        if (iframe && iframe.contentWindow === event.source) {
-            iframe.style.height = event.data.height + 'px';
-        }
-    }
-});
-
-if (typeof ResizeObserver !== 'undefined') {
-    const iframe = document.getElementById('dynamicDescriptionIframe');
-    if (iframe) {
-        const observer = new ResizeObserver(function() {
-            resizeIframe(iframe);
-        });
-        observer.observe(iframe);
-    }
-}
 </script>
 
 <style>
@@ -296,70 +236,7 @@ if (typeof ResizeObserver !== 'undefined') {
     width: 100%;
 }
 
-/* ========== DYNAMIC DESCRIPTION SECTION ========== */
-.service-dynamic-description {
-    margin: 8px 0 12px 0;
-    width: 100%;
-}
-
-.dynamic-description-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--champagne-gold);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 12px;
-    font-family: var(--sans-font);
-}
-
-.dynamic-description-label i {
-    font-size: 14px;
-}
-
-.iframe-responsive-container {
-    position: relative;
-    width: 100%;
-    background: transparent;
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.dynamic-iframe {
-    width: 100%;
-    height: 300px;
-    border: none;
-    display: block;
-    background: #1A1A1A;
-    transition: height 0.2s ease;
-    border-radius: 12px;
-}
-
-.no-description-fallback {
-    background: rgba(26, 26, 26, 0.8);
-    border: 1px dashed var(--dark-border);
-    border-radius: 12px;
-    padding: 30px 20px;
-    text-align: center;
-    color: var(--silver-mist);
-    font-family: var(--sans-font);
-}
-
-.no-description-fallback i {
-    font-size: 36px;
-    color: var(--champagne-gold);
-    margin-bottom: 12px;
-    opacity: 0.7;
-}
-
-.no-description-fallback p {
-    margin: 0;
-    font-size: 14px;
-}
-
-/* ========== SERVICE DETAIL SECTION ========== */
+/* ========== SERVICE DETAIL SECTION - COMPACT ========== */
 .service-detail-container {
     display: flex;
     gap: 20px;
@@ -372,6 +249,7 @@ if (typeof ResizeObserver !== 'undefined') {
     box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
 }
 
+/* FIXED ASPECT RATIO FOR PHOTO - 4:3 FOR ALL DEVICES */
 .service-detail-photo {
     flex: 0 0 280px;
     aspect-ratio: 4 / 3;
@@ -413,6 +291,30 @@ if (typeof ResizeObserver !== 'undefined') {
     font-weight: 600;
     font-family: var(--sans-font);
     border: 1px solid rgba(192, 178, 131, 0.3);
+}
+
+/* ========== DESCRIPTION STYLES - RAW HTML RENDERING ========== */
+.service-detail-description {
+    width: 100%;
+    color: var(--silver-mist);
+    font-size: 13px;
+    line-height: 1.5;
+    font-family: var(--sans-font);
+}
+
+.service-detail-description * {
+    max-width: 100%;
+}
+
+.service-detail-description img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+.service-detail-description iframe,
+.service-detail-description video {
+    max-width: 100%;
 }
 
 .service-detail-pricing {
@@ -461,6 +363,7 @@ if (typeof ResizeObserver !== 'undefined') {
     text-shadow: 0 1px 2px rgba(0,0,0,0.15), 0 0 5px var(--price-glow);
 }
 
+/* ========== ADD TO CART BUTTON ========== */
 .btn-service-detail-add {
     background: linear-gradient(135deg, var(--champagne-gold), var(--antique-bronze));
     color: #000000;
@@ -498,6 +401,7 @@ if (typeof ResizeObserver !== 'undefined') {
     margin-top: 4px;
 }
 
+/* ========== SECTION STYLES ========== */
 .section-title {
     font-size: 18px;
     font-weight: 700;
@@ -514,6 +418,7 @@ if (typeof ResizeObserver !== 'undefined') {
     margin-bottom: 30px;
 }
 
+/* ========== HORIZONTAL SCROLL CONTAINERS ========== */
 .category-services-horizontal-scroll,
 .collection-horizontal-scroll {
     display: flex;
@@ -541,6 +446,7 @@ if (typeof ResizeObserver !== 'undefined') {
     border-radius: 10px;
 }
 
+/* ========== CATEGORY SERVICES CARDS ========== */
 .category-service-card {
     flex-shrink: 0;
     width: 180px;
@@ -627,6 +533,7 @@ if (typeof ResizeObserver !== 'undefined') {
     font-size: 11px;
 }
 
+/* ========== COLLECTION HORIZONTAL CARDS ========== */
 .browse-collection-horizontal-card {
     flex-shrink: 0;
     width: 120px;
@@ -688,6 +595,20 @@ if (typeof ResizeObserver !== 'undefined') {
     font-family: var(--sans-font);
 }
 
+/* No Services Message */
+.no-services-message {
+    text-align: center;
+    color: var(--silver-mist);
+    padding: 40px 20px;
+    font-family: var(--sans-font);
+    font-size: 14px;
+    background: var(--onyx-black);
+    border-radius: 12px;
+    border: 1px solid var(--dark-border);
+    min-width: 300px;
+}
+
+/* ========== ACTIVE TAB UNDERLINE ========== */
 .active-underline {
     position: absolute;
     bottom: -3px;
@@ -713,6 +634,7 @@ if (typeof ResizeObserver !== 'undefined') {
     }
 }
 
+/* ========== BOTTOM NAVIGATION OVERRIDE ========== */
 .bottom-nav .nav-item.active {
     background: linear-gradient(135deg, var(--champagne-primary), var(--champagne-light)) !important;
     color: var(--matte-black-darkest) !important;
@@ -746,6 +668,7 @@ if (typeof ResizeObserver !== 'undefined') {
     }
 }
 
+/* ========== NOTIFICATION - ORIGINAL SIZE (NOT COMPACT) ========== */
 .booking-notification-fixed {
     position: fixed;
     top: -100px;
@@ -839,6 +762,7 @@ if (typeof ResizeObserver !== 'undefined') {
     color: var(--champagne-gold);
 }
 
+/* ========== MOBILE RESPONSIVE ========== */
 @media (max-width: 768px) {
     .main-content {
         padding: 68px 10px 100px 10px;
@@ -869,6 +793,11 @@ if (typeof ResizeObserver !== 'undefined') {
     .service-detail-category {
         padding: 2px 8px;
         font-size: 10px;
+    }
+    
+    .service-detail-description {
+        font-size: 12px;
+        line-height: 1.4;
     }
     
     .service-detail-price-value {
@@ -934,11 +863,6 @@ if (typeof ResizeObserver !== 'undefined') {
     
     .browse-collection-horizontal-name {
         font-size: 10px;
-    }
-
-    .dynamic-description-label {
-        font-size: 11px;
-        margin-bottom: 10px;
     }
 }
 
@@ -1012,55 +936,6 @@ if (typeof ResizeObserver !== 'undefined') {
     .browse-collection-horizontal-name {
         font-size: 9px;
     }
-
-    .dynamic-description-label {
-        font-size: 10px;
-        margin-bottom: 8px;
-    }
-
-    .no-description-fallback {
-        padding: 20px 15px;
-    }
-
-    .no-description-fallback i {
-        font-size: 28px;
-    }
-
-    .no-description-fallback p {
-        font-size: 12px;
-    }
 }
 </style>
-
-<script>
-(function() {
-    function sendHeightToParent() {
-        if (window.parent !== window) {
-            const height = document.documentElement.scrollHeight;
-            window.parent.postMessage({
-                type: 'resizeIframe',
-                height: height
-            }, '*');
-        }
-    }
-    
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', sendHeightToParent);
-    } else {
-        sendHeightToParent();
-    }
-    
-    window.addEventListener('load', sendHeightToParent);
-    
-    if (typeof MutationObserver !== 'undefined') {
-        const observer = new MutationObserver(sendHeightToParent);
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true,
-            attributes: true,
-            attributeFilter: ['style', 'class']
-        });
-    }
-})();
-</script>
 {% endblock %}
