@@ -101,7 +101,7 @@
         
         /* Prevent any flash or white screen during navigation */
         body {
-            background: #121212; /* Dark background that matches app theme - prevents white flash */
+            background: #121212;
             margin: 0;
             padding: 0;
         }
@@ -120,14 +120,14 @@
     
     {% block head_meta %}{% endblock %}
     
-    <!-- Fonts and Icons - Let style.css handle all fonts -->
+    <!-- Fonts and Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- Flash Messages Container - will be dynamically updated but preserved during transitions -->
+    <!-- Flash Messages Container -->
     <div id="flash-messages-container">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -184,191 +184,137 @@
             'use strict';
             
             // Configuration
-            const TRANSITION_DURATION = 650; // milliseconds (0.65s smooth fade)
-            const TRANSITION_EASING = 'cubic-bezier(0.2, 0.9, 0.4, 1.1)';
+            var TRANSITION_DURATION = 650;
             
             // DOM Elements
-            let transitionRoot = document.getElementById('page-transition-root');
-            let activeContentDiv = document.getElementById('active-page-content');
-            let flashContainer = document.getElementById('flash-messages-container');
+            var transitionRoot = document.getElementById('page-transition-root');
+            var activeContentDiv = document.getElementById('active-page-content');
+            var flashContainer = document.getElementById('flash-messages-container');
             
             // State management
-            let isNavigating = false;          // Prevent concurrent navigations
-            let pendingUrl = null;              // URL being loaded
-            let currentHistoryState = null;     // Track current state for popstate
+            var isNavigating = false;
+            var pendingUrl = null;
             
-            // Store initial page content for potential fallback
-            let initialContent = activeContentDiv ? activeContentDiv.innerHTML : '';
-            
-            /**
-             * Extract the main content from fetched HTML
-             * @param {string} htmlText - Full HTML response text
-             * @returns {string} - Inner content of {% block content %} or body content
-             */
+            // Extract page content from fetched HTML
             function extractPageContent(htmlText) {
-                // Create a temporary DOM parser to extract content
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(htmlText, 'text/html');
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(htmlText, 'text/html');
                 
-                // Try to find the main content block (by ID)
-                let contentElement = doc.getElementById('active-page-content');
+                var contentElement = doc.getElementById('active-page-content');
                 
-                // If not found, try to find the content block by class or standard pattern
                 if (!contentElement) {
                     contentElement = doc.querySelector('.page-content-active');
                 }
                 
-                // Fallback: extract body content but preserve structure
                 if (!contentElement) {
-                    const bodyContent = doc.body;
+                    var bodyContent = doc.body;
                     if (bodyContent) {
-                        // Extract the content inside the transition wrapper or main area
-                        const transitionWrapper = bodyContent.querySelector('#page-transition-root');
+                        var transitionWrapper = bodyContent.querySelector('#page-transition-root');
                         if (transitionWrapper) {
-                            const innerActive = transitionWrapper.querySelector('#active-page-content');
+                            var innerActive = transitionWrapper.querySelector('#active-page-content');
                             if (innerActive) {
                                 return innerActive.innerHTML;
                             }
                         }
-                        // Last resort: get the body's main content but avoid scripts/styles
-                        const mainElement = bodyContent.querySelector('main') || bodyContent.querySelector('.container') || bodyContent;
+                        var mainElement = bodyContent.querySelector('main') || bodyContent.querySelector('.container');
                         if (mainElement && mainElement !== bodyContent) {
                             return mainElement.innerHTML;
                         }
                     }
                 }
                 
-                // Return found content or empty string
                 return contentElement ? contentElement.innerHTML : '';
             }
             
-            /**
-             * Extract flash messages from fetched HTML
-             * @param {string} htmlText - Full HTML response text
-             * @returns {string} - HTML string of flash messages container
-             */
+            // Extract flash messages from fetched HTML
             function extractFlashMessages(htmlText) {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(htmlText, 'text/html');
-                const flashContainerElement = doc.getElementById('flash-messages-container');
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(htmlText, 'text/html');
+                var flashContainerElement = doc.getElementById('flash-messages-container');
                 if (flashContainerElement) {
                     return flashContainerElement.innerHTML;
                 }
-                // If no flash container found, return empty (preserve existing or clear)
                 return '';
             }
             
-            /**
-             * Update page title from fetched HTML
-             * @param {string} htmlText - Full HTML response text
-             */
+            // Update page title
             function updatePageTitle(htmlText) {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(htmlText, 'text/html');
-                const title = doc.querySelector('title');
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(htmlText, 'text/html');
+                var title = doc.querySelector('title');
                 if (title && title.textContent) {
                     document.title = title.textContent;
                 }
             }
             
-            /**
-             * Execute any scripts within the new content (safely)
-             * @param {HTMLElement} container - Container with new content
-             */
+            // Execute scripts in new content
             function executeScripts(container) {
-                const scripts = container.querySelectorAll('script');
-                scripts.forEach(oldScript => {
-                    const newScript = document.createElement('script');
+                var scripts = container.querySelectorAll('script');
+                for (var i = 0; i < scripts.length; i++) {
+                    var oldScript = scripts[i];
+                    var newScript = document.createElement('script');
                     if (oldScript.src) {
                         newScript.src = oldScript.src;
                         newScript.async = false;
                     } else {
                         newScript.textContent = oldScript.textContent;
                     }
-                    // Copy any attributes
-                    Array.from(oldScript.attributes).forEach(attr => {
+                    for (var j = 0; j < oldScript.attributes.length; j++) {
+                        var attr = oldScript.attributes[j];
                         if (attr.name !== 'src' && attr.name !== 'textContent') {
                             newScript.setAttribute(attr.name, attr.value);
                         }
-                    });
+                    }
                     oldScript.parentNode.replaceChild(newScript, oldScript);
-                });
+                }
             }
             
-            /**
-             * Perform smooth page transition
-             * @param {string} newContentHtml - HTML content for the new page
-             * @param {string} newFlashHtml - Flash messages HTML for the new page
-             * @param {string} url - URL being navigated to (for history)
-             * @param {boolean} replaceState - Whether to replace or push history state
-             */
-            function performTransition(newContentHtml, newFlashHtml, url, replaceState = false) {
+            // Perform smooth transition
+            function performTransition(newContentHtml, newFlashHtml, url, replaceState) {
                 if (!transitionRoot || !activeContentDiv) {
-                    // Fallback: direct navigation if DOM structure is unexpected
                     window.location.href = url;
                     return;
                 }
                 
-                // Create temporary wrapper for new content
-                const tempWrapper = document.createElement('div');
-                tempWrapper.innerHTML = newContentHtml;
-                
-                // Create new content element
-                const newContentElement = document.createElement('div');
-                newContentElement.id = 'active-page-content';
-                newContentElement.className = 'page-content-new';
-                newContentElement.innerHTML = tempWrapper.innerHTML;
-                
-                // Create new flash container content
-                const newFlashContent = newFlashHtml || '<div class="flash-messages"></div>';
-                
                 // Apply fade-out to current active content
                 activeContentDiv.classList.add('page-content-fade-out');
                 
-                // Set a timeout to perform the content swap after fade-out completes
-                setTimeout(() => {
+                setTimeout(function() {
                     try {
                         // Update flash messages
                         if (flashContainer) {
-                            flashContainer.innerHTML = newFlashContent;
-                            // Re-initialize any flash dismiss functionality if needed (main.js handles this)
-                            const flashEvent = new CustomEvent('flash-updated', { detail: { container: flashContainer } });
+                            flashContainer.innerHTML = newFlashHtml || '<div class="flash-messages"></div>';
+                            var flashEvent = new CustomEvent('flash-updated', { detail: { container: flashContainer } });
                             document.dispatchEvent(flashEvent);
                         }
                         
-                        // Replace the active content with new content
+                        // Replace the active content
                         if (activeContentDiv && activeContentDiv.parentNode) {
-                            // Create fresh element to avoid transition conflicts
-                            const freshContentDiv = document.createElement('div');
+                            var freshContentDiv = document.createElement('div');
                             freshContentDiv.id = 'active-page-content';
                             freshContentDiv.className = 'page-content-active';
                             freshContentDiv.innerHTML = newContentHtml;
                             
-                            // Replace the old element
                             activeContentDiv.parentNode.replaceChild(freshContentDiv, activeContentDiv);
                             activeContentDiv = freshContentDiv;
-                            
-                            // Update reference
                             window.activeContentDiv = activeContentDiv;
                             
-                            // Execute any embedded scripts in the new content
                             executeScripts(activeContentDiv);
                             
-                            // Dispatch event for any third-party scripts that need to reinitialize
-                            const contentUpdatedEvent = new CustomEvent('page-content-updated', { 
+                            var contentUpdatedEvent = new CustomEvent('page-content-updated', { 
                                 detail: { url: url, element: activeContentDiv } 
                             });
                             document.dispatchEvent(contentUpdatedEvent);
                             
-                            // Reattach click handlers to new links
                             attachLinkHandlers();
                         }
                         
-                        // Remove any leftover new content elements
-                        const newContentElements = document.querySelectorAll('.page-content-new');
-                        newContentElements.forEach(el => el.remove());
+                        // Clean up
+                        var newContentElements = document.querySelectorAll('.page-content-new');
+                        for (var i = 0; i < newContentElements.length; i++) {
+                            newContentElements[i].remove();
+                        }
                         
-                        // Ensure the new active content has proper opacity
                         if (activeContentDiv) {
                             activeContentDiv.style.opacity = '1';
                             activeContentDiv.classList.remove('page-content-fade-out');
@@ -376,41 +322,30 @@
                         
                         // Update browser history
                         if (!replaceState) {
-                            window.history.pushState({ url: url, content: newContentHtml, flash: newFlashContent }, '', url);
+                            window.history.pushState({ url: url, content: newContentHtml, flash: newFlashHtml }, '', url);
                         } else {
-                            window.history.replaceState({ url: url, content: newContentHtml, flash: newFlashContent }, '', url);
+                            window.history.replaceState({ url: url, content: newContentHtml, flash: newFlashHtml }, '', url);
                         }
                         
-                        // Scroll to top after navigation (optional but expected)
                         window.scrollTo({ top: 0, behavior: 'instant' });
-                        
-                        // Reset navigation flag
                         isNavigating = false;
                         pendingUrl = null;
                         
                     } catch (error) {
                         console.error('Transition error:', error);
-                        // Fallback to traditional navigation if something fails
                         window.location.href = url;
                         isNavigating = false;
                     }
                 }, TRANSITION_DURATION);
             }
             
-            /**
-             * Fetch and load new page content in background
-             * @param {string} url - Target URL
-             * @param {boolean} replaceHistory - Whether to replace history entry
-             * @returns {Promise<void>}
-             */
-            async function loadPageInBackground(url, replaceHistory = false) {
-                // Prevent multiple simultaneous navigations
+            // Load page in background
+            async function loadPageInBackground(url, replaceHistory) {
                 if (isNavigating) {
                     pendingUrl = url;
                     return;
                 }
                 
-                // Validate internal URL (prevent external, javascript:, etc.)
                 if (!isInternalLink(url)) {
                     return;
                 }
@@ -418,55 +353,42 @@
                 isNavigating = true;
                 
                 try {
-                    // Fetch the new page content
-                    const response = await fetch(url, {
+                    var response = await fetch(url, {
                         method: 'GET',
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'text/html',
-                            'Cache-Control': 'no-cache'
+                            'Accept': 'text/html'
                         },
                         credentials: 'same-origin'
                     });
                     
                     if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}`);
+                        throw new Error('HTTP ' + response.status);
                     }
                     
-                    const htmlText = await response.text();
+                    var htmlText = await response.text();
+                    var newContent = extractPageContent(htmlText);
+                    var newFlash = extractFlashMessages(htmlText);
                     
-                    // Extract content and flash messages
-                    const newContent = extractPageContent(htmlText);
-                    const newFlash = extractFlashMessages(htmlText);
-                    
-                    // Update page title
                     updatePageTitle(htmlText);
                     
-                    // Validate content exists
                     if (!newContent || newContent.trim() === '') {
                         throw new Error('Empty content received');
                     }
                     
-                    // Perform smooth transition with fade
                     performTransition(newContent, newFlash, url, replaceHistory);
                     
                 } catch (error) {
                     console.error('Navigation fetch error:', error);
-                    // Fallback to traditional navigation on error
                     window.location.href = url;
                     isNavigating = false;
                 }
             }
             
-            /**
-             * Check if a link is internal (should use AJAX navigation)
-             * @param {string} url - URL to check
-             * @returns {boolean}
-             */
+            // Check if link is internal
             function isInternalLink(url) {
                 if (!url || typeof url !== 'string') return false;
                 
-                // Skip empty, anchor-only, javascript:, mailto:, tel:, etc.
                 if (url.startsWith('#') || 
                     url.startsWith('javascript:') || 
                     url.startsWith('mailto:') || 
@@ -475,103 +397,83 @@
                     return false;
                 }
                 
-                // Handle relative URLs and same-origin absolute URLs
                 try {
-                    const linkUrl = new URL(url, window.location.href);
-                    const currentUrl = new URL(window.location.href);
+                    var linkUrl = new URL(url, window.location.href);
+                    var currentUrl = new URL(window.location.href);
                     
-                    // Check if same origin
                     if (linkUrl.origin !== currentUrl.origin) {
                         return false;
                     }
                     
-                    // Skip links with target="_blank" (handled by attribute check in handler)
-                    // Skip file downloads
-                    const pathname = linkUrl.pathname;
+                    var pathname = linkUrl.pathname;
                     if (pathname.match(/\.(pdf|zip|doc|docx|xls|xlsx|jpg|jpeg|png|gif|mp4|mp3)$/i)) {
                         return false;
                     }
                     
                     return true;
                 } catch (e) {
-                    // Invalid URL, treat as external
                     return false;
                 }
             }
             
-            /**
-             * Attach click handlers to all internal navigation links
-             */
+            // Attach click handlers to links
             function attachLinkHandlers() {
-                // Select all anchor tags on the page
-                const links = document.querySelectorAll('a');
+                var links = document.querySelectorAll('a');
                 
-                links.forEach(link => {
-                    // Skip if already has our handler attribute
+                for (var i = 0; i < links.length; i++) {
+                    var link = links[i];
+                    
                     if (link.hasAttribute('data-smooth-nav')) {
-                        return;
+                        continue;
                     }
                     
-                    // Get href attribute
-                    const href = link.getAttribute('href');
-                    if (!href) return;
+                    var href = link.getAttribute('href');
+                    if (!href) continue;
                     
-                    // Check if it's an internal link
                     if (!isInternalLink(href)) {
-                        return;
+                        continue;
                     }
                     
-                    // Skip if target="_blank"
                     if (link.target === '_blank') {
-                        return;
+                        continue;
                     }
                     
-                    // Mark as handled
                     link.setAttribute('data-smooth-nav', 'true');
                     
-                    // Store original click handler if any, but we'll override with our own
-                    const originalClick = link.onclick;
-                    
-                    // Add our click handler
-                    link.addEventListener('click', async (e) => {
-                        // Skip if modifier keys are pressed (ctrl/cmd click for new tab)
+                    link.addEventListener('click', function(e) {
+                        var targetLink = this;
+                        var targetUrl = targetLink.getAttribute('href');
+                        
                         if (e.ctrlKey || e.metaKey || e.shiftKey) {
                             return;
                         }
                         
-                        const targetUrl = link.getAttribute('href');
                         if (!targetUrl) return;
                         
-                        // Prevent default navigation
-                        e.preventDefault();
-                        e.stopPropagation();
-                        
-                        // Handle empty or anchor-only links
                         if (targetUrl === '' || targetUrl === '#') {
                             return;
                         }
                         
-                        // Resolve full URL
-                        let fullUrl = targetUrl;
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        var fullUrl = targetUrl;
                         try {
-                            const resolvedUrl = new URL(targetUrl, window.location.href);
+                            var resolvedUrl = new URL(targetUrl, window.location.href);
                             fullUrl = resolvedUrl.href;
                         } catch (err) {
                             fullUrl = targetUrl;
                         }
                         
-                        // Skip if already navigating to same URL
                         if (isNavigating && pendingUrl === fullUrl) {
                             return;
                         }
                         
-                        // If same URL as current, do nothing (but allow hash navigation)
                         if (fullUrl === window.location.href) {
-                            // Handle same-page anchor if present
-                            const hashIndex = targetUrl.indexOf('#');
+                            var hashIndex = targetUrl.indexOf('#');
                             if (hashIndex !== -1) {
-                                const elementId = targetUrl.substring(hashIndex + 1);
-                                const targetElement = document.getElementById(elementId);
+                                var elementId = targetUrl.substring(hashIndex + 1);
+                                var targetElement = document.getElementById(elementId);
                                 if (targetElement) {
                                     targetElement.scrollIntoView({ behavior: 'smooth' });
                                 }
@@ -579,71 +481,46 @@
                             return;
                         }
                         
-                        // Load the page in background
-                        await loadPageInBackground(fullUrl, false);
+                        loadPageInBackground(fullUrl, false);
                     });
-                });
+                }
             }
             
-            /**
-             * Handle browser back/forward navigation (popstate)
-             */
+            // Handle back/forward navigation
             function handlePopState(event) {
                 if (event.state && event.state.url) {
-                    const state = event.state;
-                    const targetUrl = state.url;
+                    var state = event.state;
+                    var targetUrl = state.url;
                     
-                    // Prevent if already navigating
                     if (isNavigating) {
-                        // Queue this navigation after current completes
-                        const checkInterval = setInterval(() => {
+                        var checkInterval = setInterval(function() {
                             if (!isNavigating) {
                                 clearInterval(checkInterval);
-                                restoreFromState(state, targetUrl);
+                                if (state && state.content) {
+                                    performTransition(state.content, state.flash || '', targetUrl, true);
+                                } else {
+                                    loadPageInBackground(targetUrl, true);
+                                }
                             }
                         }, 50);
                         return;
                     }
                     
-                    restoreFromState(state, targetUrl);
+                    if (state && state.content) {
+                        performTransition(state.content, state.flash || '', targetUrl, true);
+                    } else {
+                        loadPageInBackground(targetUrl, true);
+                    }
                 } else {
-                    // No state found - fallback to traditional reload
                     window.location.reload();
                 }
             }
             
-            /**
-             * Restore page from history state
-             */
-            function restoreFromState(state, targetUrl) {
-                if (state && state.content) {
-                    // Use stored content for instant restore
-                    const newContent = state.content;
-                    const newFlash = state.flash || '';
-                    updatePageTitleFromStored(targetUrl);
-                    performTransition(newContent, newFlash, targetUrl, true);
-                } else {
-                    // No stored content, fetch fresh
-                    loadPageInBackground(targetUrl, true);
-                }
-            }
-            
-            /**
-             * Update title from stored state or fetch
-             */
-            function updatePageTitleFromStored(url) {
-                // Optional: fetch title from server or extract from state
-                // For simplicity, we'll let performTransition handle title
-            }
-            
-            /**
-             * Initialize the smooth navigation system
-             */
+            // Initialize
             function initSmoothNavigation() {
-                // Store initial state in history (replace current state to include content)
-                const initialContentHtml = activeContentDiv ? activeContentDiv.innerHTML : '';
-                const initialFlashHtml = flashContainer ? flashContainer.innerHTML : '';
-                const currentUrl = window.location.href;
+                var initialContentHtml = activeContentDiv ? activeContentDiv.innerHTML : '';
+                var initialFlashHtml = flashContainer ? flashContainer.innerHTML : '';
+                var currentUrl = window.location.href;
                 
                 window.history.replaceState({ 
                     url: currentUrl, 
@@ -651,31 +528,27 @@
                     flash: initialFlashHtml 
                 }, '', currentUrl);
                 
-                // Attach click handlers to all existing links
                 attachLinkHandlers();
                 
-                // Use MutationObserver to handle dynamically added links
-                const observer = new MutationObserver((mutations) => {
-                    mutations.forEach((mutation) => {
+                // Watch for dynamically added links
+                var observer = new MutationObserver(function(mutations) {
+                    for (var i = 0; i < mutations.length; i++) {
+                        var mutation = mutations[i];
                         if (mutation.type === 'childList') {
-                            mutation.addedNodes.forEach((node) => {
+                            for (var j = 0; j < mutation.addedNodes.length; j++) {
+                                var node = mutation.addedNodes[j];
                                 if (node.nodeType === Node.ELEMENT_NODE) {
-                                    // Check if node is a link or contains links
                                     if (node.tagName === 'A') {
-                                        const href = node.getAttribute('href');
-                                        if (href && isInternalLink(href) && node.target !== '_blank') {
-                                            attachLinkHandlers(); // Reattach all to be safe
-                                        }
+                                        attachLinkHandlers();
                                     } else if (node.querySelectorAll) {
-                                        const linksInNode = node.querySelectorAll('a');
-                                        if (linksInNode.length > 0) {
+                                        if (node.querySelectorAll('a').length > 0) {
                                             attachLinkHandlers();
                                         }
                                     }
                                 }
-                            });
+                            }
                         }
-                    });
+                    }
                 });
                 
                 observer.observe(document.body, {
@@ -683,28 +556,14 @@
                     subtree: true
                 });
                 
-                // Handle popstate for back/forward navigation
                 window.addEventListener('popstate', handlePopState);
-                
-                // Dispatch custom event to notify that smooth navigation is ready
-                const readyEvent = new CustomEvent('smooth-nav-ready', { 
-                    detail: { version: '1.0.0' } 
-                });
-                document.dispatchEvent(readyEvent);
             }
             
-            // Wait for DOM to be fully loaded
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', initSmoothNavigation);
             } else {
                 initSmoothNavigation();
             }
-            
-            // Expose utility for debugging if needed (optional)
-            window.__smoothNav = {
-                isNavigating: () => isNavigating,
-                version: '1.0.0'
-            };
         })();
     </script>
 </body>
