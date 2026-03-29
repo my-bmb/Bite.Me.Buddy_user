@@ -34,10 +34,13 @@
                     {% endif %}
                 </div>
                 
-                <!-- Dynamic Description with iframe rendering -->
+                <!-- Dynamic Description: Rendered in isolated iframe with DARK background -->
                 <div class="service-dynamic-description">
                     {% if service.description and service.description|trim %}
-                    {% set full_html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>*{margin:0;padding:0;box-sizing:border-box;}body{background:#1A1A1A;margin:0;padding:16px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;color:#F4F1E1;line-height:1.6;font-size:14px;}img{max-width:100%;height:auto;border-radius:8px;}video{max-width:100%;border-radius:8px;}iframe{max-width:100%;border-radius:8px;}a{color:#C0B283;text-decoration:none;}a:hover{text-decoration:underline;}h1,h2,h3,h4,h5,h6{color:#F4F1E1;margin-top:0;margin-bottom:12px;font-family:"Playfair Display",Georgia,serif;}p{margin-bottom:12px;}ul,ol{margin-bottom:12px;padding-left:20px;}li{margin-bottom:4px;}table{width:100%;border-collapse:collapse;margin-bottom:12px;}th,td{border:1px solid #333;padding:8px;text-align:left;}th{background:#2A2A2A;color:#C0B283;}button,.btn{background:linear-gradient(135deg,#C0B283,#8e7d4d);color:#000;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:bold;}button:hover{transform:translateY(-1px);}</style></head><body>' + service.description|safe + '</body></html>' %}
+                    {% set full_html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>* { margin: 0; padding: 0; box-sizing: border-box; } body { background: #1A1A1A; margin: 0; padding: 16px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; color: #F4F1E1; line-height: 1.6; font-size: 14px; } img { max-width: 100%; height: auto; border-radius: 8px; } video { max-width: 100%; border-radius: 8px; } iframe { max-width: 100%; border-radius: 8px; } a { color: #C0B283; text-decoration: none; } a:hover { text-decoration: underline; } h1, h2, h3, h4, h5, h6 { color: #F4F1E1; margin-top: 0; margin-bottom: 12px; font-family: "Playfair Display", Georgia, serif; } p { margin-bottom: 12px; } ul, ol { margin-bottom: 12px; padding-left: 20px; } li { margin-bottom: 4px; } table { width: 100%; border-collapse: collapse; margin-bottom: 12px; } th, td { border: 1px solid #333; padding: 8px; text-align: left; } th { background: #2A2A2A; color: #C0B283; } button, .btn { background: linear-gradient(135deg, #C0B283, #8e7d4d); color: #000; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; } button:hover { transform: translateY(-1px); }</style></head><body>' + service.description|safe + '</body></html>' %}
+                    <div class="dynamic-description-label">
+                        <i class="fas fa-code"></i> Service Details
+                    </div>
                     <div class="iframe-responsive-container">
                         <iframe 
                             id="dynamicDescriptionIframe"
@@ -46,9 +49,14 @@
                             sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals"
                             referrerpolicy="no-referrer"
                             loading="lazy"
-                            title="{{ service.name }} - Description"
+                            title="{{ service.name }} - Interactive Description"
                             onload="resizeIframe(this)">
                         </iframe>
+                    </div>
+                    {% else %}
+                    <div class="no-description-fallback">
+                        <i class="fas fa-info-circle"></i>
+                        <p>No detailed description available for this service.</p>
                     </div>
                     {% endif %}
                 </div>
@@ -213,9 +221,9 @@ function resizeIframe(iframe) {
     if (!iframe) return;
     try {
         if (iframe.contentWindow && iframe.contentWindow.document) {
-            var body = iframe.contentWindow.document.body;
-            var html = iframe.contentWindow.document.documentElement;
-            var height = Math.max(
+            const body = iframe.contentWindow.document.body;
+            const html = iframe.contentWindow.document.documentElement;
+            const height = Math.max(
                 body.scrollHeight, body.offsetHeight,
                 html.clientHeight, html.scrollHeight, html.offsetHeight
             );
@@ -223,19 +231,29 @@ function resizeIframe(iframe) {
         } else {
             iframe.style.height = '300px';
         }
-    } catch(e) {
+    } catch (e) {
         iframe.style.height = '300px';
     }
 }
 
 window.addEventListener('message', function(event) {
     if (event.data && event.data.type === 'resizeIframe' && event.data.height) {
-        var iframe = document.getElementById('dynamicDescriptionIframe');
+        const iframe = document.getElementById('dynamicDescriptionIframe');
         if (iframe && iframe.contentWindow === event.source) {
             iframe.style.height = event.data.height + 'px';
         }
     }
 });
+
+if (typeof ResizeObserver !== 'undefined') {
+    const iframe = document.getElementById('dynamicDescriptionIframe');
+    if (iframe) {
+        const observer = new ResizeObserver(function() {
+            resizeIframe(iframe);
+        });
+        observer.observe(iframe);
+    }
+}
 </script>
 
 <style>
@@ -278,6 +296,70 @@ window.addEventListener('message', function(event) {
     width: 100%;
 }
 
+/* ========== DYNAMIC DESCRIPTION SECTION ========== */
+.service-dynamic-description {
+    margin: 8px 0 12px 0;
+    width: 100%;
+}
+
+.dynamic-description-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--champagne-gold);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    font-family: var(--sans-font);
+}
+
+.dynamic-description-label i {
+    font-size: 14px;
+}
+
+.iframe-responsive-container {
+    position: relative;
+    width: 100%;
+    background: transparent;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.dynamic-iframe {
+    width: 100%;
+    height: 300px;
+    border: none;
+    display: block;
+    background: #1A1A1A;
+    transition: height 0.2s ease;
+    border-radius: 12px;
+}
+
+.no-description-fallback {
+    background: rgba(26, 26, 26, 0.8);
+    border: 1px dashed var(--dark-border);
+    border-radius: 12px;
+    padding: 30px 20px;
+    text-align: center;
+    color: var(--silver-mist);
+    font-family: var(--sans-font);
+}
+
+.no-description-fallback i {
+    font-size: 36px;
+    color: var(--champagne-gold);
+    margin-bottom: 12px;
+    opacity: 0.7;
+}
+
+.no-description-fallback p {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* ========== SERVICE DETAIL SECTION ========== */
 .service-detail-container {
     display: flex;
     gap: 20px;
@@ -331,29 +413,6 @@ window.addEventListener('message', function(event) {
     font-weight: 600;
     font-family: var(--sans-font);
     border: 1px solid rgba(192, 178, 131, 0.3);
-}
-
-.service-dynamic-description {
-    margin: 8px 0 12px 0;
-    width: 100%;
-}
-
-.iframe-responsive-container {
-    position: relative;
-    width: 100%;
-    background: transparent;
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.dynamic-iframe {
-    width: 100%;
-    height: 300px;
-    border: none;
-    display: block;
-    background: #1A1A1A;
-    transition: height 0.2s ease;
-    border-radius: 12px;
 }
 
 .service-detail-pricing {
@@ -876,6 +935,11 @@ window.addEventListener('message', function(event) {
     .browse-collection-horizontal-name {
         font-size: 10px;
     }
+
+    .dynamic-description-label {
+        font-size: 11px;
+        margin-bottom: 10px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -948,6 +1012,23 @@ window.addEventListener('message', function(event) {
     .browse-collection-horizontal-name {
         font-size: 9px;
     }
+
+    .dynamic-description-label {
+        font-size: 10px;
+        margin-bottom: 8px;
+    }
+
+    .no-description-fallback {
+        padding: 20px 15px;
+    }
+
+    .no-description-fallback i {
+        font-size: 28px;
+    }
+
+    .no-description-fallback p {
+        font-size: 12px;
+    }
 }
 </style>
 
@@ -955,7 +1036,7 @@ window.addEventListener('message', function(event) {
 (function() {
     function sendHeightToParent() {
         if (window.parent !== window) {
-            var height = document.documentElement.scrollHeight;
+            const height = document.documentElement.scrollHeight;
             window.parent.postMessage({
                 type: 'resizeIframe',
                 height: height
@@ -972,7 +1053,7 @@ window.addEventListener('message', function(event) {
     window.addEventListener('load', sendHeightToParent);
     
     if (typeof MutationObserver !== 'undefined') {
-        var observer = new MutationObserver(sendHeightToParent);
+        const observer = new MutationObserver(sendHeightToParent);
         observer.observe(document.body, {
             childList: true,
             subtree: true,
