@@ -17,15 +17,15 @@
     </header>
 
     <main class="main-content">
-        <!-- Service Details Section -->
+        <!-- Service Details Section - STACKED VERTICALLY: PHOTO ON TOP, DETAILS BELOW -->
         <div class="service-detail-container">
-            <!-- Left Column: Photo -->
+            <!-- Top: Photo (4:3 aspect ratio) -->
             <div class="service-detail-photo">
                 <img src="{{ service.photo }}" alt="{{ service.name }}"
                      onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
             </div>
             
-            <!-- Right Column: Details -->
+            <!-- Bottom: Details -->
             <div class="service-detail-info">
                 <div class="service-detail-header">
                     <h2>{{ service.name }}</h2>
@@ -236,9 +236,10 @@ function closeBookingNotification() {
     width: 100%;
 }
 
-/* ========== SERVICE DETAIL SECTION - COMPACT ========== */
+/* ========== SERVICE DETAIL SECTION - STACKED VERTICAL (PHOTO TOP, DETAILS BELOW) ========== */
 .service-detail-container {
     display: flex;
+    flex-direction: column;
     gap: 20px;
     background: var(--onyx-black);
     border-radius: 16px;
@@ -249,9 +250,9 @@ function closeBookingNotification() {
     box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
 }
 
-/* FIXED ASPECT RATIO FOR PHOTO - 4:3 FOR ALL DEVICES */
+/* FIXED ASPECT RATIO FOR PHOTO - 4:3 FOR ALL DEVICES (SAME RATIO MAINTAINED) */
 .service-detail-photo {
-    flex: 0 0 280px;
+    width: 100%;
     aspect-ratio: 4 / 3;
     border-radius: 12px;
     overflow: hidden;
@@ -266,7 +267,7 @@ function closeBookingNotification() {
 }
 
 .service-detail-info {
-    flex: 1;
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -304,7 +305,6 @@ function closeBookingNotification() {
     border: none;
     padding: 0;
     margin: 0;
-    /* No max-height, no overflow - natural flow */
     overflow: visible;
 }
 
@@ -776,14 +776,12 @@ function closeBookingNotification() {
     }
     
     .service-detail-container {
-        flex-direction: column;
         padding: 14px;
         gap: 14px;
         margin-bottom: 20px;
     }
     
     .service-detail-photo {
-        flex: 0 0 auto;
         width: 100%;
         aspect-ratio: 4 / 3;
     }
@@ -802,7 +800,6 @@ function closeBookingNotification() {
         font-size: 10px;
     }
     
-    /* Description - natural flow, no scrolling, wider width */
     .service-detail-description {
         font-size: 13px;
         line-height: 1.5;
@@ -822,7 +819,6 @@ function closeBookingNotification() {
         padding: 2px 0;
     }
     
-    /* Button larger on mobile too */
     .btn-service-detail-add {
         width: 100%;
         justify-content: center;
@@ -897,7 +893,6 @@ function closeBookingNotification() {
         font-size: 18px;
     }
     
-    /* Description - natural flow, no scrolling, wider width */
     .service-detail-description {
         font-size: 12px;
         line-height: 1.45;
