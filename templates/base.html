@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Flask App{% endblock %}</title>
     
     <!-- BROWSER & MOBILE UI COLORS - DARK GRAY FOR BOTH MODES -->
@@ -50,19 +50,24 @@
             }
         }
         
-        /* Ensure bottom navigation stays fixed if needed */
-        .bottom-nav {
+        /* Preloader indicator (optional - shows prefetch status) */
+        .prefetch-indicator {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            z-index: 9999;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
         }
         
-        /* Add padding to main content to prevent overlap with bottom nav */
-        body {
-            padding-bottom: 70px;
-            margin: 0;
+        .prefetch-indicator.show {
+            opacity: 0.7;
         }
     </style>
     
@@ -93,14 +98,15 @@
     {% endwith %}
     
     <!-- Main Content Block -->
-    <main id="main-content-wrapper">
-        {% block content %}{% endblock %}
-    </main>
+    {% block content %}{% endblock %}
+    
+    <!-- Optional: Prefetch status indicator (you can remove this) -->
+    <div id="prefetchIndicator" class="prefetch-indicator"></div>
     
     <!-- JavaScript -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     
-    <!-- Simple System - Only for links that need smooth transition, others work normally -->
+    <!-- Prefetch System -->
     <script>
         (function() {
             // Apply dark theme to browser UI
@@ -111,119 +117,279 @@
                 }
             }
             
-            // =========== OPTIONAL SMOOTH TRANSITION (ONLY FOR LINKS WITH data-smooth ATTRIBUTE) ===========
-            // By default, ALL links work normally with browser loading line
-            // Only links with data-smooth="true" will use smooth transition
+            // ============ PREFETCHING SYSTEM ============
+            // This system preloads pages in advance for instant navigation
             
-            class SmoothTransition {
+            class PrefetchManager {
                 constructor() {
-                    this.isTransitioning = false;
-                    this.setupSmoothLinks();
+                    this.prefetchedUrls = new Set();
+                    this.prefetchDelay = 100; // ms after page load to start prefetching
+                    this.hoverDelay = 150; // ms before prefetching on hover
+                    this.hoverTimeouts = new Map();
+                    this.indicator = document.getElementById('prefetchIndicator');
+                    
+                    // Get all internal links
+                    this.init();
                 }
                 
-                setupSmoothLinks() {
-                    // ONLY handle links that have data-smooth="true" attribute
-                    document.addEventListener('click', (e) => {
-                        const link = e.target.closest('a');
-                        if (!link) return;
+                init() {
+                    // Wait for page to fully load
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', () => this.startPrefetching());
+                    } else {
+                        this.startPrefetching();
+                    }
+                    
+                    // Also prefetch on hover/touch
+                    this.setupHoverPrefetch();
+                    
+                    // Intercept clicks for instant navigation
+                    this.setupInstantNavigation();
+                }
+                
+                startPrefetching() {
+                    // Prefetch links after a short delay
+                    setTimeout(() => {
+                        this.prefetchVisibleLinks();
                         
-                        // Check if this link should use smooth transition
-                        const useSmooth = link.getAttribute('data-smooth') === 'true';
-                        
-                        if (!useSmooth) {
-                            // Let browser handle normally - browser loading line will work
-                            return;
-                        }
-                        
-                        // For smooth transition links only
-                        const href = link.getAttribute('href');
-                        if (!href) return;
-                        
-                        // Skip external links
-                        if (href.startsWith('http') && !href.includes(window.location.hostname)) return;
-                        if (href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('#')) return;
-                        if (link.hasAttribute('target') && link.getAttribute('target') === '_blank') return;
-                        
-                        e.preventDefault();
-                        this.smoothNavigate(href);
+                        // Prefetch all important links on the page
+                        this.prefetchAllImportantLinks();
+                    }, this.prefetchDelay);
+                }
+                
+                prefetchVisibleLinks() {
+                    // Get all internal links
+                    const links = this.getInternalLinks();
+                    
+                    // Prefetch links that are visible in viewport
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                const link = entry.target;
+                                const url = link.href;
+                                if (url && this.isInternalLink(url) && !this.prefetchedUrls.has(url)) {
+                                    this.prefetchUrl(url);
+                                }
+                                observer.unobserve(link);
+                            }
+                        });
+                    }, { rootMargin: '100px' });
+                    
+                    links.forEach(link => {
+                        observer.observe(link);
                     });
                 }
                 
-                async smoothNavigate(url) {
-                    if (this.isTransitioning) return;
+                prefetchAllImportantLinks() {
+                    // Prefetch all navigation links (top and bottom nav)
+                    const importantLinks = document.querySelectorAll('.nav-link, .bottom-nav a, .sidebar a, header a');
+                    importantLinks.forEach(link => {
+                        const url = link.href;
+                        if (url && this.isInternalLink(url) && !this.prefetchedUrls.has(url)) {
+                            this.prefetchUrl(url);
+                        }
+                    });
                     
-                    this.isTransitioning = true;
+                    // Also prefetch all internal links (but with lower priority)
+                    setTimeout(() => {
+                        const allLinks = this.getInternalLinks();
+                        allLinks.forEach(link => {
+                            const url = link.href;
+                            if (url && !this.prefetchedUrls.has(url)) {
+                                this.prefetchUrl(url);
+                            }
+                        });
+                    }, 1000);
+                }
+                
+                setupHoverPrefetch() {
+                    const links = this.getInternalLinks();
                     
-                    try {
-                        const response = await fetch(url, {
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest'
+                    links.forEach(link => {
+                        link.addEventListener('mouseenter', () => {
+                            const url = link.href;
+                            if (url && this.isInternalLink(url) && !this.prefetchedUrls.has(url)) {
+                                // Clear any existing timeout for this link
+                                if (this.hoverTimeouts.has(link)) {
+                                    clearTimeout(this.hoverTimeouts.get(link));
+                                }
+                                
+                                // Prefetch after hover delay
+                                const timeout = setTimeout(() => {
+                                    this.prefetchUrl(url);
+                                    this.hoverTimeouts.delete(link);
+                                }, this.hoverDelay);
+                                
+                                this.hoverTimeouts.set(link, timeout);
                             }
                         });
                         
-                        if (!response.ok) throw new Error('Network error');
+                        link.addEventListener('mouseleave', () => {
+                            if (this.hoverTimeouts.has(link)) {
+                                clearTimeout(this.hoverTimeouts.get(link));
+                                this.hoverTimeouts.delete(link);
+                            }
+                        });
+                    });
+                }
+                
+                setupInstantNavigation() {
+                    // Intercept all clicks on internal links
+                    document.body.addEventListener('click', (e) => {
+                        // Find the clicked link
+                        let link = e.target.closest('a');
+                        if (!link) return;
                         
-                        const html = await response.text();
-                        this.swapContent(html);
-                        window.history.pushState({}, '', url);
+                        const url = link.href;
                         
-                    } catch (error) {
-                        console.error('Navigation error:', error);
-                        // Fallback to normal navigation if smooth fails
+                        // Skip if not internal link
+                        if (!this.isInternalLink(url)) return;
+                        
+                        // Skip if modified (Ctrl/Cmd+Click) or middle click
+                        if (e.metaKey || e.ctrlKey || e.which === 2) return;
+                        
+                        // If URL is already prefetched, show instant navigation
+                        if (this.prefetchedUrls.has(url)) {
+                            e.preventDefault();
+                            this.instantNavigate(url);
+                            this.showIndicator(`Instant: ${this.getPageName(url)}`);
+                        }
+                        // Otherwise, still allow normal navigation but prefetch for next time
+                        else {
+                            // Prefetch this URL for future navigation
+                            this.prefetchUrl(url);
+                        }
+                    });
+                }
+                
+                prefetchUrl(url) {
+                    if (this.prefetchedUrls.has(url)) return;
+                    
+                    // Mark as prefetched
+                    this.prefetchedUrls.add(url);
+                    
+                    // Method 1: Use <link rel="prefetch"> for modern browsers
+                    if ('relList' in document.createElement('link') && 
+                        document.createElement('link').relList.supports('prefetch')) {
+                        const link = document.createElement('link');
+                        link.rel = 'prefetch';
+                        link.href = url;
+                        link.as = 'document';
+                        document.head.appendChild(link);
+                        
+                        this.showIndicator(`Prefetching: ${this.getPageName(url)}`);
+                    } 
+                    // Method 2: Use fetch API as fallback
+                    else {
+                        fetch(url, {
+                            method: 'GET',
+                            priority: 'low',
+                            cache: 'force-cache'
+                        }).catch(err => {
+                            console.debug('Prefetch failed:', err);
+                        });
+                        
+                        this.showIndicator(`Prefetching (fetch): ${this.getPageName(url)}`);
+                    }
+                    
+                    // Also prefetch CSS and JS for that page if needed
+                    this.prefetchAssets(url);
+                }
+                
+                prefetchAssets(url) {
+                    // Optional: Parse the prefetched page's assets
+                    // This is advanced - can be implemented if needed
+                    // For now, just prefetch the HTML
+                }
+                
+                instantNavigate(url) {
+                    // Create a smooth transition
+                    const body = document.body;
+                    
+                    // Add fade-out effect (optional - remove if you don't want animation)
+                    body.style.transition = 'opacity 0.15s ease';
+                    body.style.opacity = '0';
+                    
+                    // Navigate after short delay
+                    setTimeout(() => {
                         window.location.href = url;
-                    } finally {
-                        this.isTransitioning = false;
+                    }, 150);
+                }
+                
+                getInternalLinks() {
+                    const links = Array.from(document.querySelectorAll('a'));
+                    return links.filter(link => {
+                        const href = link.getAttribute('href');
+                        if (!href) return false;
+                        
+                        // Skip external links, javascript:, mailto:, tel:, etc.
+                        if (href.startsWith('http') && !this.isSameOrigin(href)) return false;
+                        if (href.startsWith('javascript:')) return false;
+                        if (href.startsWith('mailto:')) return false;
+                        if (href.startsWith('tel:')) return false;
+                        if (href.startsWith('#')) return false;
+                        
+                        return true;
+                    });
+                }
+                
+                isInternalLink(url) {
+                    if (!url) return false;
+                    return this.isSameOrigin(url) || url.startsWith('/');
+                }
+                
+                isSameOrigin(url) {
+                    try {
+                        const linkOrigin = new URL(url).origin;
+                        return linkOrigin === window.location.origin;
+                    } catch (e) {
+                        return false;
                     }
                 }
                 
-                swapContent(html) {
-                    const mainContent = document.getElementById('main-content-wrapper');
-                    if (!mainContent) return;
-                    
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    const newContent = doc.getElementById('main-content-wrapper');
-                    
-                    if (newContent) {
-                        mainContent.innerHTML = newContent.innerHTML;
-                        
-                        const newTitle = doc.querySelector('title');
-                        if (newTitle) {
-                            document.title = newTitle.textContent;
-                        }
-                        
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    } else {
-                        window.location.href = url;
+                getPageName(url) {
+                    try {
+                        const path = new URL(url).pathname;
+                        return path === '/' ? 'Home' : path.split('/').pop() || path;
+                    } catch (e) {
+                        return 'page';
                     }
+                }
+                
+                showIndicator(message) {
+                    if (!this.indicator) return;
+                    
+                    this.indicator.textContent = message;
+                    this.indicator.classList.add('show');
+                    
+                    setTimeout(() => {
+                        this.indicator.classList.remove('show');
+                    }, 1500);
                 }
             }
             
-            // Initialize smooth transition system (only for opt-in links)
-            window.smoothNav = new SmoothTransition();
+            // Initialize prefetch system
+            const prefetchManager = new PrefetchManager();
             
-            // Handle back/forward buttons
-            window.addEventListener('popstate', () => {
-                const currentPath = window.location.pathname + window.location.search;
-                window.location.href = currentPath;
-            });
-            
-            // Auto-dismiss flash messages
-            const flashMessages = document.querySelectorAll('.flash');
-            if (flashMessages.length) {
-                setTimeout(() => {
-                    flashMessages.forEach(flash => {
-                        flash.style.transition = 'opacity 0.3s ease-out';
-                        setTimeout(() => {
-                            flash.style.opacity = '0';
-                            setTimeout(() => {
-                                if (flash.parentNode) flash.remove();
-                            }, 300);
-                        }, 3500);
+            // Optional: Prefetch on scroll (prefetch links that come into view)
+            let scrollTimeout;
+            window.addEventListener('scroll', () => {
+                if (scrollTimeout) clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
+                    // Prefetch links that become visible after scrolling
+                    const visibleLinks = Array.from(document.querySelectorAll('a')).filter(link => {
+                        const rect = link.getBoundingClientRect();
+                        return rect.top < window.innerHeight + 200 && rect.bottom > -200;
                     });
-                }, 500);
-            }
-            
+                    
+                    visibleLinks.forEach(link => {
+                        const url = link.href;
+                        if (url && prefetchManager.isInternalLink(url) && !prefetchManager.prefetchedUrls.has(url)) {
+                            prefetchManager.prefetchUrl(url);
+                        }
+                    });
+                }, 200);
+            });
         })();
     </script>
     
