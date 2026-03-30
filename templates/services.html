@@ -16,12 +16,36 @@
         </div>
     </header>
 
+    <!-- Search Section with Custom Dropdown -->
+    <div class="search-section">
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="collectionSearchInput" class="search-input" placeholder="Search or select a collection..." autocomplete="off">
+            <button id="clearSearchBtn" class="clear-search" aria-label="Clear search">
+                <i class="fas fa-times-circle"></i>
+            </button>
+            <!-- Custom Dropdown for Collection Names -->
+            <div id="collectionDropdown" class="collection-dropdown">
+                <div class="dropdown-header">
+                    <i class="fas fa-layer-group"></i>
+                    <span>All Collections</span>
+                </div>
+                <div class="dropdown-list" id="dropdownList">
+                    <!-- Collection names will be populated here dynamically -->
+                </div>
+            </div>
+        </div>
+        <div class="search-results-count" id="searchResultsCount">
+            Showing <span id="visibleCount">0</span> of <span id="totalCount">0</span> collections
+        </div>
+    </div>
+
     <!-- Main Content: Display Collections (Top Level) -->
     <main class="main-content">
         {% if collections %}
-            <div class="collections-container">
+            <div class="collections-container" id="collectionsContainer">
                 {% for collection in collections %}
-                <div class="collection-item" data-collection-id="{{ collection.id }}">
+                <div class="collection-item" data-collection-id="{{ collection.id }}" data-collection-name="{{ collection.name|lower }}" data-collection-original-name="{{ collection.name }}">
                     <!-- SQUARE PHOTO -->
                     <div class="collection-square-photo">
                         <img src="{{ collection.collection_photo }}" 
@@ -65,6 +89,13 @@
                 <p>Check back soon for premium services!</p>
             </div>
         {% endif %}
+        
+        <!-- No results message -->
+        <div id="noResultsMessage" class="no-search-results" style="display: none;">
+            <i class="fas fa-search fa-3x"></i>
+            <h3>No matching collections</h3>
+            <p>Try searching with a different name</p>
+        </div>
     </main>
 
     <!-- Bottom Navigation -->
@@ -89,11 +120,201 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Get all collection items
+    const collectionItems = document.querySelectorAll('.collection-item');
+    const totalCollections = collectionItems.length;
+    const totalCountSpan = document.getElementById('totalCount');
+    const visibleCountSpan = document.getElementById('visibleCount');
+    const searchInput = document.getElementById('collectionSearchInput');
+    const clearBtn = document.getElementById('clearSearchBtn');
+    const collectionsContainer = document.getElementById('collectionsContainer');
+    const noResultsMessage = document.getElementById('noResultsMessage');
+    const collectionDropdown = document.getElementById('collectionDropdown');
+    const dropdownList = document.getElementById('dropdownList');
+    
+    // Store all collection data
+    const collectionsData = Array.from(collectionItems).map(item => ({
+        id: item.dataset.collectionId,
+        name: item.querySelector('.collection-title').textContent.trim(),
+        nameLower: item.dataset.collectionName,
+        element: item
+    }));
+    
+    // Set total count
+    if (totalCountSpan) {
+        totalCountSpan.textContent = totalCollections;
+        visibleCountSpan.textContent = totalCollections;
+    }
+    
+    // Populate dropdown with all collection names
+    function populateDropdown() {
+        if (!dropdownList) return;
+        
+        dropdownList.innerHTML = '';
+        collectionsData.forEach(collection => {
+            const dropdownItem = document.createElement('div');
+            dropdownItem.className = 'dropdown-item';
+            dropdownItem.setAttribute('data-collection-id', collection.id);
+            dropdownItem.setAttribute('data-collection-name', collection.name);
+            
+            dropdownItem.innerHTML = `
+                <i class="fas fa-folder-open"></i>
+                <span class="dropdown-item-name">${escapeHtml(collection.name)}</span>
+                <span class="dropdown-item-count">→</span>
+            `;
+            
+            dropdownItem.addEventListener('click', function(e) {
+                e.stopPropagation();
+                // Set search input value to selected collection name
+                searchInput.value = collection.name;
+                // Filter collections to show only the selected one
+                filterCollections();
+                // Close dropdown
+                closeDropdown();
+                // Highlight the selected collection in view
+                highlightSelectedCollection(collection.id);
+            });
+            
+            dropdownList.appendChild(dropdownItem);
+        });
+    }
+    
+    // Helper function to escape HTML
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // Highlight selected collection
+    function highlightSelectedCollection(collectionId) {
+        collectionItems.forEach(item => {
+            if (item.dataset.collectionId === collectionId) {
+                item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                item.style.transition = 'all 0.3s ease';
+                item.style.boxShadow = '0 0 0 2px var(--champagne-gold), 0 0 0 4px rgba(192, 178, 131, 0.3)';
+                setTimeout(() => {
+                    item.style.boxShadow = '';
+                }, 1500);
+            }
+        });
+    }
+    
+    // Open dropdown
+    function openDropdown() {
+        if (collectionDropdown) {
+            collectionDropdown.classList.add('show');
+        }
+    }
+    
+    // Close dropdown
+    function closeDropdown() {
+        if (collectionDropdown) {
+            collectionDropdown.classList.remove('show');
+        }
+    }
+    
+    // Filter function
+    function filterCollections() {
+        const searchTerm = searchInput.value.trim().toLowerCase();
+        let visibleCount = 0;
+        
+        collectionItems.forEach(item => {
+            const collectionName = item.dataset.collectionName || '';
+            const nameMatches = collectionName.includes(searchTerm);
+            
+            if (searchTerm === '' || nameMatches) {
+                item.classList.remove('hidden-collection');
+                visibleCount++;
+            } else {
+                item.classList.add('hidden-collection');
+            }
+        });
+        
+        // Update visible count
+        if (visibleCountSpan) {
+            visibleCountSpan.textContent = visibleCount;
+        }
+        
+        // Show/hide no results message
+        if (visibleCount === 0 && searchTerm !== '') {
+            if (noResultsMessage) noResultsMessage.style.display = 'block';
+            if (collectionsContainer) collectionsContainer.style.display = 'none';
+        } else {
+            if (noResultsMessage) noResultsMessage.style.display = 'none';
+            if (collectionsContainer) collectionsContainer.style.display = 'grid';
+        }
+        
+        // Show/hide clear button
+        if (clearBtn) {
+            clearBtn.style.display = searchTerm !== '' ? 'block' : 'none';
+        }
+        
+        // Filter dropdown items to show matching ones
+        if (dropdownList) {
+            const dropdownItems = dropdownList.querySelectorAll('.dropdown-item');
+            dropdownItems.forEach(item => {
+                const itemName = item.getAttribute('data-collection-name')?.toLowerCase() || '';
+                if (searchTerm === '' || itemName.includes(searchTerm)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+    }
+    
+    // Search input event listeners
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            filterCollections();
+            // If there's text, show filtered dropdown
+            if (this.value.trim() !== '') {
+                openDropdown();
+            }
+        });
+        
+        // Show dropdown on focus with all collections
+        searchInput.addEventListener('focus', function() {
+            // Reset dropdown to show all collections
+            if (dropdownList) {
+                const dropdownItems = dropdownList.querySelectorAll('.dropdown-item');
+                dropdownItems.forEach(item => {
+                    item.style.display = 'flex';
+                });
+            }
+            openDropdown();
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !collectionDropdown.contains(e.target)) {
+                closeDropdown();
+            }
+        });
+        
+        // Prevent dropdown from closing when clicking inside it
+        if (collectionDropdown) {
+            collectionDropdown.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+    }
+    
+    // Clear search button
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+            if (searchInput) {
+                searchInput.value = '';
+                filterCollections();
+                searchInput.focus();
+            }
+        });
+    }
+    
     // Handle card click - whole collection card
-    const collectionCards = document.querySelectorAll('.collection-item');
-    collectionCards.forEach(card => {
+    collectionItems.forEach(card => {
         card.addEventListener('click', function(e) {
-            // Don't trigger if clicked on button
             if (e.target.closest('.btn-view-collection')) {
                 return;
             }
@@ -108,12 +329,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const viewButtons = document.querySelectorAll('.btn-view-collection');
     viewButtons.forEach(button => {
         button.addEventListener('click', function(e) {
-            e.stopPropagation(); // Stop event from bubbling to parent
+            e.stopPropagation();
             const collectionId = this.dataset.collectionId;
             if (collectionId) {
                 window.location.href = `/service-collection/${collectionId}`;
             }
         });
+    });
+    
+    // Initialize dropdown
+    populateDropdown();
+    
+    // Close dropdown on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeDropdown();
+        }
     });
 });
 </script>
@@ -122,7 +353,7 @@ document.addEventListener('DOMContentLoaded', function() {
 /* Import Google Fonts for premium typography */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* ✅ PREMIUM DARK & GOLD THEME - OPTIMIZED COLOR SYSTEM */
+/* PREMIUM DARK & GOLD THEME - OPTIMIZED COLOR SYSTEM */
 :root {
     --matte-black: #0D0D0D;
     --champagne-gold: #C0B283;
@@ -139,6 +370,193 @@ document.addEventListener('DOMContentLoaded', function() {
     --sans-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --gold-glow: 0 0 15px rgba(192, 178, 131, 0.3);
     --card-shadow: 0 6px 25px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Search Section Styles */
+.search-section {
+    padding: 12px 16px;
+    background: var(--matte-black);
+    border-bottom: 1px solid var(--dark-border);
+    position: relative;
+    z-index: 100;
+}
+
+.search-container {
+    position: relative;
+    width: 100%;
+}
+
+.search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--champagne-gold);
+    font-size: 14px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 40px 12px 42px;
+    background: var(--onyx-black);
+    border: 1px solid var(--dark-border);
+    border-radius: 30px;
+    font-size: 14px;
+    color: var(--creamy-white);
+    font-family: var(--sans-font);
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.search-input:focus {
+    border-color: var(--champagne-gold);
+    box-shadow: 0 0 0 2px rgba(192, 178, 131, 0.2);
+    background: var(--onyx-black);
+}
+
+.search-input::placeholder {
+    color: var(--silver-mist);
+    font-weight: 400;
+    letter-spacing: 0.3px;
+}
+
+.clear-search {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--silver-mist);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px;
+    display: none;
+    transition: color 0.2s;
+    z-index: 2;
+}
+
+.clear-search:hover {
+    color: var(--champagne-gold);
+}
+
+.search-results-count {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--silver-mist);
+    font-family: var(--sans-font);
+    text-align: right;
+    letter-spacing: 0.3px;
+}
+
+.search-results-count span {
+    color: var(--champagne-gold);
+    font-weight: 600;
+}
+
+/* Custom Dropdown Styles */
+.collection-dropdown {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    right: 0;
+    background: var(--onyx-black);
+    border: 1px solid var(--champagne-gold);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(192, 178, 131, 0.2);
+    z-index: 1000;
+    display: none;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+.collection-dropdown.show {
+    display: block;
+    animation: dropdownFadeIn 0.2s ease;
+}
+
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdown-header {
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(192, 178, 131, 0.15) 0%, rgba(192, 178, 131, 0.05) 100%);
+    border-bottom: 1px solid var(--dark-border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--serif-font);
+    font-weight: 600;
+    color: var(--champagne-gold);
+    font-size: 13px;
+}
+
+.dropdown-header i {
+    font-size: 14px;
+}
+
+.dropdown-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.dropdown-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.dropdown-list::-webkit-scrollbar-track {
+    background: var(--matte-black);
+}
+
+.dropdown-list::-webkit-scrollbar-thumb {
+    background: var(--champagne-gold);
+    border-radius: 4px;
+}
+
+.dropdown-item {
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid var(--dark-border);
+    font-family: var(--sans-font);
+}
+
+.dropdown-item:hover {
+    background: linear-gradient(90deg, rgba(192, 178, 131, 0.15) 0%, rgba(192, 178, 131, 0.05) 100%);
+    padding-left: 20px;
+}
+
+.dropdown-item i {
+    color: var(--champagne-gold);
+    font-size: 14px;
+    width: 20px;
+}
+
+.dropdown-item-name {
+    flex: 1;
+    color: var(--creamy-white);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.dropdown-item-count {
+    color: var(--champagne-gold);
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0.7;
 }
 
 /* ========== SERVICES SECTION STYLES ========== */
@@ -175,6 +593,11 @@ document.addEventListener('DOMContentLoaded', function() {
     transform: translateY(-2px);
 }
 
+/* Hidden class for filtering */
+.collection-item.hidden-collection {
+    display: none !important;
+}
+
 .collection-square-photo {
     width: 100%;
     height: 125px;
@@ -190,14 +613,12 @@ document.addEventListener('DOMContentLoaded', function() {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s ease, filter 0.3s ease;
+    transition: transform 0.3s ease;
     border-radius: 8px 8px 0 0;
-    filter: saturate(1.4) contrast(1.2) brightness(1.05);
 }
 
 .collection-item:hover .collection-square-photo img {
-    transform: scale(1.05);
-    filter: saturate(1.6) contrast(1.3) brightness(1.1);
+    transform: scale(1.03);
 }
 
 .collection-number {
@@ -260,7 +681,6 @@ document.addEventListener('DOMContentLoaded', function() {
     transition: all 0.3s ease;
 }
 
-/* Ultra-Thin Border - 0.5px */
 .description-wrapper::before {
     content: '';
     position: absolute;
@@ -295,7 +715,6 @@ document.addEventListener('DOMContentLoaded', function() {
     opacity: 0.8;
 }
 
-/* Collection Description - EXACT 2 LINES, NO CUTOFF */
 .collection-description {
     margin: 10px 12px;
     color: var(--silver-mist);
@@ -381,25 +800,25 @@ document.addEventListener('DOMContentLoaded', function() {
     font-size: 9px !important;
 }
 
-.no-services {
+.no-services, .no-search-results {
     text-align: center;
     padding: 60px 20px;
     color: var(--silver-mist);
 }
 
-.no-services i {
+.no-services i, .no-search-results i {
     margin-bottom: 20px;
     color: var(--dark-border);
 }
 
-.no-services h3 {
+.no-services h3, .no-search-results h3 {
     font-size: 18px;
     margin-bottom: 10px;
     color: var(--silver-mist);
     font-family: var(--serif-font);
 }
 
-.no-services p {
+.no-services p, .no-search-results p {
     font-size: 14px;
     font-family: var(--sans-font);
 }
@@ -455,86 +874,41 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 }
 
-/* ========== MOBILE RESPONSIVE - 2 COLUMNS ========== */
+/* ========== MOBILE RESPONSIVE - 4 COLUMNS ========== */
 @media (max-width: 767px) {
     .collections-container {
         display: grid !important;
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 12px !important;
-        padding: 12px !important;
-    }
-    
-    .collection-item {
-        min-height: 180px !important;
-        width: 100% !important;
-    }
-    
-    .collection-square-photo {
-        height: 115px !important;
-    }
-    
-    .collection-details {
-        padding: 5px 6px 3px 6px !important;
-    }
-    
-    .collection-title {
-        font-size: 13px !important;
-    }
-    
-    .collection-description {
-        font-size: 9px !important;
-        line-height: 1.45 !important;
-        margin: 8px 8px !important;
-        letter-spacing: 0.25px !important;
-        max-height: 26px !important;
-        min-height: 26px !important;
-    }
-    
-    .collection-number {
-        width: 20px !important;
-        height: 20px !important;
-        font-size: 10px !important;
-        top: 3px !important;
-        left: 3px !important;
-    }
-    
-    .btn-view-collection {
-        padding: 3px 6px !important;
-        font-size: 9px !important;
-        height: 24px !important;
-    }
-}
-
-/* ========== EXTRA SMALL MOBILE ========== */
-@media (max-width: 480px) {
-    .collections-container {
+        grid-template-columns: repeat(4, 1fr) !important;
         gap: 8px !important;
         padding: 8px !important;
     }
     
     .collection-item {
-        min-height: 170px !important;
+        min-height: 150px !important;
+        width: 100% !important;
     }
     
     .collection-square-photo {
-        height: 105px !important;
+        height: 85px !important;
     }
     
     .collection-details {
-        padding: 4px 5px 2px 5px !important;
+        padding: 4px 4px 3px 4px !important;
     }
     
     .collection-title {
-        font-size: 12px !important;
+        font-size: 10px !important;
+        white-space: normal !important;
+        line-height: 1.2 !important;
+        word-break: break-word;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
     
-    .collection-description {
-        font-size: 8px !important;
-        line-height: 1.4 !important;
-        margin: 6px 6px !important;
-        letter-spacing: 0.2px !important;
-        max-height: 22px !important;
-        min-height: 22px !important;
+    .description-wrapper {
+        display: none !important;
     }
     
     .collection-number {
@@ -545,10 +919,110 @@ document.addEventListener('DOMContentLoaded', function() {
         left: 2px !important;
     }
     
+    .collection-actions {
+        margin-top: 2px;
+    }
+    
     .btn-view-collection {
         padding: 2px 4px !important;
+        font-size: 7px !important;
+        height: 20px !important;
+        gap: 2px;
+    }
+    
+    .btn-view-collection .btn-text {
+        font-size: 6px !important;
+        text-align: center;
+    }
+    
+    .item-count-badge-btn {
+        padding: 1px 2px !important;
+        min-width: 14px;
+        height: 12px !important;
+    }
+    
+    .count-number {
+        font-size: 6px !important;
+    }
+    
+    .btn-view-collection i {
+        font-size: 6px;
+    }
+    
+    .search-section {
+        padding: 10px 12px;
+    }
+    
+    .search-input {
+        padding: 10px 36px 10px 38px;
+        font-size: 13px;
+    }
+    
+    .search-results-count {
+        font-size: 10px;
+        margin-top: 6px;
+    }
+    
+    .dropdown-item {
+        padding: 8px 12px;
+    }
+    
+    .dropdown-item-name {
+        font-size: 12px;
+    }
+    
+    .dropdown-list {
+        max-height: 250px;
+    }
+}
+
+/* ========== EXTRA SMALL MOBILE ========== */
+@media (max-width: 480px) {
+    .collections-container {
+        gap: 6px !important;
+        padding: 6px !important;
+    }
+    
+    .collection-item {
+        min-height: 140px !important;
+    }
+    
+    .collection-square-photo {
+        height: 75px !important;
+    }
+    
+    .collection-title {
+        font-size: 9px !important;
+    }
+    
+    .btn-view-collection .btn-text {
+        font-size: 5px !important;
+    }
+}
+
+/* ========== VERY SMALL DEVICES ========== */
+@media (max-width: 380px) {
+    .collections-container {
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 5px !important;
+        padding: 5px !important;
+    }
+    
+    .collection-square-photo {
+        height: 65px !important;
+    }
+    
+    .collection-title {
         font-size: 8px !important;
-        height: 22px !important;
+    }
+    
+    .btn-view-collection {
+        padding: 1px 2px !important;
+        height: 18px !important;
+    }
+    
+    .btn-view-collection .btn-text {
+        font-size: 4px !important;
     }
 }
 </style>
