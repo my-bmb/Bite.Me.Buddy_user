@@ -455,84 +455,57 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 }
 
-/* ========== MOBILE RESPONSIVE - 4 COLUMNS ========== */
+/* ========== MOBILE RESPONSIVE - 2 COLUMNS ========== */
 @media (max-width: 767px) {
     .collections-container {
         display: grid !important;
-        grid-template-columns: repeat(4, 1fr) !important;
-        gap: 10px !important;
-        padding: 10px !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+        padding: 12px !important;
     }
     
     .collection-item {
-        min-height: 160px !important;
+        min-height: 180px !important;
         width: 100% !important;
     }
     
     .collection-square-photo {
-        height: 95px !important;
+        height: 115px !important;
     }
     
     .collection-details {
-        padding: 4px 4px 2px 4px !important;
+        padding: 5px 6px 3px 6px !important;
     }
     
     .collection-title {
-        font-size: 10px !important;
-        white-space: normal !important;
-        word-break: break-word;
-        line-height: 1.3 !important;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
+        font-size: 13px !important;
     }
     
-    .description-wrapper {
-        display: none !important;
+    .collection-description {
+        font-size: 9px !important;
+        line-height: 1.45 !important;
+        margin: 8px 8px !important;
+        letter-spacing: 0.25px !important;
+        max-height: 26px !important;
+        min-height: 26px !important;
     }
     
     .collection-number {
-        width: 18px !important;
-        height: 18px !important;
-        font-size: 8px !important;
-        top: 2px !important;
-        left: 2px !important;
+        width: 20px !important;
+        height: 20px !important;
+        font-size: 10px !important;
+        top: 3px !important;
+        left: 3px !important;
     }
     
     .btn-view-collection {
-        padding: 2px 4px !important;
-        font-size: 7px !important;
-        height: 20px !important;
-        gap: 2px !important;
-    }
-    
-    .btn-view-collection .btn-text {
-        display: none !important;
-    }
-    
-    .btn-view-collection i {
-        font-size: 8px !important;
-        margin: 0 !important;
-    }
-    
-    .item-count-badge-btn {
-        padding: 0px 2px !important;
-        font-size: 7px !important;
-        min-width: 14px !important;
-        height: 12px !important;
-    }
-    
-    .count-number {
-        font-size: 7px !important;
-    }
-    
-    .collection-actions {
-        margin-top: 2px !important;
+        padding: 3px 6px !important;
+        font-size: 9px !important;
+        height: 24px !important;
     }
 }
 
-/* ========== EXTRA SMALL MOBILE (380px and below) ========== */
+/* ========== EXTRA SMALL MOBILE ========== */
 @media (max-width: 480px) {
     .collections-container {
         gap: 8px !important;
@@ -540,65 +513,42 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     .collection-item {
-        min-height: 150px !important;
+        min-height: 170px !important;
     }
     
     .collection-square-photo {
-        height: 85px !important;
+        height: 105px !important;
+    }
+    
+    .collection-details {
+        padding: 4px 5px 2px 5px !important;
     }
     
     .collection-title {
-        font-size: 9px !important;
+        font-size: 12px !important;
+    }
+    
+    .collection-description {
+        font-size: 8px !important;
+        line-height: 1.4 !important;
+        margin: 6px 6px !important;
+        letter-spacing: 0.2px !important;
+        max-height: 22px !important;
+        min-height: 22px !important;
     }
     
     .collection-number {
-        width: 16px !important;
-        height: 16px !important;
-        font-size: 7px !important;
+        width: 18px !important;
+        height: 18px !important;
+        font-size: 9px !important;
         top: 2px !important;
         left: 2px !important;
     }
     
     .btn-view-collection {
-        padding: 2px 3px !important;
-        font-size: 6px !important;
-        height: 18px !important;
-    }
-    
-    .btn-view-collection i {
-        font-size: 7px !important;
-    }
-    
-    .item-count-badge-btn {
-        padding: 0px 1px !important;
-        min-width: 12px !important;
-        height: 10px !important;
-    }
-    
-    .count-number {
-        font-size: 6px !important;
-    }
-}
-
-/* ========== VERY SMALL MOBILE (340px and below) ========== */
-@media (max-width: 380px) {
-    .collections-container {
-        gap: 6px !important;
-        padding: 6px !important;
-    }
-    
-    .collection-square-photo {
-        height: 75px !important;
-    }
-    
-    .collection-title {
+        padding: 2px 4px !important;
         font-size: 8px !important;
-    }
-    
-    .collection-number {
-        width: 14px !important;
-        height: 14px !important;
-        font-size: 6px !important;
+        height: 22px !important;
     }
 }
 </style>
