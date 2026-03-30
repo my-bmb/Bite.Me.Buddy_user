@@ -32,7 +32,6 @@
         }
         
         /* Bottom navigation - ensure black background with dark gray border */
-        /* KEEP ORIGINAL - NO CHANGES */
         .bottom-nav {
             background: rgba(15, 15, 15, 0.98) !important;
             border-top: 1px solid #444444 !important;
@@ -51,11 +50,6 @@
             }
         }
         
-        /* Smooth page transition - no spinner, just content swap */
-        .page-transition {
-            transition: opacity 0.2s ease-in-out;
-        }
-        
         /* Ensure bottom navigation stays fixed if needed */
         .bottom-nav {
             position: fixed;
@@ -67,7 +61,7 @@
         
         /* Add padding to main content to prevent overlap with bottom nav */
         body {
-            padding-bottom: 70px; /* Adjust based on your bottom nav height */
+            padding-bottom: 70px;
             margin: 0;
         }
     </style>
@@ -98,7 +92,7 @@
         {% endif %}
     {% endwith %}
     
-    <!-- Main Content Block - NO SPINNER, just smooth transition -->
+    <!-- Main Content Block -->
     <main id="main-content-wrapper">
         {% block content %}{% endblock %}
     </main>
@@ -106,7 +100,7 @@
     <!-- JavaScript -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     
-    <!-- Smooth Page Transition System - Shows old page until new one is ready -->
+    <!-- Simple System - Only for links that need smooth transition, others work normally -->
     <script>
         (function() {
             // Apply dark theme to browser UI
@@ -117,75 +111,51 @@
                 }
             }
             
-            // =========== SMOOTH PAGE TRANSITION SYSTEM ===========
-            // Shows old content until new page is fully loaded, then swaps
+            // =========== OPTIONAL SMOOTH TRANSITION (ONLY FOR LINKS WITH data-smooth ATTRIBUTE) ===========
+            // By default, ALL links work normally with browser loading line
+            // Only links with data-smooth="true" will use smooth transition
             
-            class SmoothPageTransition {
+            class SmoothTransition {
                 constructor() {
                     this.isTransitioning = false;
-                    this.pendingUrl = null;
-                    this.setupLinkHandlers();
-                    this.setupFormHandlers();
-                    this.setupPopStateHandler();
+                    this.setupSmoothLinks();
                 }
                 
-                setupLinkHandlers() {
-                    // Handle all internal navigation links
+                setupSmoothLinks() {
+                    // ONLY handle links that have data-smooth="true" attribute
                     document.addEventListener('click', (e) => {
                         const link = e.target.closest('a');
                         if (!link) return;
                         
-                        // Get the href attribute
+                        // Check if this link should use smooth transition
+                        const useSmooth = link.getAttribute('data-smooth') === 'true';
+                        
+                        if (!useSmooth) {
+                            // Let browser handle normally - browser loading line will work
+                            return;
+                        }
+                        
+                        // For smooth transition links only
                         const href = link.getAttribute('href');
                         if (!href) return;
                         
-                        // Skip external links, javascript:, mailto:, etc.
+                        // Skip external links
                         if (href.startsWith('http') && !href.includes(window.location.hostname)) return;
                         if (href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('#')) return;
                         if (link.hasAttribute('target') && link.getAttribute('target') === '_blank') return;
                         
                         e.preventDefault();
-                        this.navigateTo(href);
+                        this.smoothNavigate(href);
                     });
                 }
                 
-                setupFormHandlers() {
-                    // Handle form submissions
-                    document.addEventListener('submit', (e) => {
-                        const form = e.target;
-                        if (!form || !form.action) return;
-                        
-                        // Skip if form has data-no-transition attribute
-                        if (form.hasAttribute('data-no-transition')) return;
-                        
-                        e.preventDefault();
-                        
-                        const formData = new FormData(form);
-                        const method = form.method.toUpperCase() || 'GET';
-                        const action = form.action;
-                        
-                        let url = action;
-                        if (method === 'GET' && formData) {
-                            const params = new URLSearchParams(formData).toString();
-                            if (params) {
-                                url += (url.includes('?') ? '&' : '?') + params;
-                            }
-                            this.navigateTo(url);
-                        } else if (method === 'POST') {
-                            this.submitForm(form, formData, action);
-                        }
-                    });
-                }
-                
-                async submitForm(form, formData, action) {
+                async smoothNavigate(url) {
                     if (this.isTransitioning) return;
                     
                     this.isTransitioning = true;
                     
                     try {
-                        const response = await fetch(action, {
-                            method: 'POST',
-                            body: formData,
+                        const response = await fetch(url, {
                             headers: {
                                 'X-Requested-With': 'XMLHttpRequest'
                             }
@@ -195,59 +165,14 @@
                         
                         const html = await response.text();
                         this.swapContent(html);
-                        
-                        // Update browser URL
-                        const newUrl = response.url || action;
-                        window.history.pushState({}, '', newUrl);
-                        
-                    } catch (error) {
-                        console.error('Form submission error:', error);
-                        // Show error flash message
-                        this.showFlashMessage('error', 'Failed to submit form. Please try again.');
-                    } finally {
-                        this.isTransitioning = false;
-                    }
-                }
-                
-                async navigateTo(url) {
-                    if (this.isTransitioning) {
-                        this.pendingUrl = url;
-                        return;
-                    }
-                    
-                    this.isTransitioning = true;
-                    
-                    try {
-                        // Fetch new page content in background while showing current page
-                        const response = await fetch(url, {
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest',
-                                'Cache-Control': 'no-cache'
-                            }
-                        });
-                        
-                        if (!response.ok) throw new Error('Network error');
-                        
-                        const html = await response.text();
-                        
-                        // Now swap the content - old page stays visible until this moment
-                        this.swapContent(html);
-                        
-                        // Update browser URL
                         window.history.pushState({}, '', url);
                         
                     } catch (error) {
                         console.error('Navigation error:', error);
-                        this.showFlashMessage('error', 'Failed to load page. Please try again.');
+                        // Fallback to normal navigation if smooth fails
+                        window.location.href = url;
                     } finally {
                         this.isTransitioning = false;
-                        
-                        // Handle any pending navigation
-                        if (this.pendingUrl) {
-                            const pending = this.pendingUrl;
-                            this.pendingUrl = null;
-                            this.navigateTo(pending);
-                        }
                     }
                 }
                 
@@ -255,114 +180,33 @@
                     const mainContent = document.getElementById('main-content-wrapper');
                     if (!mainContent) return;
                     
-                    // Parse the HTML to extract the main content
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(html, 'text/html');
                     const newContent = doc.getElementById('main-content-wrapper');
                     
                     if (newContent) {
-                        // Fade out slightly for smooth transition
-                        mainContent.style.transition = 'opacity 0.15s ease-in-out';
-                        mainContent.style.opacity = '0.6';
+                        mainContent.innerHTML = newContent.innerHTML;
                         
-                        setTimeout(() => {
-                            // Replace content
-                            mainContent.innerHTML = newContent.innerHTML;
-                            
-                            // Copy any data attributes
-                            Array.from(newContent.attributes).forEach(attr => {
-                                if (attr.name !== 'id') {
-                                    mainContent.setAttribute(attr.name, attr.value);
-                                }
-                            });
-                            
-                            // Re-initialize any scripts in the new content
-                            this.executeScripts(mainContent);
-                            
-                            // Fade back in
-                            mainContent.style.opacity = '1';
-                            
-                            setTimeout(() => {
-                                mainContent.style.transition = '';
-                            }, 150);
-                            
-                            // Update document title
-                            const newTitle = doc.querySelector('title');
-                            if (newTitle) {
-                                document.title = newTitle.textContent;
-                            }
-                            
-                            // Re-attach event handlers for new content
-                            this.setupLinkHandlers();
-                            this.setupFormHandlers();
-                            
-                            // Scroll to top smoothly
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                            
-                        }, 50);
-                    } else {
-                        // Fallback: replace entire body
-                        document.body.innerHTML = html;
-                    }
-                }
-                
-                executeScripts(container) {
-                    // Execute any script tags in the new content
-                    const scripts = container.querySelectorAll('script');
-                    scripts.forEach(oldScript => {
-                        const newScript = document.createElement('script');
-                        if (oldScript.src) {
-                            newScript.src = oldScript.src;
-                            newScript.async = false;
-                        } else {
-                            newScript.textContent = oldScript.textContent;
+                        const newTitle = doc.querySelector('title');
+                        if (newTitle) {
+                            document.title = newTitle.textContent;
                         }
-                        // Copy attributes
-                        Array.from(oldScript.attributes).forEach(attr => {
-                            newScript.setAttribute(attr.name, attr.value);
-                        });
-                        oldScript.parentNode.replaceChild(newScript, oldScript);
-                    });
-                }
-                
-                showFlashMessage(category, message) {
-                    const flashContainer = document.querySelector('.flash-messages');
-                    if (!flashContainer) return;
-                    
-                    const flashDiv = document.createElement('div');
-                    flashDiv.className = `flash flash-${category}`;
-                    
-                    const icon = category === 'error' ? 'fa-exclamation-circle' : 
-                                 category === 'success' ? 'fa-check-circle' : 'fa-info-circle';
-                    
-                    flashDiv.innerHTML = `
-                        <i class="fas ${icon}"></i>
-                        <div class="flash-content">
-                            <span class="flash-title">${category.toUpperCase()}!</span>
-                            <span class="flash-message">${message}</span>
-                        </div>
-                    `;
-                    
-                    flashContainer.appendChild(flashDiv);
-                    
-                    // Auto remove after 4 seconds
-                    setTimeout(() => {
-                        flashDiv.style.opacity = '0';
-                        setTimeout(() => flashDiv.remove(), 300);
-                    }, 4000);
-                }
-                
-                setupPopStateHandler() {
-                    // Handle back/forward navigation
-                    window.addEventListener('popstate', (event) => {
-                        const currentPath = window.location.pathname + window.location.search;
-                        this.navigateTo(currentPath);
-                    });
+                        
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    } else {
+                        window.location.href = url;
+                    }
                 }
             }
             
-            // Initialize smooth page transition system
-            window.smoothNav = new SmoothPageTransition();
+            // Initialize smooth transition system (only for opt-in links)
+            window.smoothNav = new SmoothTransition();
+            
+            // Handle back/forward buttons
+            window.addEventListener('popstate', () => {
+                const currentPath = window.location.pathname + window.location.search;
+                window.location.href = currentPath;
+            });
             
             // Auto-dismiss flash messages
             const flashMessages = document.querySelectorAll('.flash');
