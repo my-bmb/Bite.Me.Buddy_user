@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>{% block title %}Flask App{% endblock %}</title>
     
     <!-- BROWSER & MOBILE UI COLORS - DARK GRAY FOR BOTH MODES -->
@@ -24,8 +24,58 @@
     <!-- Force dark color scheme for bottom navigation bar -->
     <meta name="color-scheme" content="dark">
     
-    <!-- Minimal CSS - only for browser UI, NO font/text styling -->
+    <!-- CRITICAL: Anti-flicker preloader style - hides content until fully ready -->
     <style>
+        /* ANTI-FLICKER SYSTEM: Prevents flash of unstyled content and layout shifts */
+        #app-loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0a0a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            backdrop-filter: blur(2px);
+            transition: opacity 0.25s ease-out, visibility 0.25s ease-out;
+            opacity: 1;
+            visibility: visible;
+            pointer-events: none; /* allows clicking through if needed, but blocks visually */
+        }
+        
+        /* subtle loading spinner - minimal, no flicker */
+        .loader-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(135, 121, 78, 0.2);
+            border-top: 3px solid #87794e;
+            border-radius: 50%;
+            animation: spin 0.7s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
+            box-shadow: 0 0 8px rgba(135, 121, 78, 0.2);
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* ensure main content starts hidden until loader dismisses */
+        body.loaded #app-loader-overlay {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        /* prevent any FOUT (flash of unstyled text) while fonts load */
+        body:not(.fonts-loaded) {
+            visibility: hidden;
+        }
+        
+        body.fonts-loaded {
+            visibility: visible;
+        }
+        
         /* Force dark theme UI elements - ONLY for browser, NOT for content */
         :root {
             color-scheme: dark !important;
@@ -49,21 +99,71 @@
                 color-scheme: dark !important;
             }
         }
+        
+        /* Transition smoothing for dynamic updates - prevents cross-fade flicker */
+        .smooth-transition {
+            transition: opacity 0.2s ease-in-out;
+        }
+        
+        /* for dynamic content updates: avoids reflow flicker */
+        .no-flicker {
+            will-change: transform;
+            backface-visibility: hidden;
+        }
     </style>
     
     {% block head_meta %}{% endblock %}
     
-    <!-- Fonts and Icons - Let style.css handle all fonts -->
+    <!-- Fonts and Icons - Let style.css handle all fonts, but with preload hints to reduce flicker -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Inline script to handle font loading and prevent FOUT -->
+    <script>
+        // FONT LOADING DETECTION - eliminate font flicker
+        (function() {
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(function() {
+                    document.body.classList.add('fonts-loaded');
+                });
+            } else {
+                // fallback: set loaded after short timeout to avoid permanent hidden
+                setTimeout(function() {
+                    document.body.classList.add('fonts-loaded');
+                }, 200);
+            }
+            
+            // preloader removal after page fully painted - eliminates white/blank flicker
+            window.addEventListener('load', function() {
+                // tiny delay to ensure all CSS transitions are stable
+                setTimeout(function() {
+                    document.body.classList.add('loaded');
+                }, 50);
+            });
+            
+            // if DOM is already interactive before load, ensure loader visible style removal
+            if (document.readyState === 'interactive' || document.readyState === 'complete') {
+                setTimeout(function() {
+                    if (!document.body.classList.contains('loaded')) {
+                        document.body.classList.add('loaded');
+                    }
+                }, 100);
+            }
+        })();
+    </script>
 </head>
 <body>
+    <!-- ANTI-FLICKER LOADER OVERLAY - prevents initial render flicker -->
+    <div id="app-loader-overlay" aria-hidden="true">
+        <div class="loader-spinner"></div>
+    </div>
+    
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            <div class="flash-messages">
+            <div class="flash-messages" id="flash-messages-container">
                 {% for category, message in messages %}
                     <div class="flash flash-{{ category }}">
                         <i class="fas {% if category == 'success' %}fa-check-circle{% elif category == 'error' %}fa-exclamation-circle{% elif category == 'warning' %}fa-exclamation-triangle{% elif category == 'info' %}fa-info-circle{% else %}fa-bell{% endif %}"></i>
@@ -77,22 +177,354 @@
         {% endif %}
     {% endwith %}
     
-    <!-- Main Content Block -->
-    {% block content %}{% endblock %}
+    <!-- Main Content Block with smooth update wrapper -->
+    <main id="main-content-wrapper" class="no-flicker">
+        {% block content %}{% endblock %}
+    </main>
     
-    <!-- JavaScript -->
+    <!-- JavaScript with advanced flicker prevention for dynamic updates -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    {% block scripts %}{% endblock %}
     
+    <!-- Enhanced Flicker Prevention System: handles dynamic content updates without visual glitches -->
     <script>
         (function() {
-            // Apply dark theme to browser UI
+            // Apply dark theme to browser UI (persistent)
             if (window.matchMedia) {
                 const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
                 if (prefersLight) {
                     document.documentElement.style.colorScheme = 'dark';
                 }
             }
+            
+            // =========== ANTI-FLICKER DYNAMIC LOADING SYSTEM ===========
+            // This utility prevents flickering during AJAX/fetch based partial updates
+            // or any DOM manipulation that could cause layout thrashing.
+            
+            class FlickerGuard {
+                constructor() {
+                    this.activeTransitions = 0;
+                    this.transitionEndHandler = this.onTransitionEnd.bind(this);
+                    this.mutationObserver = null;
+                    this.setupMutationObserver();
+                }
+                
+                setupMutationObserver() {
+                    // Monitor DOM mutations that might cause layout flicker
+                    if (window.MutationObserver) {
+                        this.mutationObserver = new MutationObserver((mutations) => {
+                            mutations.forEach((mutation) => {
+                                // detect added nodes that might cause reflow
+                                if (mutation.type === 'childList' && mutation.addedNodes.length) {
+                                    // add temporary no-flicker class to new elements
+                                    mutation.addedNodes.forEach(node => {
+                                        if (node.nodeType === Node.ELEMENT_NODE) {
+                                            node.classList?.add('smooth-transition');
+                                            // remove class after transition to avoid memory bloat
+                                            if (node.style) {
+                                                node.style.willChange = 'transform';
+                                                setTimeout(() => {
+                                                    if (node.style) node.style.willChange = '';
+                                                    node.classList?.remove('smooth-transition');
+                                                }, 300);
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+                        });
+                        
+                        // observe the main content wrapper for dynamic updates
+                        const contentWrapper = document.getElementById('main-content-wrapper');
+                        if (contentWrapper) {
+                            this.mutationObserver.observe(contentWrapper, {
+                                childList: true,
+                                subtree: true,
+                                attributes: false
+                            });
+                        }
+                    }
+                }
+                
+                onTransitionEnd(e) {
+                    // cleanup after any forced transitions
+                    if (e.target.classList) {
+                        e.target.classList.remove('smooth-transition');
+                    }
+                    this.activeTransitions--;
+                }
+                
+                // Method to safely replace content without flicker
+                safeReplaceContent(newContentHTML, targetSelector = '#main-content-wrapper', preserveFocus = true) {
+                    return new Promise((resolve) => {
+                        const targetElement = typeof targetSelector === 'string' 
+                            ? document.querySelector(targetSelector) 
+                            : targetSelector;
+                            
+                        if (!targetElement) {
+                            console.warn('Target element not found for safeReplaceContent');
+                            resolve(false);
+                            return;
+                        }
+                        
+                        // Create a temporary container to parse new content without immediate DOM insertion
+                        const tempContainer = document.createElement('div');
+                        tempContainer.innerHTML = newContentHTML;
+                        
+                        // Extract the actual main content (if we are replacing inner of wrapper)
+                        let newContentFragment = document.createDocumentFragment();
+                        let newChildren = [];
+                        
+                        // For main wrapper replacement, we want to preserve structure but replace children
+                        if (targetSelector === '#main-content-wrapper' || targetElement.id === 'main-content-wrapper') {
+                            // Get children from temp container (should mirror the same structure)
+                            while (tempContainer.firstChild) {
+                                newChildren.push(tempContainer.firstChild);
+                            }
+                        } else {
+                            newChildren = Array.from(tempContainer.childNodes);
+                        }
+                        
+                        // Apply fade-out effect to avoid flicker
+                        targetElement.style.opacity = '0';
+                        targetElement.style.transition = 'opacity 0.12s ease-out';
+                        
+                        setTimeout(() => {
+                            // Clear existing children and append new ones
+                            while (targetElement.firstChild) {
+                                targetElement.removeChild(targetElement.firstChild);
+                            }
+                            
+                            newChildren.forEach(child => {
+                                if (child.nodeType === Node.ELEMENT_NODE) {
+                                    child.classList?.add('smooth-transition');
+                                }
+                                targetElement.appendChild(child);
+                            });
+                            
+                            // Force a small reflow to ensure styles apply (no flicker)
+                            void targetElement.offsetHeight;
+                            
+                            // Fade back in
+                            targetElement.style.opacity = '1';
+                            
+                            setTimeout(() => {
+                                targetElement.style.transition = '';
+                                // Re-run scripts inside new content if needed (for Flask forms/events)
+                                this.executeInlineScripts(targetElement);
+                                resolve(true);
+                            }, 130);
+                        }, 120);
+                    });
+                }
+                
+                executeInlineScripts(container) {
+                    // Re-attach any script tags that were dynamically added (to preserve functionality)
+                    const scripts = container.querySelectorAll('script');
+                    scripts.forEach(oldScript => {
+                        const newScript = document.createElement('script');
+                        if (oldScript.src) {
+                            newScript.src = oldScript.src;
+                            newScript.async = false;
+                        } else {
+                            newScript.textContent = oldScript.textContent;
+                        }
+                        // Copy any attributes
+                        Array.from(oldScript.attributes).forEach(attr => {
+                            newScript.setAttribute(attr.name, attr.value);
+                        });
+                        oldScript.parentNode.replaceChild(newScript, oldScript);
+                    });
+                }
+                
+                // Method to perform AJAX GET with loading indicator and no flicker
+                async fetchAndReplace(url, targetSelector = '#main-content-wrapper', showMiniLoader = true) {
+                    const targetElement = typeof targetSelector === 'string' 
+                        ? document.querySelector(targetSelector) 
+                        : targetSelector;
+                    
+                    if (!targetElement) return false;
+                    
+                    // optional mini loader overlay for dynamic loads (localized)
+                    let loaderIndicator = null;
+                    if (showMiniLoader) {
+                        loaderIndicator = document.createElement('div');
+                        loaderIndicator.style.cssText = `
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            background: rgba(0,0,0,0.7);
+                            border-radius: 32px;
+                            padding: 10px 18px;
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
+                            z-index: 1000;
+                            backdrop-filter: blur(6px);
+                            pointer-events: none;
+                        `;
+                        loaderIndicator.innerHTML = `<div class="loader-spinner" style="width:24px;height:24px;border-width:2px;"></div><span style="color:#ddd;font-size:0.9rem;">Loading...</span>`;
+                        targetElement.style.position = 'relative';
+                        targetElement.appendChild(loaderIndicator);
+                    }
+                    
+                    try {
+                        const response = await fetch(url, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Cache-Control': 'no-cache'
+                            }
+                        });
+                        if (!response.ok) throw new Error('Network error');
+                        const html = await response.text();
+                        await this.safeReplaceContent(html, targetSelector, true);
+                        return true;
+                    } catch (error) {
+                        console.error('Fetch replace error:', error);
+                        // optional: show flash message fallback
+                        const flashContainer = document.querySelector('.flash-messages');
+                        if (flashContainer) {
+                            const errorFlash = document.createElement('div');
+                            errorFlash.className = 'flash flash-error';
+                            errorFlash.innerHTML = `<i class="fas fa-exclamation-circle"></i><div class="flash-content"><span class="flash-title">ERROR!</span><span class="flash-message">Failed to load content. Please retry.</span></div>`;
+                            flashContainer.appendChild(errorFlash);
+                            setTimeout(() => errorFlash.remove(), 4000);
+                        }
+                        return false;
+                    } finally {
+                        if (loaderIndicator && loaderIndicator.parentNode) {
+                            loaderIndicator.remove();
+                        }
+                        if (targetElement) targetElement.style.position = '';
+                    }
+                }
+            }
+            
+            // Initialize global flicker guard instance
+            window.flickerGuard = new FlickerGuard();
+            
+            // Intercept all form submissions that are AJAX-based? optional. 
+            // But also enhance links that have 'data-ajax-load' attribute
+            document.addEventListener('click', function(e) {
+                const link = e.target.closest('a');
+                if (link && link.hasAttribute('data-ajax-load')) {
+                    e.preventDefault();
+                    const url = link.getAttribute('href');
+                    const target = link.getAttribute('data-target') || '#main-content-wrapper';
+                    if (url && !url.startsWith('#')) {
+                        // show micro loader without full page refresh (prevent flicker)
+                        window.flickerGuard.fetchAndReplace(url, target, true);
+                    }
+                }
+            });
+            
+            // Register a helper for flask/jinja template dynamic loading (like for pagination, filter)
+            window.preventFlickerUpdate = function(url, targetElement = '#main-content-wrapper') {
+                return window.flickerGuard.fetchAndReplace(url, targetElement, true);
+            };
+            
+            // Auto detect any flash messages auto-dismiss with transition to avoid flicker removal
+            const flashMessages = document.querySelectorAll('.flash');
+            if (flashMessages.length) {
+                setTimeout(() => {
+                    flashMessages.forEach(flash => {
+                        flash.style.transition = 'opacity 0.3s ease-out, transform 0.2s';
+                        setTimeout(() => {
+                            flash.style.opacity = '0';
+                            flash.style.transform = 'translateY(-8px)';
+                            setTimeout(() => {
+                                if (flash.parentNode) flash.remove();
+                            }, 280);
+                        }, 3500);
+                    });
+                }, 800);
+            }
+            
+            // ========== Additional technique: Ensure that on any dynamic form POST without full reload, 
+            // we handle gracefully. Override any traditional form submit that might cause flicker
+            const formsWithAjax = document.querySelectorAll('form[data-ajax-submit]');
+            formsWithAjax.forEach(form => {
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const formData = new FormData(form);
+                    const actionUrl = form.action || window.location.href;
+                    const method = form.method.toUpperCase() || 'POST';
+                    const target = form.getAttribute('data-target') || '#main-content-wrapper';
+                    
+                    // Show loading indicator within form area (mini)
+                    const submitBtn = form.querySelector('[type="submit"]');
+                    const originalText = submitBtn?.innerHTML;
+                    if (submitBtn) submitBtn.disabled = true;
+                    
+                    try {
+                        const response = await fetch(actionUrl, {
+                            method: method,
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        });
+                        const resultHtml = await response.text();
+                        await window.flickerGuard.safeReplaceContent(resultHtml, target);
+                        // update browser URL without flicker (if needed)
+                        if (response.url && response.url !== window.location.href && !form.getAttribute('data-no-pushstate')) {
+                            window.history.pushState({}, '', response.url);
+                        }
+                    } catch (err) {
+                        console.error('ajax form error', err);
+                    } finally {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            if (originalText) submitBtn.innerHTML = originalText;
+                        }
+                    }
+                });
+            });
+            
+            // ensure that any popstate (back/forward) works without flicker
+            window.addEventListener('popstate', async function(event) {
+                const currentPath = window.location.pathname + window.location.search;
+                await window.flickerGuard.fetchAndReplace(currentPath, '#main-content-wrapper', true);
+            });
+            
+            // load additional script for on-demand initialization: ensures that any late-bound components
+            // do not cause flicker.
+            if (typeof window.enhancePageComponents === 'undefined') {
+                window.enhancePageComponents = function(container) {
+                    // re-bind any dynamic elements if needed
+                    const dynamicLinks = container?.querySelectorAll('[data-ajax-load]') || document.querySelectorAll('[data-ajax-load]');
+                    // just a placeholder to avoid undefined errors
+                };
+            }
+        })();
+    </script>
+    
+    <!-- final safe loading: additional check to ensure loader disappears on any edge case -->
+    <noscript>
+        <style>
+            #app-loader-overlay { display: none; }
+            body { visibility: visible; }
+        </style>
+    </noscript>
+    
+    {% block scripts %}{% endblock %}
+    
+    <!-- legacy fallback to avoid any white flash -->
+    <script>
+        (function ultimateAntiFlicker() {
+            if (document.readyState === 'complete') {
+                if (!document.body.classList.contains('loaded')) {
+                    document.body.classList.add('loaded');
+                }
+            }
+            // Edge case: remove overlay manually if load event somehow missed
+            window.addEventListener('pageshow', function(event) {
+                if (event.persisted) {
+                    document.body.classList.add('loaded');
+                    const overlay = document.getElementById('app-loader-overlay');
+                    if (overlay) overlay.style.display = 'none';
+                }
+            });
         })();
     </script>
 </body>
