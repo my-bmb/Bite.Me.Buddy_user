@@ -3,6 +3,53 @@
 {% block title %}{{ service.name }} - Service Details{% endblock %}
 
 {% block content %}
+<!-- ANTI-FLICKER: Critical inline styles that load immediately -->
+<style>
+    /* CRITICAL CSS - Loads instantly to prevent FOUC */
+    .dashboard {
+        min-height: 100vh;
+        background: #0D0D0D;
+    }
+    
+    .main-content {
+        flex: 1;
+        padding: 78px 5px 100px 5px;
+        overflow-y: auto;
+        max-width: 1200px;
+        margin: 0 auto;
+        width: 100%;
+        background: #0D0D0D;
+    }
+    
+    .service-detail-container {
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    
+    .service-detail-container.loaded {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    .category-services-section,
+    .browse-collection-section {
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    
+    .category-services-section.loaded,
+    .browse-collection-section.loaded {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    body {
+        background: #0D0D0D;
+    }
+</style>
+
 <div class="dashboard">
     <!-- Top Header -->
     <header class="dashboard-header">
@@ -157,6 +204,27 @@
 </div>
 
 <script>
+// Anti-flicker script - runs immediately
+(function() {
+    function addLoadedClasses() {
+        // Add loaded class to service detail container
+        const serviceDetail = document.querySelector('.service-detail-container');
+        if (serviceDetail) serviceDetail.classList.add('loaded');
+        
+        // Add loaded class to all sections
+        const sections = document.querySelectorAll('.category-services-section, .browse-collection-section');
+        sections.forEach(section => section.classList.add('loaded'));
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(addLoadedClasses, 10);
+        });
+    } else {
+        setTimeout(addLoadedClasses, 10);
+    }
+})();
+
 function addServiceToCart(serviceId) {
     fetch('/add_to_cart', {
         method: 'POST',
@@ -234,6 +302,7 @@ function closeBookingNotification() {
     max-width: 1200px;
     margin: 0 auto;
     width: 100%;
+    background: var(--matte-black);
 }
 
 /* ========== SERVICE DETAIL SECTION - STACKED VERTICAL (PHOTO TOP, DETAILS BELOW) ========== */
@@ -248,6 +317,7 @@ function closeBookingNotification() {
     margin-bottom: 25px;
     padding: 16px;
     box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease, opacity 0.2s ease, transform 0.2s ease;
 }
 
 /* FIXED ASPECT RATIO FOR PHOTO - 4:3 FOR ALL DEVICES (SAME RATIO MAINTAINED) */
@@ -424,6 +494,7 @@ function closeBookingNotification() {
 .category-services-section,
 .browse-collection-section {
     margin-bottom: 30px;
+    transition: all 0.3s ease, opacity 0.2s ease, transform 0.2s ease;
 }
 
 /* ========== HORIZONTAL SCROLL CONTAINERS ========== */
