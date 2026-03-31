@@ -3,50 +3,22 @@
 {% block title %}{{ service.name }} - Service Details{% endblock %}
 
 {% block content %}
-<!-- ANTI-FLICKER: Critical inline styles that load immediately -->
+<!-- ANTI-FLICKER: Body-level fade - loads instantly, no FOUC -->
 <style>
-    /* CRITICAL CSS - Loads instantly to prevent FOUC */
-    .dashboard {
-        min-height: 100vh;
-        background: #0D0D0D;
-    }
-    
-    .main-content {
-        flex: 1;
-        padding: 78px 5px 100px 5px;
-        overflow-y: auto;
-        max-width: 1200px;
-        margin: 0 auto;
-        width: 100%;
-        background: #0D0D0D;
-    }
-    
-    .service-detail-container {
-        opacity: 0;
-        transform: translateY(10px);
-        transition: opacity 0.2s ease, transform 0.2s ease;
-    }
-    
-    .service-detail-container.loaded {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    
-    .category-services-section,
-    .browse-collection-section {
-        opacity: 0;
-        transform: translateY(10px);
-        transition: opacity 0.2s ease, transform 0.2s ease;
-    }
-    
-    .category-services-section.loaded,
-    .browse-collection-section.loaded {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    
+    /* Critical CSS - loads immediately */
     body {
+        opacity: 0;
+        transition: opacity 0.2s ease-in;
         background: #0D0D0D;
+    }
+    
+    body.loaded {
+        opacity: 1;
+    }
+    
+    .dashboard {
+        background: #0D0D0D;
+        min-height: 100vh;
     }
 </style>
 
@@ -81,8 +53,7 @@
                     {% endif %}
                 </div>
                 
-                <!-- ✅ Description with safe rendering - ORIGINAL SETTINGS PRESERVED -->
-                <!-- HTML, CSS, JavaScript in description will render properly -->
+                <!-- Description with safe rendering - NO CARD, NO SCROLLING, NATURAL FLOW -->
                 <div class="service-detail-description">
                     {{ service.description | safe if service.description else '' }}
                 </div>
@@ -207,26 +178,17 @@
 <script>
 // Anti-flicker script - runs immediately
 (function() {
-    function addLoadedClasses() {
-        // Add loaded class to service detail container
-        const serviceDetail = document.querySelector('.service-detail-container');
-        if (serviceDetail) serviceDetail.classList.add('loaded');
-        
-        // Add loaded class to all sections with staggered delay
-        const sections = document.querySelectorAll('.category-services-section, .browse-collection-section');
-        sections.forEach((section, index) => {
-            setTimeout(() => {
-                section.classList.add('loaded');
-            }, index * 5); // Staggered animation (5ms between each)
-        });
-    }
-    
+    // Add loaded class to body after a tiny delay
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(addLoadedClasses, 10);
+            setTimeout(function() {
+                document.body.classList.add('loaded');
+            }, 10);
         });
     } else {
-        setTimeout(addLoadedClasses, 10);
+        setTimeout(function() {
+            document.body.classList.add('loaded');
+        }, 10);
     }
 })();
 
@@ -307,7 +269,6 @@ function closeBookingNotification() {
     max-width: 1200px;
     margin: 0 auto;
     width: 100%;
-    background: var(--matte-black);
 }
 
 /* ========== SERVICE DETAIL SECTION - STACKED VERTICAL (PHOTO TOP, DETAILS BELOW) ========== */
@@ -322,10 +283,9 @@ function closeBookingNotification() {
     margin-bottom: 25px;
     padding: 16px;
     box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
-    transition: all 0.3s ease, opacity 0.2s ease, transform 0.2s ease;
 }
 
-/* FIXED ASPECT RATIO FOR PHOTO - 4:3 FOR ALL DEVICES */
+/* FIXED ASPECT RATIO FOR PHOTO - 4:3 FOR ALL DEVICES (SAME RATIO MAINTAINED) */
 .service-detail-photo {
     width: 100%;
     aspect-ratio: 4 / 3;
@@ -369,8 +329,7 @@ function closeBookingNotification() {
     border: 1px solid rgba(192, 178, 131, 0.3);
 }
 
-/* ========== DESCRIPTION STYLES - ORIGINAL SETTINGS PRESERVED ========== */
-/* ✅ This section allows HTML, CSS, JavaScript to render properly */
+/* ========== DESCRIPTION STYLES - NO CARD, NO SCROLLING, NATURAL FLOW ========== */
 .service-detail-description {
     width: 100%;
     color: var(--silver-mist);
@@ -384,7 +343,6 @@ function closeBookingNotification() {
     overflow: visible;
 }
 
-/* Allow embedded content to render properly */
 .service-detail-description * {
     max-width: 100%;
 }
@@ -396,14 +354,8 @@ function closeBookingNotification() {
 }
 
 .service-detail-description iframe,
-.service-detail-description video,
-.service-detail-description embed {
+.service-detail-description video {
     max-width: 100%;
-}
-
-/* Allow custom styles from description */
-.service-detail-description style {
-    display: none;
 }
 
 /* ========== ADD TO CART BUTTON - FULL WIDTH ON DESKTOP ========== */
@@ -507,7 +459,6 @@ function closeBookingNotification() {
 .category-services-section,
 .browse-collection-section {
     margin-bottom: 30px;
-    transition: all 0.3s ease, opacity 0.2s ease, transform 0.2s ease;
 }
 
 /* ========== HORIZONTAL SCROLL CONTAINERS ========== */
@@ -760,7 +711,7 @@ function closeBookingNotification() {
     }
 }
 
-/* ========== NOTIFICATION - ORIGINAL SIZE ========== */
+/* ========== NOTIFICATION - ORIGINAL SIZE (NOT COMPACT) ========== */
 .booking-notification-fixed {
     position: fixed;
     top: -100px;
@@ -904,6 +855,7 @@ function closeBookingNotification() {
         padding: 2px 0;
     }
     
+    /* Mobile button also full width */
     .btn-service-detail-add {
         width: 100%;
         justify-content: center;
