@@ -3,6 +3,20 @@
 {% block title %}Checkout{% endblock %}
 
 {% block content %}
+<!-- ANTI-FLICKER: Body-level fade - loads instantly, no FOUC -->
+<style>
+    /* Critical CSS - loads immediately */
+    body {
+        opacity: 0;
+        transition: opacity 0.2s ease-in;
+        background: #0D0D0D;
+    }
+    
+    body.loaded {
+        opacity: 1;
+    }
+</style>
+
 <div class="dashboard">
     <header class="dashboard-header">
         <div class="header-left">
@@ -1843,6 +1857,22 @@ body {
 </style>
 
 <script>
+// Anti-flicker script - runs immediately
+(function() {
+    // Add loaded class to body after a tiny delay
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                document.body.classList.add('loaded');
+            }, 10);
+        });
+    } else {
+        setTimeout(function() {
+            document.body.classList.add('loaded');
+        }, 10);
+    }
+})();
+
 document.addEventListener('DOMContentLoaded', function() {
     const getLocationBtn = document.getElementById('getLocationBtn');
     const locationMessage = document.getElementById('locationMessage');
