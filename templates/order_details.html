@@ -3,6 +3,20 @@
 {% block title %}Order #{{ order.order_no }} Details{% endblock %}
 
 {% block content %}
+<!-- ANTI-FLICKER: Body-level fade - loads instantly, no FOUC -->
+<style>
+    /* Critical CSS - loads immediately */
+    body {
+        opacity: 0;
+        transition: opacity 0.2s ease-in;
+        background: #0D0D0D;
+    }
+    
+    body.loaded {
+        opacity: 1;
+    }
+</style>
+
 <div class="dashboard">
     <!-- Top Header - Order.html की तरह -->
     <header class="dashboard-header">
@@ -1493,6 +1507,22 @@ body {
 
 <!-- JavaScript for Order Details -->
 <script>
+// Anti-flicker script - runs immediately
+(function() {
+    // Add loaded class to body after a tiny delay
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                document.body.classList.add('loaded');
+            }, 10);
+        });
+    } else {
+        setTimeout(function() {
+            document.body.classList.add('loaded');
+        }, 10);
+    }
+})();
+
 // Government Style Invoice Function - COMPLETE VERSION
 function generateGovernmentInvoice() {
     const orderId = '{{ order.order_id }}';
