@@ -3,6 +3,54 @@
 {% block title %}Services{% endblock %}
 
 {% block content %}
+<!-- ANTI-FLICKER: Critical inline styles that load immediately -->
+<style>
+    /* CRITICAL CSS - Loads instantly to prevent FOUC */
+    .main-content {
+        flex: 1;
+        padding: 86px 24px 100px;
+        overflow-y: auto;
+        background: #0D0D0D;
+        min-height: 100vh;
+    }
+    
+    .collections-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+        background: #0D0D0D;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+    }
+    
+    .collection-item {
+        background: #1A1A1A;
+        border-radius: 12px;
+        border: 1px solid #333333;
+        overflow: hidden;
+        height: auto;
+        min-height: 220px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    
+    /* Prevent any layout shift */
+    .dashboard {
+        min-height: 100vh;
+        background: #0D0D0D;
+    }
+    
+    /* Hide content until fully styled */
+    .collection-item.loaded {
+        opacity: 1;
+        transform: translateY(0);
+    }
+</style>
+
 <div class="dashboard">
     <!-- Top Header -->
     <header class="dashboard-header">
@@ -109,40 +157,20 @@
     --card-shadow: 0 6px 25px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Main Content - Proper Spacing from Edges */
+/* Override critical inline styles with full styles */
 .main-content {
-    flex: 1;
-    padding: 86px 24px 100px;
-    overflow-y: auto;
-    background: var(--matte-black);
-    min-height: 100vh;
+    transition: none; /* Prevent transition flicker */
 }
 
-/* Collections Container */
-.collections-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
-    background: var(--matte-black);
-    margin: 0;
-    padding: 0;
-    width: 100%;
-}
-
-/* Collection Cards */
 .collection-item {
-    background: var(--onyx-black);
-    border-radius: 12px;
-    border: 1px solid var(--dark-border);
-    transition: all 0.3s ease;
-    overflow: hidden;
+    transition: all 0.3s ease, opacity 0.2s ease, transform 0.2s ease;
     cursor: pointer;
-    height: auto;
-    min-height: 220px;
-    display: flex;
-    flex-direction: column;
-    position: relative;
     box-shadow: var(--card-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.collection-item.loaded {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .collection-item:hover {
@@ -669,9 +697,39 @@
         padding: 6px 8px !important;
     }
 }
+
+/* Prevent FOUC - ensure content is visible */
+body {
+    background: #0D0D0D;
+}
+
+.dashboard {
+    background: #0D0D0D;
+    min-height: 100vh;
+}
 </style>
 
 <script>
+// Anti-flicker script - runs immediately
+(function() {
+    // Add loaded class to all collection items after a tiny delay
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                document.querySelectorAll('.collection-item').forEach(function(item) {
+                    item.classList.add('loaded');
+                });
+            }, 10);
+        });
+    } else {
+        setTimeout(function() {
+            document.querySelectorAll('.collection-item').forEach(function(item) {
+                item.classList.add('loaded');
+            });
+        }, 10);
+    }
+})();
+
 document.addEventListener('DOMContentLoaded', function() {
     // Handle card click - whole collection card
     const collectionCards = document.querySelectorAll('.collection-item');
