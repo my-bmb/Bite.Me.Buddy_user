@@ -3,6 +3,20 @@
 {% block title %}Order History{% endblock %}
 
 {% block content %}
+<!-- ANTI-FLICKER: Body-level fade - loads instantly, no FOUC -->
+<style>
+    /* Critical CSS - loads immediately */
+    body {
+        opacity: 0;
+        transition: opacity 0.2s ease-in;
+        background: #0D0D0D;
+    }
+    
+    body.loaded {
+        opacity: 1;
+    }
+</style>
+
 <div class="dashboard">
     <!-- Top Header -->
     <header class="dashboard-header">
@@ -50,13 +64,12 @@
                     <button class="message-close" onclick="this.parentElement.style.display='none'">
                         <i class="fas fa-times"></i>
                     </button>
-                    <!-- ✅ Auto-hide progress bar -->
                     <div class="message-progress"></div>
                 </div>
             </div>
             {% endif %}
 
-            <!-- ✅ UPDATED: Collapsible Stats Section - BRONZE THEME -->
+            <!-- Collapsible Stats Section - BRONZE THEME -->
             <div class="collapsible-stats">
                 <div class="stats-summary" onclick="toggleStats()">
                     <div class="summary-line">
@@ -106,7 +119,7 @@
                 </div>
             </div>
 
-            <!-- ✅ Two-column square system like Cart.html -->
+            <!-- Two-column square system like Cart.html -->
             <div class="orders-square-container">
                 {% for order in orders %}
                     <div class="order-square-card">
@@ -136,7 +149,7 @@
                             </div>
                         </div>
                         
-                        <!-- Order Items Section - SQUARE LAYOUT -->
+                        <!-- Order Items Section - SQUARE LAYOUT (NO DESCRIPTION) -->
                         <div class="order-square-items">
                             <h4 class="square-section-title">
                                 <i class="fas fa-box"></i>
@@ -146,7 +159,7 @@
                             {% if order['items'] and order['items']|length > 0 %}
                                 <div class="order-square-items-list">
                                     {% for item in order['items'] %}
-                                        <!-- ✅ Two-column square system -->
+                                        <!-- Two-column square system - NO DESCRIPTION -->
                                         <div class="order-item-square-row">
                                             <!-- Left Square: Photo -->
                                             <div class="order-item-square-photo">
@@ -173,7 +186,7 @@
                                                 {% endif %}
                                             </div>
                                             
-                                            <!-- Right Square: Details -->
+                                            <!-- Right Square: Details - NO DESCRIPTION -->
                                             <div class="order-item-square-details">
                                                 <div class="square-item-header">
                                                     <h4 class="square-item-name">{{ item.name|default(item.item_name|default('Unknown Item'))|truncate(25) }}</h4>
@@ -183,11 +196,7 @@
                                                     </div>
                                                 </div>
                                                 
-                                                {% if item.description or item.item_description %}
-                                                <p class="square-item-description">
-                                                    {{ item.description|default(item.item_description|default(''))|truncate(60) }}
-                                                </p>
-                                                {% endif %}
+                                                <!-- ✅ DESCRIPTION REMOVED - No description here -->
                                                 
                                                 <div class="square-item-meta">
                                                     <div class="square-item-quantity">
@@ -222,7 +231,7 @@
                             {% endif %}
                         </div>
                         
-                        <!-- ✅ Order Summary with delivery below payment -->
+                        <!-- Order Summary with delivery below payment -->
                         <div class="order-square-summary">
                             <div class="summary-grid">
                                 <div class="summary-item">
@@ -254,7 +263,7 @@
                 {% endfor %}
             </div>
         {% else %}
-            <!-- ✅ Backend message for empty state -->
+            <!-- Backend message for empty state -->
             {% if request.args.get('success') %}
             <div class="backend-message-container">
                 <div class="backend-message success">
@@ -268,13 +277,12 @@
                     <button class="message-close" onclick="this.parentElement.style.display='none'">
                         <i class="fas fa-times"></i>
                     </button>
-                    <!-- ✅ Auto-hide progress bar -->
                     <div class="message-progress"></div>
                 </div>
             </div>
             {% endif %}
 
-            <!-- ✅ COMPACT EMPTY STATE - BRONZE THEME -->
+            <!-- COMPACT EMPTY STATE - BRONZE THEME -->
             <div class="empty-state-container">
                 <div class="empty-state-card">
                     <div class="empty-state-icon">
@@ -1074,16 +1082,7 @@ body {
     border-color: rgba(160, 160, 160, 0.3);
 }
 
-.square-item-description {
-    color: var(--service-title);
-    font-size: 0.85rem;
-    margin: 4px 0 10px 0;
-    line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
+/* ✅ DESCRIPTION REMOVED - No description section here */
 
 .square-item-meta {
     display: flex;
@@ -1553,11 +1552,6 @@ body {
         padding: 2px 6px;
     }
     
-    .square-item-description {
-        font-size: 0.8rem;
-        -webkit-line-clamp: 1;
-    }
-    
     .square-item-meta {
         flex-direction: row;
         gap: 15px;
@@ -1666,11 +1660,6 @@ body {
     .square-item-type {
         font-size: 0.6rem;
         padding: 1px 5px;
-    }
-    
-    .square-item-description {
-        font-size: 0.75rem;
-        margin: 2px 0 6px 0;
     }
     
     .square-item-meta {
@@ -1788,10 +1777,6 @@ body {
     .square-item-type {
         font-size: 0.55rem;
         padding: 1px 4px;
-    }
-    
-    .square-item-description {
-        font-size: 0.7rem;
     }
     
     .square-item-meta {
@@ -1916,8 +1901,24 @@ body {
 }
 </style>
 
-<!-- JavaScript functions (unchanged) -->
+<!-- JavaScript functions -->
 <script>
+// Anti-flicker script - runs immediately
+(function() {
+    // Add loaded class to body after a tiny delay
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                document.body.classList.add('loaded');
+            }, 10);
+        });
+    } else {
+        setTimeout(function() {
+            document.body.classList.add('loaded');
+        }, 10);
+    }
+})();
+
 // Toggle stats section
 function toggleStats() {
     const statsContent = document.getElementById('stats-content');
