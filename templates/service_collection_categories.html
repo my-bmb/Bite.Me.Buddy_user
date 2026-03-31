@@ -3,60 +3,22 @@
 {% block title %}{{ collection.name }} - Service Categories{% endblock %}
 
 {% block content %}
-<!-- ANTI-FLICKER: Critical inline styles that load immediately -->
+<!-- ANTI-FLICKER: Body-level fade - loads instantly, no FOUC -->
 <style>
-    /* CRITICAL CSS - Loads instantly to prevent FOUC */
-    .dashboard {
-        min-height: 100vh;
-        background: #0D0D0D;
-    }
-    
-    .main-content {
-        flex: 1;
-        padding: 78px 5px 100px 5px;
-        overflow-y: auto;
-        max-width: 1200px;
-        margin: 0 auto;
-        width: 100%;
-        background: #0D0D0D;
-    }
-    
-    .categories-container {
-        opacity: 1;
-    }
-    
-    .category-item {
-        background: #1A1A1A;
-        border-radius: 10px;
-        border: 1px solid #333333;
-        overflow: hidden;
-        height: auto;
-        min-height: 165px;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    
-    .category-item.loaded {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    
-    .browse-collections-section {
-        opacity: 0;
-        transform: translateX(5px);
-        transition: opacity 0.2s ease, transform 0.2s ease;
-    }
-    
-    .browse-collections-section.loaded {
-        opacity: 1;
-        transform: translateX(0);
-    }
-    
+    /* Critical CSS - loads immediately */
     body {
+        opacity: 0;
+        transition: opacity 0.2s ease-in;
         background: #0D0D0D;
+    }
+    
+    body.loaded {
+        opacity: 1;
+    }
+    
+    .dashboard {
+        background: #0D0D0D;
+        min-height: 100vh;
     }
 </style>
 
@@ -149,10 +111,11 @@
     </div>
     {% endif %}
 
-    <!-- Bottom Navigation - SERVICES TAB ACTIVE -->
+    <!-- Bottom Navigation - SERVICES TAB ACTIVE with updated transform values -->
     <nav class="bottom-nav">
         <a href="{{ url_for('services') }}" class="nav-item active" style="background: linear-gradient(135deg, var(--champagne-primary), var(--champagne-light)) !important; color: var(--matte-black-darkest) !important; transform: translateY(-3px) !important; box-shadow: 0 6px 15px rgba(192, 178, 131, 0.3) !important; position: relative !important;">
             <i class="fas fa-concierge-bell" style="color: var(--matte-black-darkest) !important;"></i><span style="color: var(--matte-black-darkest) !important;">Services</span>
+            <!-- Underline line for active state - exact style.css dimensions -->
             <span class="active-underline"></span>
         </a>
         <a href="{{ url_for('menu') }}" class="nav-item">
@@ -173,26 +136,17 @@
 <script>
 // Anti-flicker script - runs immediately
 (function() {
-    function addLoadedClasses() {
-        // Add loaded class to all category items
-        const categoryItems = document.querySelectorAll('.category-item');
-        categoryItems.forEach((item, index) => {
-            setTimeout(() => {
-                item.classList.add('loaded');
-            }, index * 5); // Staggered animation
-        });
-        
-        // Add loaded class to collections sidebar
-        const collectionsSidebar = document.querySelector('.browse-collections-section');
-        if (collectionsSidebar) collectionsSidebar.classList.add('loaded');
-    }
-    
+    // Add loaded class to body after a tiny delay
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(addLoadedClasses, 10);
+            setTimeout(function() {
+                document.body.classList.add('loaded');
+            }, 10);
         });
     } else {
-        setTimeout(addLoadedClasses, 10);
+        setTimeout(function() {
+            document.body.classList.add('loaded');
+        }, 10);
     }
 })();
 
@@ -216,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const viewButtons = document.querySelectorAll('.btn-view-category');
     viewButtons.forEach(button => {
         button.addEventListener('click', function(e) {
-            e.stopPropagation();
+            e.stopPropagation(); // Stop event from bubbling to parent
             const categoryId = this.dataset.categoryId;
             if (categoryId) {
                 window.location.href = `/service-category-services/${categoryId}`;
@@ -267,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function() {
     background: var(--onyx-black);
     border-radius: 10px;
     border: 1px solid var(--dark-border);
-    transition: all 0.3s ease, opacity 0.2s ease, transform 0.2s ease;
+    transition: all 0.3s ease;
     overflow: hidden;
     cursor: pointer;
     height: auto;
@@ -509,7 +463,6 @@ document.addEventListener('DOMContentLoaded', function() {
     overflow-y: auto;
     overflow-x: hidden;
     padding: 8px 5px;
-    transition: all 0.3s ease, opacity 0.2s ease, transform 0.2s ease;
 }
 
 .browse-collections-section::-webkit-scrollbar {
@@ -651,7 +604,10 @@ document.addEventListener('DOMContentLoaded', function() {
     text-shadow: 0 0 2px rgba(192, 178, 131, 0.3);
 }
 
-/* ========== ACTIVE TAB UNDERLINE ========== */
+/* ========== ACTIVE TAB UNDERLINE - EXACT style.css DIMENSIONS ========== */
+/* Exact match with style.css underline styles */
+
+/* Desktop - No underline in style.css, but adding for consistency */
 .active-underline {
     position: absolute;
     bottom: -3px;
@@ -665,10 +621,17 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 @keyframes slideIn {
-    from { width: 0; opacity: 0; }
-    to { width: 24px; opacity: 1; }
+    from {
+        width: 0;
+        opacity: 0;
+    }
+    to {
+        width: 24px;
+        opacity: 1;
+    }
 }
 
+/* Mobile version - exactly matches style.css */
 @media (max-width: 480px) {
     .active-underline {
         bottom: -3px !important;
@@ -677,7 +640,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 }
 
-/* ========== BOTTOM NAVIGATION OVERRIDE ========== */
+/* ========== IMPORTANT: BOTTOM NAVIGATION OVERRIDE FOR ACTIVE SERVICES TAB ========== */
+/* These styles will override the base.css to ensure Services tab is properly highlighted */
+
+/* Desktop and Tablet - 3px up */
 .bottom-nav .nav-item.active {
     background: linear-gradient(135deg, var(--champagne-primary), var(--champagne-light)) !important;
     color: var(--matte-black-darkest) !important;
@@ -691,6 +657,7 @@ document.addEventListener('DOMContentLoaded', function() {
     color: var(--matte-black-darkest) !important;
 }
 
+/* Ensure other nav items don't get affected */
 .bottom-nav .nav-item:not(.active) {
     background: transparent !important;
     color: var(--text-charcoal) !important;
@@ -704,6 +671,7 @@ document.addEventListener('DOMContentLoaded', function() {
     transform: translateY(-3px) !important;
 }
 
+/* Mobile - 1.5px up */
 @media (max-width: 480px) {
     .bottom-nav .nav-item.active {
         transform: translateY(-1.5px) !important;
@@ -825,6 +793,7 @@ document.addEventListener('DOMContentLoaded', function() {
         font-size: 7px !important;
     }
     
+    /* Collections Sidebar - Mobile */
     .browse-collections-section {
         top: 60px;
         bottom: 60px;
