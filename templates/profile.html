@@ -3,6 +3,20 @@
 {% block title %}Profile{% endblock %}
 
 {% block content %}
+<!-- ANTI-FLICKER: Body-level fade - loads instantly, no FOUC -->
+<style>
+    /* Critical CSS - loads immediately */
+    body {
+        opacity: 0;
+        transition: opacity 0.2s ease-in;
+        background: #0D0D0D;
+    }
+    
+    body.loaded {
+        opacity: 1;
+    }
+</style>
+
 <div class="dashboard">
     <!-- TOP HEADER - EXACTLY LIKE CART PAGE (FONT STYLE.CSS SE) -->
     <header class="dashboard-header">
@@ -47,7 +61,6 @@
                     <span class="profile-text">{{ session.phone or 'Not set' }}</span>
                 </div>
                 
-                <!-- ✅ SIMPLIFIED: Joined date directly from session -->
                 <div class="profile-member-instagram">
                     <i class="fas fa-calendar"></i>
                     <span class="profile-text">
@@ -206,8 +219,97 @@
     </nav>
 </div>
 
+<script>
+// Anti-flicker script - runs immediately
+(function() {
+    // Add loaded class to body after a tiny delay
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                document.body.classList.add('loaded');
+            }, 10);
+        });
+    } else {
+        setTimeout(function() {
+            document.body.classList.add('loaded');
+        }, 10);
+    }
+})();
+
+// Show/hide edit form
+function showEditForm() {
+    document.getElementById('editForm').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function hideEditForm() {
+    document.getElementById('editForm').style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Preview image
+function previewImage(event) {
+    const reader = new FileReader();
+    reader.onload = function() {
+        document.querySelector('.profile-img-instagram').src = reader.result;
+        document.querySelector('.profile-pic').src = reader.result;
+    }
+    reader.readAsDataURL(event.target.files[0]);
+}
+
+// Get location
+function getLocation() {
+    if (!navigator.geolocation) {
+        alert('Geolocation not supported');
+        return;
+    }
+    
+    const locationInput = document.querySelector('input[name="location"]');
+    const originalPlaceholder = locationInput.placeholder;
+    locationInput.placeholder = 'Getting location...';
+    
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            
+            fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
+                .then(response => response.json())
+                .then(data => {
+                    locationInput.value = data.display_name || `${lat}, ${lon}`;
+                    locationInput.placeholder = originalPlaceholder;
+                })
+                .catch(() => {
+                    locationInput.value = `${lat}, ${lon}`;
+                    locationInput.placeholder = originalPlaceholder;
+                });
+        },
+        function(error) {
+            alert('Unable to get location');
+            locationInput.placeholder = originalPlaceholder;
+        }
+    );
+}
+
+// DOM Ready
+document.addEventListener('DOMContentLoaded', function() {
+    const avatarEditBtn = document.querySelector('.avatar-edit-instagram');
+    if (avatarEditBtn) {
+        avatarEditBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('profile_pic').click();
+        });
+    }
+    
+    const profilePicInput = document.getElementById('profile_pic');
+    if (profilePicInput) {
+        profilePicInput.addEventListener('change', previewImage);
+    }
+});
+</script>
+
 <style>
-/* ===== PREMIUM PROFESSIONAL THEME - INSTAGRAM STYLE 2-COLUMN ===== */
+/* ===== MAIN CONTENT STYLES - ONLY FOR PROFILE PAGE ===== */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
@@ -236,40 +338,6 @@
     margin: 0 auto;
     padding-bottom: 80px;
     min-height: 100vh;
-}
-
-/* ===== HEADER - THINNER BORDER ===== */
-.dashboard-header {
-    background: var(--service-card-base);
-    padding: 16px 20px;
-    border-bottom: 0.2px solid var(--service-border-detail);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.header-left h1 {
-    color: var(--creamy-white);
-    margin: 0 0 4px 0;
-}
-
-.welcome-text {
-    color: var(--service-title);
-    margin: 0;
-}
-
-.profile-pic {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 1.5px solid var(--service-icon);
-    transition: all 0.3s ease;
-}
-
-.profile-pic:hover {
-    border-color: var(--golden-vivid);
-    box-shadow: var(--bronze-glow);
 }
 
 /* ===== INSTAGRAM 2-COLUMN PROFILE ===== */
@@ -665,15 +733,6 @@
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 480px) {
-    .dashboard-header {
-        padding: 12px 16px;
-    }
-    
-    .profile-pic {
-        width: 36px;
-        height: 36px;
-    }
-    
     .profile-header-instagram {
         padding: 20px 16px;
         gap: 16px;
@@ -740,77 +799,4 @@
     }
 }
 </style>
-
-<script>
-// Show/hide edit form
-function showEditForm() {
-    document.getElementById('editForm').style.display = 'block';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function hideEditForm() {
-    document.getElementById('editForm').style.display = 'none';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// Preview image
-function previewImage(event) {
-    const reader = new FileReader();
-    reader.onload = function() {
-        document.querySelector('.profile-img-instagram').src = reader.result;
-        document.querySelector('.profile-pic').src = reader.result;
-    }
-    reader.readAsDataURL(event.target.files[0]);
-}
-
-// Get location
-function getLocation() {
-    if (!navigator.geolocation) {
-        alert('Geolocation not supported');
-        return;
-    }
-    
-    const locationInput = document.querySelector('input[name="location"]');
-    const originalPlaceholder = locationInput.placeholder;
-    locationInput.placeholder = 'Getting location...';
-    
-    navigator.geolocation.getCurrentPosition(
-        function(position) {
-            const lat = position.coords.latitude;
-            const lon = position.coords.longitude;
-            
-            fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
-                .then(response => response.json())
-                .then(data => {
-                    locationInput.value = data.display_name || `${lat}, ${lon}`;
-                    locationInput.placeholder = originalPlaceholder;
-                })
-                .catch(() => {
-                    locationInput.value = `${lat}, ${lon}`;
-                    locationInput.placeholder = originalPlaceholder;
-                });
-        },
-        function(error) {
-            alert('Unable to get location');
-            locationInput.placeholder = originalPlaceholder;
-        }
-    );
-}
-
-// DOM Ready
-document.addEventListener('DOMContentLoaded', function() {
-    const avatarEditBtn = document.querySelector('.avatar-edit-instagram');
-    if (avatarEditBtn) {
-        avatarEditBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            document.getElementById('profile_pic').click();
-        });
-    }
-    
-    const profilePicInput = document.getElementById('profile_pic');
-    if (profilePicInput) {
-        profilePicInput.addEventListener('change', previewImage);
-    }
-});
-</script>
 {% endblock %}
