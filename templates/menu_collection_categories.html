@@ -3,6 +3,78 @@
 {% block title %}{{ collection.name }} - Items Categories{% endblock %}
 
 {% block content %}
+<!-- ANTI-FLICKER: Critical inline styles that load immediately -->
+<style>
+    /* CRITICAL CSS - Loads instantly to prevent FOUC */
+    .dashboard {
+        min-height: 100vh;
+        background: #0D0D0D;
+    }
+    
+    .main-content {
+        flex: 1;
+        padding: 78px 5px 100px 5px;
+        overflow-y: auto;
+        max-width: 1200px;
+        margin: 0 auto;
+        width: 100%;
+        background: #0D0D0D;
+    }
+    
+    .categories-container {
+        opacity: 1;
+    }
+    
+    .category-item {
+        background: #1A1A1A;
+        border-radius: 10px;
+        border: 1px solid #333333;
+        overflow: hidden;
+        height: auto;
+        min-height: 165px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s ease, opacity 0.2s ease, transform 0.2s ease;
+    }
+    
+    .category-item.loaded {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    .browse-collections-section {
+        position: fixed;
+        right: 5px;
+        top: 70px;
+        bottom: 70px;
+        width: 100px;
+        background: rgba(13, 13, 13, 0.95);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-left: 1px solid rgba(192, 178, 131, 0.4);
+        border-right: 1px solid rgba(192, 178, 131, 0.2);
+        z-index: 100;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 8px 5px;
+        opacity: 0;
+        transform: translateX(5px);
+        transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    
+    .browse-collections-section.loaded {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    
+    body {
+        background: #0D0D0D;
+    }
+</style>
+
 <div class="dashboard">
     <!-- Top Header -->
     <header class="dashboard-header">
@@ -92,14 +164,13 @@
     </div>
     {% endif %}
 
-    <!-- Bottom Navigation - MENU TAB ACTIVE with updated transform values -->
+    <!-- Bottom Navigation - MENU TAB ACTIVE -->
     <nav class="bottom-nav">
         <a href="{{ url_for('services') }}" class="nav-item">
             <i class="fas fa-concierge-bell"></i><span>Services</span>
         </a>
         <a href="{{ url_for('menu') }}" class="nav-item active" style="background: linear-gradient(135deg, var(--champagne-primary), var(--champagne-light)) !important; color: var(--matte-black-darkest) !important; transform: translateY(-3px) !important; box-shadow: 0 6px 15px rgba(192, 178, 131, 0.3) !important; position: relative !important;">
             <i class="fas fa-utensils" style="color: var(--matte-black-darkest) !important;"></i><span style="color: var(--matte-black-darkest) !important;">Menu</span>
-            <!-- Underline line for active state - exact style.css dimensions -->
             <span class="active-underline"></span>
         </a>
         <a href="{{ url_for('cart') }}" class="nav-item">
@@ -115,6 +186,31 @@
 </div>
 
 <script>
+// Anti-flicker script - runs immediately
+(function() {
+    function addLoadedClasses() {
+        // Add loaded class to all category items with staggered delay
+        const categoryItems = document.querySelectorAll('.category-item');
+        categoryItems.forEach((item, index) => {
+            setTimeout(() => {
+                item.classList.add('loaded');
+            }, index * 5); // Staggered animation (5ms between each)
+        });
+        
+        // Add loaded class to collections sidebar
+        const collectionsSidebar = document.querySelector('.browse-collections-section');
+        if (collectionsSidebar) collectionsSidebar.classList.add('loaded');
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(addLoadedClasses, 10);
+        });
+    } else {
+        setTimeout(addLoadedClasses, 10);
+    }
+})();
+
 document.addEventListener('DOMContentLoaded', function() {
     // Handle card click - whole category card
     const categoryCards = document.querySelectorAll('.category-item');
@@ -186,7 +282,7 @@ document.addEventListener('DOMContentLoaded', function() {
     background: var(--onyx-black);
     border-radius: 10px;
     border: 1px solid var(--dark-border);
-    transition: all 0.3s ease;
+    transition: all 0.3s ease, opacity 0.2s ease, transform 0.2s ease;
     overflow: hidden;
     cursor: pointer;
     height: auto;
@@ -428,6 +524,7 @@ document.addEventListener('DOMContentLoaded', function() {
     overflow-y: auto;
     overflow-x: hidden;
     padding: 8px 5px;
+    transition: all 0.3s ease, opacity 0.2s ease, transform 0.2s ease;
 }
 
 .browse-collections-section::-webkit-scrollbar {
@@ -569,7 +666,7 @@ document.addEventListener('DOMContentLoaded', function() {
     text-shadow: 0 0 2px rgba(192, 178, 131, 0.3);
 }
 
-/* ========== ACTIVE TAB UNDERLINE - EXACT style.css DIMENSIONS ========== */
+/* ========== ACTIVE TAB UNDERLINE ========== */
 .active-underline {
     position: absolute;
     bottom: -3px;
@@ -583,17 +680,10 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 @keyframes slideIn {
-    from {
-        width: 0;
-        opacity: 0;
-    }
-    to {
-        width: 24px;
-        opacity: 1;
-    }
+    from { width: 0; opacity: 0; }
+    to { width: 24px; opacity: 1; }
 }
 
-/* Mobile version - exactly matches style.css */
 @media (max-width: 480px) {
     .active-underline {
         bottom: -3px !important;
@@ -602,10 +692,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 }
 
-/* ========== IMPORTANT: BOTTOM NAVIGATION OVERRIDE FOR ACTIVE MENU TAB ========== */
-/* These styles will override the base.css to ensure Menu tab is properly highlighted */
-
-/* Desktop and Tablet - 3px up */
+/* ========== BOTTOM NAVIGATION OVERRIDE FOR ACTIVE MENU TAB ========== */
 .bottom-nav .nav-item.active {
     background: linear-gradient(135deg, var(--champagne-primary), var(--champagne-light)) !important;
     color: var(--matte-black-darkest) !important;
@@ -619,7 +706,6 @@ document.addEventListener('DOMContentLoaded', function() {
     color: var(--matte-black-darkest) !important;
 }
 
-/* Ensure other nav items don't get affected */
 .bottom-nav .nav-item:not(.active) {
     background: transparent !important;
     color: var(--text-charcoal) !important;
@@ -633,7 +719,6 @@ document.addEventListener('DOMContentLoaded', function() {
     transform: translateY(-3px) !important;
 }
 
-/* Mobile - 1.5px up */
 @media (max-width: 480px) {
     .bottom-nav .nav-item.active {
         transform: translateY(-1.5px) !important;
