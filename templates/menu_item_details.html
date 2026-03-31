@@ -3,6 +3,25 @@
 {% block title %}{{ menu_item.name }} - Item Details{% endblock %}
 
 {% block content %}
+<!-- ANTI-FLICKER: Body-level fade - loads instantly, no FOUC -->
+<style>
+    /* Critical CSS - loads immediately */
+    body {
+        opacity: 0;
+        transition: opacity 0.2s ease-in;
+        background: #0D0D0D;
+    }
+    
+    body.loaded {
+        opacity: 1;
+    }
+    
+    .dashboard {
+        background: #0D0D0D;
+        min-height: 100vh;
+    }
+</style>
+
 <div class="dashboard">
     <!-- Top Header -->
     <header class="dashboard-header">
@@ -156,6 +175,22 @@
 </div>
 
 <script>
+// Anti-flicker script - runs immediately
+(function() {
+    // Add loaded class to body after a tiny delay
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                document.body.classList.add('loaded');
+            }, 10);
+        });
+    } else {
+        setTimeout(function() {
+            document.body.classList.add('loaded');
+        }, 10);
+    }
+})();
+
 function addMenuItemToCart(itemId) {
     fetch('/add_to_cart', {
         method: 'POST',
