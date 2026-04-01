@@ -15,32 +15,6 @@
     body.loaded {
         opacity: 1;
     }
-    
-    /* Main Content Positioning - Based on style.css header height (70px) */
-    .main-content {
-        padding-top: 86px !important; /* 70px (header) + 16px spacing */
-        padding-bottom: 85px !important; /* Bottom nav spacing */
-    }
-    
-    /* Ensure dashboard has proper spacing */
-    .dashboard {
-        padding-top: 0 !important;
-    }
-    
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .main-content {
-            padding-top: 78px !important; /* Header height 60px on mobile + 18px spacing */
-            padding-bottom: 80px !important;
-        }
-    }
-    
-    @media (max-width: 480px) {
-        .main-content {
-            padding-top: 72px !important; /* Header height 60px on mobile + 12px spacing */
-            padding-bottom: 75px !important;
-        }
-    }
 </style>
 
 <div class="dashboard">
@@ -154,7 +128,7 @@
             </a>
         </div>
 
-        <!-- 🆕 NEW ARRIVALS SECTION - NO AUTO-SCROLL -->
+        <!-- 🆕 NEW ARRIVALS SECTION - WITH ICON -->
         <div class="section-container">
             <div class="section-header">
                 <div class="section-title-wrapper">
@@ -449,180 +423,6 @@
             </div>
         </div>
 
-        <!-- 🛒 YOUR RECENT ORDERS -->
-        {% if user_orders and user_orders|length > 0 %}
-        <div class="orders-section">
-            <div class="section-header">
-                <div class="section-title-wrapper">
-                    <div class="section-icon orders-icon">
-                        <i class="fas fa-receipt"></i>
-                    </div>
-                    <h2>Your Recent Orders</h2>
-                </div>
-                <a href="{{ url_for('order_history') }}" class="view-all-link">
-                    View All <i class="fas fa-arrow-right"></i>
-                </a>
-            </div>
-            <div class="orders-list">
-                {% for order in user_orders[:3] %}
-                <div class="order-card" onclick="window.location.href='/order/{{ order.order_id }}'">
-                    <div class="order-header">
-                        <div class="order-number">
-                            <span class="order-label">Order #</span>
-                            <span class="order-value">{{ order.order_no }}</span>
-                        </div>
-                        <div class="order-status status-{{ order.status|lower }}">
-                            {{ order.status|title }}
-                        </div>
-                    </div>
-                    <div class="order-details">
-                        <div class="order-date">
-                            <i class="far fa-calendar"></i>
-                            <span>{{ order.order_date }}</span>
-                        </div>
-                        <div class="order-items-count">
-                            <i class="fas fa-box"></i>
-                            <span>{{ order.items_count }} items</span>
-                        </div>
-                        <div class="order-amount">
-                            <span class="rupee-symbol">₹</span>
-                            <span>{{ "%.2f"|format(order.total_amount) }}</span>
-                        </div>
-                    </div>
-                    <div class="order-actions">
-                        <button class="btn-reorder-mini" onclick="event.stopPropagation(); reorderOrder({{ order.order_id }})">
-                            <i class="fas fa-redo"></i> Reorder
-                        </button>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- 🛍️ YOUR CART PREVIEW -->
-        {% if cart_items and cart_items|length > 0 %}
-        <div class="cart-preview-section">
-            <div class="section-header">
-                <div class="section-title-wrapper">
-                    <div class="section-icon cart-icon">
-                        <i class="fas fa-shopping-cart"></i>
-                    </div>
-                    <h2>Your Cart</h2>
-                </div>
-                <a href="{{ url_for('cart') }}" class="view-all-link">
-                    View Cart <i class="fas fa-arrow-right"></i>
-                </a>
-            </div>
-            <div class="cart-preview-list">
-                {% for item in cart_items[:3] %}
-                <div class="cart-preview-item">
-                    <div class="cart-item-photo">
-                        <img src="{{ item.photo }}" alt="{{ item.name }}" onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
-                    </div>
-                    <div class="cart-item-info">
-                        <h4 class="cart-item-name">{{ item.name|truncate(22) }}</h4>
-                        <div class="cart-item-meta">
-                            <span class="cart-item-type">{{ item.type|title }}</span>
-                            <span class="cart-item-qty">Qty: {{ item.quantity }}</span>
-                        </div>
-                    </div>
-                    <div class="cart-item-price">
-                        <span class="rupee-symbol">₹</span>
-                        <span>{{ "%.2f"|format(item.total) }}</span>
-                    </div>
-                </div>
-                {% endfor %}
-                {% if cart_items|length > 3 %}
-                <div class="cart-more">
-                    + {{ cart_items|length - 3 }} more items
-                </div>
-                {% endif %}
-                <div class="cart-total">
-                    <span>Total:</span>
-                    <div class="cart-total-amount">
-                        <span class="rupee-symbol">₹</span>
-                        <span>{{ "%.2f"|format(cart_total) }}</span>
-                    </div>
-                </div>
-                <a href="{{ url_for('checkout') }}" class="btn-checkout-mini">
-                    <i class="fas fa-lock"></i> Proceed to Checkout
-                </a>
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- 📍 SAVED ADDRESSES -->
-        {% if user_addresses and user_addresses|length > 0 %}
-        <div class="addresses-section">
-            <div class="section-header">
-                <div class="section-title-wrapper">
-                    <div class="section-icon address-icon">
-                        <i class="fas fa-map-marker-alt"></i>
-                    </div>
-                    <h2>Saved Addresses</h2>
-                </div>
-                <a href="{{ url_for('addresses') }}" class="view-all-link">
-                    Manage <i class="fas fa-edit"></i>
-                </a>
-            </div>
-            <div class="addresses-list">
-                {% for addr in user_addresses[:2] %}
-                <div class="address-card {% if addr.is_default %}default-address{% endif %}">
-                    <div class="address-badge">
-                        {% if addr.is_default %}<span class="default-badge">Default</span>{% endif %}
-                    </div>
-                    <div class="address-details">
-                        <p class="address-name">{{ addr.full_name }}</p>
-                        <p class="address-line">{{ addr.address_line1 }}</p>
-                        {% if addr.address_line2 %}
-                        <p class="address-line">{{ addr.address_line2 }}</p>
-                        {% endif %}
-                        <p class="address-city">{{ addr.city }}, {{ addr.state }} - {{ addr.pincode }}</p>
-                        <p class="address-phone"><i class="fas fa-phone"></i> {{ addr.phone }}</p>
-                    </div>
-                </div>
-                {% endfor %}
-                {% if user_addresses|length > 2 %}
-                <div class="address-more">
-                    + {{ user_addresses|length - 2 }} more addresses
-                </div>
-                {% endif %}
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- 🔔 NOTIFICATIONS -->
-        {% if notifications and notifications|length > 0 %}
-        <div class="notifications-section">
-            <div class="section-header">
-                <div class="section-title-wrapper">
-                    <div class="section-icon notif-icon">
-                        <i class="fas fa-bell"></i>
-                    </div>
-                    <h2>Notifications</h2>
-                    {% if unread_count > 0 %}
-                    <span class="unread-badge">{{ unread_count }}</span>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="notifications-list">
-                {% for notif in notifications[:3] %}
-                <div class="notification-item {% if not notif.is_read %}unread{% endif %}">
-                    <div class="notification-icon">
-                        <i class="fas fa-{{ 'check-circle' if notif.type == 'success' else 'info-circle' if notif.type == 'info' else 'exclamation-circle' }}"></i>
-                    </div>
-                    <div class="notification-content">
-                        <h4 class="notification-title">{{ notif.title }}</h4>
-                        <p class="notification-message">{{ notif.message|truncate(55) }}</p>
-                        <span class="notification-time">{{ notif.created_at_formatted }}</span>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-
     </main>
 
     <!-- Bottom Navigation - Style from style.css -->
@@ -674,12 +474,14 @@
     --rupee-bg: rgba(212, 175, 55, 0.1);
 }
 
-/* Main Content - Positioned below fixed header (70px from style.css) */
+/* Main Content - Matching menu_item_details.html spacing */
 .main-content {
-    background: var(--service-card-base);
-    padding: 0 16px 80px 16px;
-    margin-top: 70px !important;
-    min-height: calc(100vh - 70px - 70px);
+    flex: 1;
+    padding: 78px 5px 100px 5px;
+    overflow-y: auto;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
 }
 
 /* Quick Links Top Section - 5 Links Below Best Deals */
@@ -1220,344 +1022,6 @@
     bottom: 0;
 }
 
-/* Order Card */
-.orders-section {
-    margin-bottom: 18px;
-}
-
-.orders-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.order-card {
-    background: var(--service-card-base);
-    border: 1px solid var(--service-border-detail);
-    border-radius: 8px;
-    padding: 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.order-card:hover {
-    border-color: var(--service-icon);
-    background: rgba(20, 20, 20, 0.6);
-}
-
-.order-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.order-number {
-    display: flex;
-    flex-direction: column;
-}
-
-.order-label {
-    font-size: 8px;
-    color: var(--service-title);
-}
-
-.order-value {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--creamy-white);
-}
-
-.order-status {
-    padding: 2px 6px;
-    border-radius: 16px;
-    font-size: 9px;
-    font-weight: 600;
-}
-
-.status-pending {
-    background: rgba(217, 119, 6, 0.15);
-    color: #d97706;
-    border: 1px solid rgba(217, 119, 6, 0.3);
-}
-
-.status-completed {
-    background: rgba(46, 125, 50, 0.15);
-    color: #2E7D32;
-    border: 1px solid rgba(46, 125, 50, 0.3);
-}
-
-.order-details {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-    flex-wrap: wrap;
-    gap: 6px;
-}
-
-.order-date, .order-items-count {
-    display: flex;
-    align-items: center;
-    gap: 3px;
-    font-size: 9px;
-    color: var(--service-title);
-}
-
-.order-amount {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--rupee-color);
-}
-
-.order-actions {
-    border-top: 1px dashed var(--service-border-detail);
-    padding-top: 8px;
-    text-align: center;
-}
-
-.btn-reorder-mini {
-    background: linear-gradient(135deg, var(--service-icon), #6e5d3d);
-    color: #000000;
-    padding: 4px 10px;
-    border-radius: 5px;
-    font-weight: 600;
-    font-size: 9px;
-    border: none;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    transition: all 0.3s ease;
-}
-
-.btn-reorder-mini:hover {
-    transform: translateY(-1px);
-    background: linear-gradient(135deg, #9e8d6d, #5e4d2d);
-}
-
-/* Cart Preview */
-.cart-preview-section {
-    margin-bottom: 18px;
-}
-
-.cart-preview-list {
-    background: var(--service-card-base);
-    border: 1px solid var(--service-border-detail);
-    border-radius: 8px;
-    padding: 10px;
-}
-
-.cart-preview-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 6px 0;
-    border-bottom: 1px dashed var(--service-border-detail);
-}
-
-.cart-item-photo {
-    width: 40px;
-    height: 40px;
-    border-radius: 6px;
-    overflow: hidden;
-    background: var(--matte-black);
-    flex-shrink: 0;
-}
-
-.cart-item-info {
-    flex: 1;
-}
-
-.cart-item-name {
-    margin: 0 0 2px 0;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--creamy-white);
-}
-
-.cart-item-meta {
-    display: flex;
-    gap: 6px;
-    font-size: 9px;
-    color: var(--service-title);
-}
-
-.cart-item-price {
-    font-weight: 700;
-    color: var(--rupee-color);
-    font-size: 11px;
-}
-
-.cart-more {
-    text-align: center;
-    padding: 6px;
-    color: var(--service-icon);
-    font-size: 10px;
-}
-
-.cart-total {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0 4px;
-    border-top: 1px solid var(--service-border-detail);
-    margin-top: 6px;
-    font-weight: 600;
-    font-size: 12px;
-}
-
-.cart-total-amount {
-    font-size: 15px;
-    font-weight: 800;
-    color: var(--rupee-color);
-}
-
-.btn-checkout-mini {
-    display: block;
-    background: linear-gradient(135deg, var(--golden-vivid), var(--golden-metallic));
-    color: #000000;
-    text-align: center;
-    padding: 8px;
-    border-radius: 6px;
-    font-weight: 700;
-    font-size: 11px;
-    text-decoration: none;
-    margin-top: 8px;
-    transition: all 0.3s ease;
-}
-
-.btn-checkout-mini:hover {
-    transform: translateY(-1px);
-    background: linear-gradient(135deg, #E4C158, #D0C08D);
-}
-
-/* Addresses Section */
-.addresses-section {
-    margin-bottom: 18px;
-}
-
-.addresses-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.address-card {
-    background: var(--service-card-base);
-    border: 1px solid var(--service-border-detail);
-    border-radius: 8px;
-    padding: 10px;
-    position: relative;
-}
-
-.address-card.default-address {
-    border-color: rgba(212, 175, 55, 0.5);
-    background: rgba(212, 175, 55, 0.03);
-}
-
-.address-badge {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-}
-
-.default-badge {
-    background: linear-gradient(135deg, var(--golden-vivid), var(--golden-metallic));
-    color: #000000;
-    padding: 2px 6px;
-    border-radius: 10px;
-    font-size: 8px;
-    font-weight: 600;
-}
-
-.address-details p {
-    margin: 3px 0;
-    font-size: 10px;
-    color: var(--service-title);
-}
-
-.address-name {
-    font-weight: 700;
-    color: var(--creamy-white) !important;
-    font-size: 12px !important;
-}
-
-.address-phone i {
-    margin-right: 3px;
-    color: var(--service-icon);
-}
-
-.address-more {
-    text-align: center;
-    padding: 6px;
-    color: var(--service-icon);
-    font-size: 10px;
-}
-
-/* Notifications */
-.notifications-section {
-    margin-bottom: 18px;
-}
-
-.notifications-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.notification-item {
-    background: rgba(20, 20, 20, 0.4);
-    border: 1px solid var(--service-border-detail);
-    border-radius: 8px;
-    padding: 8px;
-    display: flex;
-    gap: 8px;
-    transition: all 0.3s ease;
-}
-
-.notification-item.unread {
-    background: rgba(142, 125, 77, 0.08);
-    border-color: rgba(142, 125, 77, 0.3);
-}
-
-.notification-icon i {
-    font-size: 14px;
-    color: var(--service-icon);
-}
-
-.notification-content {
-    flex: 1;
-}
-
-.notification-title {
-    margin: 0 0 2px 0;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--creamy-white);
-}
-
-.notification-message {
-    margin: 0 0 3px 0;
-    font-size: 9px;
-    color: var(--service-title);
-    line-height: 1.3;
-}
-
-.notification-time {
-    font-size: 8px;
-    color: var(--silver-mist);
-}
-
-.unread-badge {
-    background: var(--service-icon);
-    color: #000000;
-    font-size: 8px;
-    font-weight: 700;
-    padding: 2px 5px;
-    border-radius: 8px;
-}
-
 .view-all-link {
     color: var(--service-icon);
     font-size: 11px;
@@ -1614,11 +1078,10 @@
     font-weight: 600;
 }
 
-/* Responsive adjustments based on header height from style.css */
+/* Responsive adjustments - Matching menu_item_details.html */
 @media (max-width: 768px) {
     .main-content {
-        margin-top: 60px !important;
-        padding: 0 12px 75px 12px;
+        padding: 68px 10px 100px 10px;
     }
     
     .quick-links-top {
@@ -1678,8 +1141,7 @@
 
 @media (max-width: 480px) {
     .main-content {
-        margin-top: 60px !important;
-        padding: 0 12px 70px 12px;
+        padding: 63px 8px 85px 8px;
     }
     
     .quick-links-top {
@@ -1812,19 +1274,5 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
-
-// Reorder function
-function reorderOrder(orderId) {
-    fetch(`/reorder/${orderId}`, { method: 'POST' })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                window.location.href = '/cart';
-            } else {
-                alert('Error reordering: ' + data.message);
-            }
-        })
-        .catch(error => console.error('Error:', error));
-}
 </script>
 {% endblock %}
