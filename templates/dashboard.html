@@ -22,7 +22,7 @@
     <header class="dashboard-header">
         <div class="header-left">
             <h1>Dashboard</h1>
-            <p class="welcome-text">Welcome to your dashboard, {{ session.full_name }}!</p>
+            <p class="welcome-text">Welcome back, {{ session.full_name }}!</p>
         </div>
         <div class="header-right">
             <img src="{{ session.profile_pic }}" 
@@ -52,7 +52,7 @@
                 <div class="scroll-wrapper">
                     {% if top_discount_items and top_discount_items|length > 0 %}
                         {% for item in top_discount_items %}
-                            <div class="item-card {% if item.type == 'service' %}service-card{% else %}menu-card{% endif %}" 
+                            <div class="item-card {% if item.type == 'service' %}service-card{% else %}product-card{% endif %}" 
                                  onclick="window.location.href='{{ item.url }}'">
                                 <div class="item-card-photo">
                                     <img src="{{ item.photo }}" alt="{{ item.name }}" onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
@@ -69,7 +69,7 @@
                                     </div>
                                     <div class="item-card-footer">
                                         <div class="item-type-badge-sm {{ item.type }}-badge-sm">
-                                            <i class="fas fa-{{ 'concierge-bell' if item.type == 'service' else 'utensils' }}"></i>
+                                            <i class="fas fa-{{ 'concierge-bell' if item.type == 'service' else 'box' }}"></i>
                                             <span>{{ item.type|title }}</span>
                                         </div>
                                         <div class="savings-info">
@@ -146,7 +146,7 @@
                 <div class="scroll-wrapper">
                     {% if new_arrivals and new_arrivals|length > 0 %}
                         {% for item in new_arrivals %}
-                            <div class="item-card {% if item.type == 'service' %}service-card{% else %}menu-card{% endif %}" 
+                            <div class="item-card {% if item.type == 'service' %}service-card{% else %}product-card{% endif %}" 
                                  onclick="window.location.href='{{ item.url }}'">
                                 <div class="item-card-photo">
                                     <img src="{{ item.photo }}" alt="{{ item.name }}" onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
@@ -161,7 +161,7 @@
                                     </div>
                                     <div class="item-card-footer">
                                         <div class="item-type-badge-sm {{ item.type }}-badge-sm">
-                                            <i class="fas fa-{{ 'concierge-bell' if item.type == 'service' else 'utensils' }}"></i>
+                                            <i class="fas fa-{{ 'concierge-bell' if item.type == 'service' else 'box' }}"></i>
                                             <span>{{ item.type|title }}</span>
                                         </div>
                                         <div class="added-date">
@@ -221,14 +221,14 @@
             </div>
         </div>
 
-        <!-- 🍽️ MENU COLLECTIONS SECTION - HORIZONTAL SCROLL -->
+        <!-- 📦 PRODUCT COLLECTIONS SECTION - HORIZONTAL SCROLL (renamed from Menu Collections) -->
         <div class="section-container">
             <div class="section-header">
                 <div class="section-title-wrapper">
-                    <div class="section-icon menu-collection-icon">
-                        <i class="fas fa-utensils"></i>
+                    <div class="section-icon product-collection-icon">
+                        <i class="fas fa-boxes"></i>
                     </div>
-                    <h2>Menu Collections</h2>
+                    <h2>Product Collections</h2>
                 </div>
                 <a href="{{ url_for('menu') }}" class="view-all-link">
                     View All <i class="fas fa-arrow-right"></i>
@@ -248,8 +248,8 @@
                         {% endfor %}
                     {% else %}
                         <div class="no-items">
-                            <i class="fas fa-utensils"></i>
-                            <p>No menu collections available.</p>
+                            <i class="fas fa-boxes"></i>
+                            <p>No product collections available.</p>
                         </div>
                     {% endif %}
                 </div>
@@ -275,7 +275,7 @@
             <div class="scroll-container manual-scroll" id="trendingScrollContainer">
                 <div class="scroll-wrapper">
                     {% for item in trending_items %}
-                        <div class="item-card {% if item.type == 'service' %}service-card{% else %}menu-card{% endif %}" 
+                        <div class="item-card {% if item.type == 'service' %}service-card{% else %}product-card{% endif %}" 
                              onclick="window.location.href='{{ item.url }}'">
                             <div class="item-card-photo">
                                 <img src="{{ item.photo }}" alt="{{ item.name }}" onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
@@ -293,7 +293,7 @@
                                 </div>
                                 <div class="item-card-footer">
                                     <div class="item-type-badge-sm {{ item.type }}-badge-sm">
-                                        <i class="fas fa-{{ 'concierge-bell' if item.type == 'service' else 'utensils' }}"></i>
+                                        <i class="fas fa-{{ 'concierge-bell' if item.type == 'service' else 'box' }}"></i>
                                         <span>{{ item.type|title }}</span>
                                     </div>
                                     <div class="trending-price">
@@ -385,7 +385,7 @@
                 <div class="scroll-wrapper">
                     {% if all_menu_items and all_menu_items|length > 0 %}
                         {% for item in all_menu_items[:12] %}
-                            <div class="item-card menu-card" 
+                            <div class="item-card product-card" 
                                  onclick="window.location.href='{{ url_for('menu_item_details', item_id=item.id) }}'">
                                 <div class="item-card-photo">
                                     <img src="{{ item.photo }}" alt="{{ item.name }}" onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_food.jpg'">
@@ -459,7 +459,7 @@
     --service-title: #A0A0A0;
     --service-icon: #8e7d4d;
     --service-accent: #8e7d4d;
-    --menu-accent: #2E7D32;
+    --product-accent: #2E7D32;
     --golden-vivid: #D4AF37;
     --golden-metallic: #C0B283;
     --service-border-detail: #333333;
@@ -764,6 +764,16 @@
     line-height: 1.2;
 }
 
+/* Product Card - Updated from menu-card */
+.product-card {
+    border-color: rgba(46, 125, 50, 0.3);
+}
+
+.product-card .card-hover-effect {
+    background: linear-gradient(135deg, var(--product-accent), #1e5a23);
+    color: white;
+}
+
 /* Scroll Containers for items */
 .scroll-container {
     overflow-x: auto;
@@ -815,7 +825,7 @@
     border-color: rgba(142, 125, 77, 0.3);
 }
 
-.item-card.menu-card {
+.item-card.product-card {
     border-color: rgba(46, 125, 50, 0.3);
 }
 
@@ -1013,8 +1023,8 @@
     z-index: 10;
 }
 
-.item-card.menu-card .card-hover-effect {
-    background: linear-gradient(135deg, var(--menu-accent), #1e5a23);
+.item-card.product-card .card-hover-effect {
+    background: linear-gradient(135deg, var(--product-accent), #1e5a23);
     color: white;
 }
 
