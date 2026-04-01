@@ -2,2241 +2,974 @@
 
 {% block title %}Dashboard{% endblock %}
 
-{% block head_meta %}
-<!-- Browser & Mobile UI Theme Colors -->
-<meta name="theme-color" content="#0D0D0D" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0D0D0D" media="(prefers-color-scheme: dark)">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Dashboard">
-<meta name="msapplication-TileColor" content="#0D0D0D">
-<meta name="msapplication-navbutton-color" content="#0D0D0D">
-<meta name="mobile-web-app-capable" content="yes">
-<!-- For Chrome on Android - status bar color -->
-<meta name="color-scheme" content="dark light">
-{% endblock %}
-
 {% block content %}
+<!-- ANTI-FLICKER: Body-level fade - loads instantly, no FOUC -->
+<style>
+    /* Critical CSS - loads immediately */
+    body {
+        opacity: 0;
+        transition: opacity 0.2s ease-in;
+        background: #0D0D0D;
+    }
+    
+    body.loaded {
+        opacity: 1;
+    }
+</style>
+
 <div class="dashboard">
-    <!-- Top Header - CSS style.css se aayega -->
+    <!-- Top Header -->
     <header class="dashboard-header">
         <div class="header-left">
-            <h1>Hello, {{ session.full_name }}</h1>
-            <p class="welcome-text">Welcome to your dashboard</p>
+            <h1>Dashboard</h1>
+            <p class="welcome-text">Welcome back, {{ session.full_name }}!</p>
         </div>
         <div class="header-right">
-            <!-- ✅ LINE 12 UPDATED FOR CLOUDINARY -->
             <img src="{{ session.profile_pic }}" 
-                 alt="Profile" class="profile-pic" 
+                 alt="Profile" class="profile-pic"
                  onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
         </div>
     </header>
 
-    <!-- Main Content - Full Content from BITE ME BUDDY -->
-    <main class="main-content" id="mainContent">
-        <div class="home-container">
-            <!-- Video Banner Section - UPDATED WITH FLASK STATIC PATH -->
-            <section class="video-banner-section">
-                <div class="video-banner">
-                    <video autoplay loop muted playsinline>
-                        <source src="{{ url_for('static', filename='videos/card1video.mp4') }}" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                    <div class="video-overlay"></div>
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Stats Overview Card -->
+        <div class="stats-overview-card">
+            <div class="stats-overview-content">
+                <div class="stats-icon-large">
+                    <i class="fas fa-database"></i>
                 </div>
-            </section>
-
-            <!-- Services Section with 3D Carousel -->
-            <section class="normal-section">
-                <div class="service-card-large">
-                    <div class="service-header">
-                        <h3>Our Premium Services</h3>
-                        <p>Discover a world of authentic traditional flavors and exceptional dining experiences</p>
-                    </div>
-                    
-                    <!-- 3D Carousel Container -->
-                    <div class="carousel-container">
-                        <div class="carousel" id="carousel">
-                            <!-- 15 Cards with Professional Food Images -->
-                            <div class="carousel-card" style="--i:0;">
-                                <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&auto=format&fit=crop" alt="Gourmet Salad">
-                            </div>
-                            <div class="carousel-card" style="--i:1;">
-                                <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&auto=format&fit=crop" alt="Wood Fired Pizza">
-                            </div>
-                            <div class="carousel-card" style="--i:2;">
-                                <img src="https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400&auto=format&fit=crop" alt="Gourmet Pasta">
-                            </div>
-                            <div class="carousel-card" style="--i:3;">
-                                <img src="https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=400&auto=format&fit=crop" alt="Sushi Platter">
-                            </div>
-                            <div class="carousel-card" style="--i:4;">
-                                <img src="https://images.unsplash.com/photo-1544025162-d76694265947?w=400&auto=format&fit=crop" alt="Grilled Chicken">
-                            </div>
-                            <div class="carousel-card" style="--i:5;">
-                                <img src="https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=400&auto=format&fit=crop" alt="Sushi Rolls">
-                            </div>
-                            <div class="carousel-card" style="--i:6;">
-                                <img src="https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=400&auto=format&fit=crop" alt="Breakfast Platter">
-                            </div>
-                            <div class="carousel-card" style="--i:7;">
-                                <img src="https://images.unsplash.com/photo-1529042410759-befb1204b468?w=400&auto=format&fit=crop" alt="Grilled Fish">
-                            </div>
-                            <div class="carousel-card" style="--i:8;">
-                                <img src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&auto=format&fit=crop" alt="Fine Dining">
-                            </div>
-                            <div class="carousel-card" style="--i:9;">
-                                <img src="https://images.unsplash.com/photo-1551024506-0bccd828d307?w=400&auto=format&fit=crop" alt="Gourmet Burger">
-                            </div>
-                            <div class="carousel-card" style="--i:10;">
-                                <img src="https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=400&auto=format&fit=crop" alt="Fish Curry">
-                            </div>
-                            <div class="carousel-card" style="--i:11;">
-                                <img src="https://images.unsplash.com/photo-1553163147-622ab57be1c7?w=400&auto=format&fit=crop" alt="Seafood Platter">
-                            </div>
-                            <div class="carousel-card" style="--i:12;">
-                                <img src="https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=400&auto=format&fit=crop" alt="Pasta Dish">
-                            </div>
-                            <div class="carousel-card" style="--i:13;">
-                                <img src="https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=400&auto=format&fit=crop" alt="Italian Pasta">
-                            </div>
-                            <div class="carousel-card" style="--i:14;">
-                                <img src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400&auto=format&fit=crop" alt="Fine Dining">
-                            </div>
-                        </div>
-                        <div class="circle-path"></div>
-                    </div>
-                    
-                    <div style="text-align: center;">
-                        <a href="{{ url_for('services') }}" class="service-card-btn">
-                            <span>Explore All Services</span>
-                            <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
+                <div class="stats-info-large">
+                    <h2>{{ total_records }}</h2>
+                    <p>Total Records</p>
+                    <span>across 13 tables</span>
                 </div>
-            </section>
-
-            <!-- About Section -->
-            <section class="normal-section" id="about">
-                <h2 class="about-section" style="margin-bottom: 30px;">About BITE ME BUDDY</h2>
-                <div class="about-grid">
-                    <div class="about-card">
-                        <div class="card-icon">
-                            <i class="fas fa-user-tie"></i>
-                        </div>
-                        <h3>Our Founder</h3>
-                        <p>Sundaram Singh - Founder & Head Chef. A culinary artist dedicated to preserving and sharing authentic traditional flavors through innovative cooking.</p>
-                    </div>
-
-                    <div class="about-card">
-                        <div class="card-icon">
-                            <i class="fas fa-store"></i>
-                        </div>
-                        <h3>Our Brand</h3>
-                        <p>BITE ME BUDDY (BMB) represents the perfect blend of tradition and modernity. We bring you the finest authentic flavors in a contemporary setting.</p>
-                    </div>
-
-                    <div class="about-card">
-                        <div class="card-icon">
-                            <i class="fas fa-eye"></i>
-                        </div>
-                        <h3>Our Vision</h3>
-                        <p>To become the most loved destination for authentic traditional cuisine, creating memorable dining experiences that celebrate our rich culinary heritage.</p>
-                    </div>
-
-                    <div class="about-card">
-                        <div class="card-icon">
-                            <i class="fas fa-bullseye"></i>
-                        </div>
-                        <h3>Our Goal</h3>
-                        <p>To serve 1 million happy customers by 2025 while maintaining the highest quality standards and authentic taste that our customers love.</p>
-                    </div>
-
-                    <div class="about-card">
-                        <div class="card-icon">
-                            <i class="fas fa-utensils"></i>
-                        </div>
-                        <h3>Our Chefs</h3>
-                        <p>A team of passionate culinary experts trained in traditional cooking methods, led by Founder Sundaram Singh, bringing generations of recipes to life.</p>
-                    </div>
-
-                    <div class="about-card">
-                        <div class="card-icon">
-                            <i class="fas fa-book-open"></i>
-                        </div>
-                        <h3>Our Story</h3>
-                        <p>Started in 2020 by Sundaram Singh, BMB began with a simple dream - to share the authentic flavors of traditional Indian cuisine with the world.</p>
-                    </div>
+            </div>
+            <div class="stats-grid-mini">
+                <div class="stat-mini">
+                    <i class="fas fa-users"></i>
+                    <span>{{ dashboard_data.users.count if dashboard_data.users else 0 }}</span>
+                    <small>Users</small>
                 </div>
-            </section>
-
-            <!-- Social Section -->
-            <section class="normal-section">
-                <h2 class="social-section" style="margin-bottom: 30px;">Connect With Us</h2>
-                <div class="social-grid">
-                    <a href="https://instagram.com/bitemebuddy" target="_blank" class="social-item instagram">
-                        <i class="fab fa-instagram"></i>
-                        <span>Instagram</span>
-                    </a>
-                    <a href="https://facebook.com/bitemebuddy" target="_blank" class="social-item facebook">
-                        <i class="fab fa-facebook"></i>
-                        <span>Facebook</span>
-                    </a>
-                    <a href="https://wa.me/917275726604" target="_blank" class="social-item whatsapp">
-                        <i class="fab fa-whatsapp"></i>
-                        <span>WhatsApp</span>
-                    </a>
-                    <a href="https://youtube.com/@bitemebuddy" target="_blank" class="social-item youtube">
-                        <i class="fab fa-youtube"></i>
-                        <span>YouTube</span>
-                    </a>
-                    <a href="https://t.me/bitemebuddy" target="_blank" class="social-item telegram">
-                        <i class="fab fa-telegram"></i>
-                        <span>Telegram</span>
-                    </a>
-                    <a href="https://twitter.com/bitemebuddy" target="_blank" class="social-item twitter">
-                        <i class="fab fa-twitter"></i>
-                        <span>Twitter</span>
-                    </a>
+                <div class="stat-mini">
+                    <i class="fas fa-concierge-bell"></i>
+                    <span>{{ dashboard_data.services.count if dashboard_data.services else 0 }}</span>
+                    <small>Services</small>
                 </div>
-            </section>
-
-            <!-- Contact Section -->
-            <section class="normal-section" id="contact">
-                <h2 class="contact-section" style="margin-bottom: 30px;">Get In Touch</h2>
-                <div class="contact-grid">
-                    <div class="contact-item">
-                        <div class="contact-icon">
-                            <i class="fas fa-phone-alt"></i>
-                        </div>
-                        <div class="contact-details">
-                            <h3>Call Us</h3>
-                            <a href="tel:+917275726604" class="contact-link">+91 7275726604</a>
-                            <p class="contact-timing">Open: 11:00 AM - 11:00 PM</p>
-                        </div>
-                    </div>
-
-                    <div class="contact-item">
-                        <div class="contact-icon">
-                            <i class="fas fa-map-marker-alt"></i>
-                        </div>
-                        <div class="contact-details">
-                            <h3>Visit Us</h3>
-                            <a href="https://maps.google.com/?q=Lanka+Chouraha+Bhu+Varanasi" target="_blank" class="contact-link">
-                                Lanka Chouraha, Bhu Varanasi
-                            </a>
-                            <p class="contact-timing">Click for directions</p>
-                        </div>
-                    </div>
-
-                    <div class="contact-item">
-                        <div class="contact-icon">
-                            <i class="fas fa-envelope"></i>
-                        </div>
-                        <div class="contact-details">
-                            <h3>Email Us</h3>
-                            <a href="mailto:bmb.hqq@gmail.com" class="contact-link">bmb.hqq@gmail.com</a>
-                            <p class="contact-timing">24/7 Support</p>
-                        </div>
-                    </div>
+                <div class="stat-mini">
+                    <i class="fas fa-utensils"></i>
+                    <span>{{ dashboard_data.menu_items.count if dashboard_data.menu_items else 0 }}</span>
+                    <small>Menu Items</small>
                 </div>
-            </section>
-
-            <!-- Footer - Compact Mobile Version -->
-            <footer class="footer">
-                <div class="footer-grid">
-                    <div class="footer-column">
-                        <h4>Quick Links</h4>
-                        <ul>
-                            <li><a href="#">Home</a></li>
-                            <li><a href="{{ url_for('services') }}">Services</a></li>
-                            <li><a href="{{ url_for('menu') }}">Menu</a></li>
-                            <li><a href="#" onclick="showModal(event)">Gallery</a></li>
-                            <li><a href="#about">About Us</a></li>
-                            <li><a href="#contact">Contact</a></li>
-                        </ul>
-                    </div>
-
-                    <div class="footer-column">
-                        <h4>Follow Us</h4>
-                        <ul class="social-links">
-                            <li><a href="https://instagram.com/bitemebuddy" target="_blank"><i class="fab fa-instagram"></i> <span>Instagram</span></a></li>
-                            <li><a href="https://facebook.com/bitemebuddy" target="_blank"><i class="fab fa-facebook"></i> <span>Facebook</span></a></li>
-                            <li><a href="https://wa.me/917275726604" target="_blank"><i class="fab fa-whatsapp"></i> <span>WhatsApp</span></a></li>
-                            <li><a href="https://youtube.com/@bitemebuddy" target="_blank"><i class="fab fa-youtube"></i> <span>YouTube</span></a></li>
-                            <li><a href="https://t.me/bitemebuddy" target="_blank"><i class="fab fa-telegram"></i> <span>Telegram</span></a></li>
-                            <li><a href="https://twitter.com/bitemebuddy" target="_blank"><i class="fab fa-twitter"></i> <span>Twitter</span></a></li>
-                        </ul>
-                    </div>
-
-                    <div class="footer-column">
-                        <h4>Legal</h4>
-                        <ul>
-                            <li><a href="#">Privacy Policy</a></li>
-                            <li><a href="#">Terms of Service</a></li>
-                            <li><a href="#">Refund Policy</a></li>
-                            <li><a href="#">Shipping Policy</a></li>
-                            <li><a href="#">Cookie Policy</a></li>
-                            <li><a href="#">Disclaimer</a></li>
-                        </ul>
-                    </div>
-
-                    <div class="footer-column">
-                        <h4>BITE ME BUDDY</h4>
-                        <p onclick="window.location.href='tel:+917275726604'">
-                            <i class="fas fa-phone"></i>
-                            <a href="tel:+917275726604">+91 7275726604</a>
-                        </p>
-                        <p onclick="window.open('https://maps.google.com/?q=Lanka+Chouraha+Bhu+Varanasi', '_blank')">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <a href="https://maps.google.com/?q=Lanka+Chouraha+Bhu+Varanasi" target="_blank">Lanka Chouraha, Bhu Varanasi</a>
-                        </p>
-                        <p onclick="window.location.href='mailto:bmb.hqq@gmail.com'">
-                            <i class="fas fa-envelope"></i>
-                            <a href="mailto:bmb.hqq@gmail.com">bmb.hqq@gmail.com</a>
-                        </p>
-                        <p>
-                            <i class="fas fa-clock"></i>
-                            <span>11:00 AM - 11:00 PM</span>
-                        </p>
-                    </div>
+                <div class="stat-mini">
+                    <i class="fas fa-receipt"></i>
+                    <span>{{ dashboard_data.orders.count if dashboard_data.orders else 0 }}</span>
+                    <small>Orders</small>
                 </div>
-                <div class="footer-bottom">
-                    <p>Copyright © 2026 Sundaram Singh, All Rights Reserved.</p>
+            </div>
+        </div>
+
+        <!-- Tables Grid - 2 Column Layout -->
+        <div class="dashboard-grid">
+            
+            <!-- 1. Users Table Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-users"></i>
+                        <h3>Users</h3>
+                    </div>
+                    <span class="card-badge">{{ dashboard_data.users.count if dashboard_data.users else 0 }}</span>
                 </div>
-            </footer>
+                <div class="card-content">
+                    {% if dashboard_data.users and dashboard_data.users.data %}
+                        {% for user in dashboard_data.users.data[:4] %}
+                        <div class="data-row">
+                            <div class="data-info">
+                                <span class="data-name">{{ user.full_name }}</span>
+                                <span class="data-detail">{{ user.email }}</span>
+                            </div>
+                            <span class="data-phone">{{ user.phone }}</span>
+                        </div>
+                        {% endfor %}
+                        {% if dashboard_data.users.count > 4 %}
+                        <div class="data-more">+ {{ dashboard_data.users.count - 4 }} more users</div>
+                        {% endif %}
+                    {% else %}
+                        <div class="data-empty">No users found</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 2. Service Collections Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-layer-group"></i>
+                        <h3>Service Collections</h3>
+                    </div>
+                    <span class="card-badge">{{ dashboard_data.service_collections.count if dashboard_data.service_collections else 0 }}</span>
+                </div>
+                <div class="card-content">
+                    {% if dashboard_data.service_collections and dashboard_data.service_collections.data %}
+                        {% for col in dashboard_data.service_collections.data[:4] %}
+                        <div class="data-row">
+                            <div class="data-info">
+                                <span class="data-name">{{ col.name }}</span>
+                                {% if col.description %}
+                                <span class="data-detail">{{ col.description|truncate(40) }}</span>
+                                {% endif %}
+                            </div>
+                            <span class="data-count">{{ col.category_count or 0 }} cats</span>
+                        </div>
+                        {% endfor %}
+                        {% if dashboard_data.service_collections.count > 4 %}
+                        <div class="data-more">+ {{ dashboard_data.service_collections.count - 4 }} more collections</div>
+                        {% endif %}
+                    {% else %}
+                        <div class="data-empty">No service collections found</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 3. Service Categories Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-tags"></i>
+                        <h3>Service Categories</h3>
+                    </div>
+                    <span class="card-badge">{{ dashboard_data.service_categories.count if dashboard_data.service_categories else 0 }}</span>
+                </div>
+                <div class="card-content">
+                    {% if dashboard_data.service_categories and dashboard_data.service_categories.data %}
+                        {% for cat in dashboard_data.service_categories.data[:4] %}
+                        <div class="data-row">
+                            <div class="data-info">
+                                <span class="data-name">{{ cat.name }}</span>
+                                {% if cat.description %}
+                                <span class="data-detail">{{ cat.description|truncate(35) }}</span>
+                                {% endif %}
+                            </div>
+                            <span class="data-count">{{ cat.service_count or 0 }} services</span>
+                        </div>
+                        {% endfor %}
+                        {% if dashboard_data.service_categories.count > 4 %}
+                        <div class="data-more">+ {{ dashboard_data.service_categories.count - 4 }} more categories</div>
+                        {% endif %}
+                    {% else %}
+                        <div class="data-empty">No service categories found</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 4. Services Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-concierge-bell"></i>
+                        <h3>Services</h3>
+                    </div>
+                    <span class="card-badge">{{ dashboard_data.services.count if dashboard_data.services else 0 }}</span>
+                </div>
+                <div class="card-content">
+                    {% if dashboard_data.services and dashboard_data.services.data %}
+                        {% for service in dashboard_data.services.data[:4] %}
+                        <div class="data-row">
+                            <div class="data-info">
+                                <span class="data-name">{{ service.name }}</span>
+                                {% if service.description %}
+                                <span class="data-detail">{{ service.description|truncate(30) }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="data-price">
+                                <span class="rupee-symbol-small">₹</span>
+                                <span>{{ "%.2f"|format(service.final_price) }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% if dashboard_data.services.count > 4 %}
+                        <div class="data-more">+ {{ dashboard_data.services.count - 4 }} more services</div>
+                        {% endif %}
+                    {% else %}
+                        <div class="data-empty">No services found</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 5. Menu Collections Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-utensils"></i>
+                        <h3>Menu Collections</h3>
+                    </div>
+                    <span class="card-badge">{{ dashboard_data.menu_collections.count if dashboard_data.menu_collections else 0 }}</span>
+                </div>
+                <div class="card-content">
+                    {% if dashboard_data.menu_collections and dashboard_data.menu_collections.data %}
+                        {% for col in dashboard_data.menu_collections.data[:4] %}
+                        <div class="data-row">
+                            <div class="data-info">
+                                <span class="data-name">{{ col.name }}</span>
+                                {% if col.description %}
+                                <span class="data-detail">{{ col.description|truncate(40) }}</span>
+                                {% endif %}
+                            </div>
+                            <span class="data-count">{{ col.category_count or 0 }} cats</span>
+                        </div>
+                        {% endfor %}
+                        {% if dashboard_data.menu_collections.count > 4 %}
+                        <div class="data-more">+ {{ dashboard_data.menu_collections.count - 4 }} more collections</div>
+                        {% endif %}
+                    {% else %}
+                        <div class="data-empty">No menu collections found</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 6. Menu Categories Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-tag"></i>
+                        <h3>Menu Categories</h3>
+                    </div>
+                    <span class="card-badge">{{ dashboard_data.menu_categories.count if dashboard_data.menu_categories else 0 }}</span>
+                </div>
+                <div class="card-content">
+                    {% if dashboard_data.menu_categories and dashboard_data.menu_categories.data %}
+                        {% for cat in dashboard_data.menu_categories.data[:4] %}
+                        <div class="data-row">
+                            <div class="data-info">
+                                <span class="data-name">{{ cat.name }}</span>
+                                {% if cat.description %}
+                                <span class="data-detail">{{ cat.description|truncate(35) }}</span>
+                                {% endif %}
+                            </div>
+                            <span class="data-count">{{ cat.item_count or 0 }} items</span>
+                        </div>
+                        {% endfor %}
+                        {% if dashboard_data.menu_categories.count > 4 %}
+                        <div class="data-more">+ {{ dashboard_data.menu_categories.count - 4 }} more categories</div>
+                        {% endif %}
+                    {% else %}
+                        <div class="data-empty">No menu categories found</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 7. Menu Items Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-hamburger"></i>
+                        <h3>Menu Items</h3>
+                    </div>
+                    <span class="card-badge">{{ dashboard_data.menu_items.count if dashboard_data.menu_items else 0 }}</span>
+                </div>
+                <div class="card-content">
+                    {% if dashboard_data.menu_items and dashboard_data.menu_items.data %}
+                        {% for item in dashboard_data.menu_items.data[:4] %}
+                        <div class="data-row">
+                            <div class="data-info">
+                                <span class="data-name">{{ item.name }}</span>
+                                {% if item.description %}
+                                <span class="data-detail">{{ item.description|truncate(30) }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="data-price">
+                                <span class="rupee-symbol-small">₹</span>
+                                <span>{{ "%.2f"|format(item.final_price) }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% if dashboard_data.menu_items.count > 4 %}
+                        <div class="data-more">+ {{ dashboard_data.menu_items.count - 4 }} more items</div>
+                        {% endif %}
+                    {% else %}
+                        <div class="data-empty">No menu items found</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 8. Cart Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-shopping-cart"></i>
+                        <h3>Your Cart</h3>
+                    </div>
+                    <span class="card-badge">{{ dashboard_data.cart.count if dashboard_data.cart else 0 }}</span>
+                </div>
+                <div class="card-content">
+                    {% if dashboard_data.cart and dashboard_data.cart.data %}
+                        {% for item in dashboard_data.cart.data[:4] %}
+                        <div class="data-row">
+                            <div class="data-info">
+                                <span class="data-name">{{ item.item_type|title }}</span>
+                                <span class="data-detail">ID: {{ item.item_id }}</span>
+                            </div>
+                            <span class="data-count">x{{ item.quantity }}</span>
+                        </div>
+                        {% endfor %}
+                        {% if dashboard_data.cart.count > 4 %}
+                        <div class="data-more">+ {{ dashboard_data.cart.count - 4 }} more items</div>
+                        {% endif %}
+                    {% else %}
+                        <div class="data-empty">Your cart is empty</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 9. Orders Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-receipt"></i>
+                        <h3>Recent Orders</h3>
+                    </div>
+                    <span class="card-badge">{{ dashboard_data.orders.count if dashboard_data.orders else 0 }}</span>
+                </div>
+                <div class="card-content">
+                    {% if dashboard_data.orders and dashboard_data.orders.data %}
+                        {% for order in dashboard_data.orders.data[:4] %}
+                        <div class="data-row">
+                            <div class="data-info">
+                                <span class="data-name">Order #{{ order.order_id }}</span>
+                                <span class="data-detail">{{ order.status|title }}</span>
+                            </div>
+                            <div class="data-price">
+                                <span class="rupee-symbol-small">₹</span>
+                                <span>{{ "%.2f"|format(order.total_amount) }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% if dashboard_data.orders.count > 4 %}
+                        <div class="data-more">+ {{ dashboard_data.orders.count - 4 }} more orders</div>
+                        {% endif %}
+                    {% else %}
+                        <div class="data-empty">No orders found</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 10. Payments Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-credit-card"></i>
+                        <h3>Payments</h3>
+                    </div>
+                    <span class="card-badge">{{ dashboard_data.payments.count if dashboard_data.payments else 0 }}</span>
+                </div>
+                <div class="card-content">
+                    {% if dashboard_data.payments and dashboard_data.payments.data %}
+                        {% for payment in dashboard_data.payments.data[:4] %}
+                        <div class="data-row">
+                            <div class="data-info">
+                                <span class="data-name">Order #{{ payment.order_id }}</span>
+                                <span class="data-detail">{{ payment.payment_mode|default('COD') }}</span>
+                            </div>
+                            <div class="data-price">
+                                <span class="rupee-symbol-small">₹</span>
+                                <span>{{ "%.2f"|format(payment.amount) }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% if dashboard_data.payments.count > 4 %}
+                        <div class="data-more">+ {{ dashboard_data.payments.count - 4 }} more payments</div>
+                        {% endif %}
+                    {% else %}
+                        <div class="data-empty">No payments found</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 11. Addresses Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <h3>Addresses</h3>
+                    </div>
+                    <span class="card-badge">{{ dashboard_data.addresses.count if dashboard_data.addresses else 0 }}</span>
+                </div>
+                <div class="card-content">
+                    {% if dashboard_data.addresses and dashboard_data.addresses.data %}
+                        {% for addr in dashboard_data.addresses.data[:4] %}
+                        <div class="data-row">
+                            <div class="data-info">
+                                <span class="data-name">{{ addr.full_name }}</span>
+                                <span class="data-detail">{{ addr.city }}, {{ addr.state }}</span>
+                            </div>
+                            {% if addr.is_default %}
+                            <span class="data-badge default">Default</span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        {% if dashboard_data.addresses.count > 4 %}
+                        <div class="data-more">+ {{ dashboard_data.addresses.count - 4 }} more addresses</div>
+                        {% endif %}
+                    {% else %}
+                        <div class="data-empty">No addresses found</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 12. Notifications Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-bell"></i>
+                        <h3>Notifications</h3>
+                    </div>
+                    <span class="card-badge">{{ dashboard_data.notifications.count if dashboard_data.notifications else 0 }}</span>
+                </div>
+                <div class="card-content">
+                    {% if dashboard_data.notifications and dashboard_data.notifications.data %}
+                        {% for notif in dashboard_data.notifications.data[:4] %}
+                        <div class="data-row">
+                            <div class="data-info">
+                                <span class="data-name">{{ notif.title }}</span>
+                                <span class="data-detail">{{ notif.message|truncate(35) }}</span>
+                            </div>
+                            {% if not notif.is_read %}
+                            <span class="data-badge unread">New</span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        {% if dashboard_data.notifications.count > 4 %}
+                        <div class="data-more">+ {{ dashboard_data.notifications.count - 4 }} more notifications</div>
+                        {% endif %}
+                    {% else %}
+                        <div class="data-empty">No notifications</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 13. Order Items Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-boxes"></i>
+                        <h3>Order Items</h3>
+                    </div>
+                    <span class="card-badge">{{ dashboard_data.order_items.count if dashboard_data.order_items else 0 }}</span>
+                </div>
+                <div class="card-content">
+                    {% if dashboard_data.order_items and dashboard_data.order_items.data %}
+                        {% for item in dashboard_data.order_items.data[:4] %}
+                        <div class="data-row">
+                            <div class="data-info">
+                                <span class="data-name">{{ item.item_name }}</span>
+                                <span class="data-detail">Order #{{ item.order_id }}</span>
+                            </div>
+                            <span class="data-count">x{{ item.quantity }}</span>
+                        </div>
+                        {% endfor %}
+                        {% if dashboard_data.order_items.count > 4 %}
+                        <div class="data-more">+ {{ dashboard_data.order_items.count - 4 }} more items</div>
+                        {% endif %}
+                    {% else %}
+                        <div class="data-empty">No order items found</div>
+                    {% endif %}
+                </div>
+            </div>
+
         </div>
     </main>
 
-    <!-- Bottom Navigation - CSS style.css se aayega -->
+    <!-- Bottom Navigation -->
     <nav class="bottom-nav">
-        <a href="{{ url_for('services') }}" class="nav-item" data-page="services">
+        <a href="{{ url_for('services') }}" class="nav-item">
             <i class="fas fa-concierge-bell"></i>
             <span>Services</span>
         </a>
-        <a href="{{ url_for('menu') }}" class="nav-item" data-page="menu">
+        <a href="{{ url_for('menu') }}" class="nav-item">
             <i class="fas fa-utensils"></i>
             <span>Menu</span>
         </a>
-        <a href="{{ url_for('cart') }}" class="nav-item" data-page="cart">
+        <a href="{{ url_for('cart') }}" class="nav-item">
             <i class="fas fa-shopping-cart"></i>
             <span>Cart</span>
         </a>
-        <a href="{{ url_for('order_history') }}" class="nav-item" data-page="orders">
+        <a href="{{ url_for('order_history') }}" class="nav-item">
             <i class="fas fa-history"></i>
             <span>Orders</span>
         </a>
-        <a href="{{ url_for('profile') }}" class="nav-item" data-page="profile">
+        <a href="{{ url_for('profile') }}" class="nav-item active">
             <i class="fas fa-user"></i>
             <span>Profile</span>
         </a>
     </nav>
 </div>
 
-<!-- Modal Overlay -->
-<div class="modal-overlay" id="accessModal">
-    <div class="modal-container">
-        <div class="modal-header">
-            <h3>
-                <i class="fas fa-lock"></i>
-                Access Required
-            </h3>
-            <button class="close-modal" onclick="closeModal()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="modal-content">
-            <div class="boxes-grid">
-                <!-- New Registration Card -->
-                <a href="{{ url_for('register') }}" class="access-card" onclick="handleCardClick(event, 'new-registration')">
-                    <div class="card-icon">
-                        <i class="fas fa-user-plus"></i>
-                    </div>
-                    <div class="card-content">
-                        <h3 class="card-title">New Registration</h3>
-                        <p class="card-description">Create new account</p>
-                    </div>
-                    <i class="fas fa-chevron-right card-arrow"></i>
-                </a>
-                
-                <!-- User Login Card -->
-                <a href="{{ url_for('login') }}" class="access-card" onclick="handleCardClick(event, 'user-login')">
-                    <div class="card-icon">
-                        <i class="fas fa-sign-in-alt"></i>
-                    </div>
-                    <div class="card-content">
-                        <h3 class="card-title">User Login</h3>
-                        <p class="card-description">Sign in to account</p>
-                    </div>
-                    <i class="fas fa-chevron-right card-arrow"></i>
-                </a>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <p>Join BITE ME BUDDY for exclusive access to premium services</p>
-        </div>
-    </div>
-</div>
-
-<!-- Add to homescreen prompt styling for iOS -->
 <style>
-/* ========== ONLY MAIN CONTENT CSS - HEADER & BOTTOM NAV STYLES STYLE.SE SE AAYENGE ========== */
+/* ✅ DASHBOARD STYLES - MATCHING EXISTING THEME */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
 :root {
-    /* Luxurious Dark Theme - Variables only, no header/bottom nav styles */
     --service-card-base: #0D0D0D;
     --service-title: #A0A0A0;
     --service-icon: #8e7d4d;
     --golden-vivid: #D4AF37;
     --golden-metallic: #C0B283;
-    --golden-glow: rgba(212, 175, 55, 0.2);
     --service-border-detail: #333333;
-    --service-status-available: #2E7D32;
     --creamy-white: #F4F1E1;
     --silver-mist: #A0A0A0;
     --matte-black: #0D0D0D;
     --serif-font: 'Playfair Display', Georgia, serif;
     --sans-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --modern-font: 'Poppins', sans-serif;
-    --bronze-glow: 0 0 8px rgba(142, 125, 77, 0.2);
-    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    --bronze-glow: 0 0 15px rgba(142, 125, 77, 0.3);
+    --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     --rupee-color: #D4AF37;
-    
-    /* Real App Colors */
-    --instagram-color: #E4405F;
-    --facebook-color: #1877F2;
-    --whatsapp-color: #25D366;
-    --youtube-color: #FF0000;
-    --telegram-color: #0088cc;
-    --twitter-color: #1DA1F2;
+    --rupee-bg: rgba(212, 175, 55, 0.1);
 }
 
-/* Base body styles - only what's needed */
 body {
-    background: linear-gradient(135deg, #0A0A0A 0%, #0F0F0F 100%);
+    background: var(--service-card-base);
+    color: var(--creamy-white);
     font-family: var(--sans-font);
     margin: 0;
     padding: 0;
-    overflow-x: hidden;
-}
-
-body.modal-open {
-    overflow: hidden;
 }
 
 .dashboard {
-    padding-top: 0; /* Remove existing padding */
+    padding-top: 85px;
     position: relative;
     background: var(--service-card-base);
     min-height: 100vh;
 }
 
-/* ========== MODAL STYLES - KEEP THESE ========== */
-.modal-overlay {
+.dashboard-header {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
+    z-index: 1000;
+}
+
+.bottom-nav {
+    position: fixed;
     bottom: 0;
-    background: #000000;
-    z-index: 9999;
-    display: none;
-    justify-content: center;
-    align-items: center;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    left: 0;
+    right: 0;
+    z-index: 1000;
 }
 
-.modal-overlay.active {
-    display: flex;
-    opacity: 1;
+.main-content {
+    background: var(--service-card-base);
+    padding: 16px;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
 }
 
-.modal-container {
-    width: 90%;
-    max-width: 380px;
-    max-height: 85vh;
-    background: linear-gradient(135deg, var(--service-card-base), #1a1a1a);
-    border: 1px solid var(--service-icon);
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 0 20px var(--golden-glow);
-    animation: modalSlideIn 0.3s ease;
-    position: relative;
-}
-
-@keyframes modalSlideIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95) translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
-}
-
-.modal-header {
-    padding: 16px 18px;
-    background: linear-gradient(135deg, #000, var(--service-card-base));
-    border-bottom: 1px solid var(--service-border-detail);
+/* Stats Overview Card */
+.stats-overview-card {
+    background: linear-gradient(135deg, var(--service-icon), #6e5d3d);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    position: relative;
-}
-
-.modal-header h3 {
-    font-family: var(--modern-font);
-    color: var(--golden-vivid);
-    font-size: 1.2rem;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.modal-header h3 i {
-    color: var(--service-icon);
-    font-size: 1.1rem;
-}
-
-.close-modal {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: rgba(142, 125, 77, 0.1);
-    border: 1px solid var(--service-border-detail);
-    color: var(--service-icon);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-size: 1rem;
-}
-
-.close-modal:hover {
-    border-color: var(--service-icon);
-    color: var(--golden-vivid);
-}
-
-.modal-content {
-    padding: 16px;
-    background: var(--service-card-base);
-}
-
-.boxes-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.access-card {
-    background: linear-gradient(135deg, var(--service-card-base), #151515);
-    border-radius: 14px;
-    padding: 14px 16px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    border: 1px solid var(--service-border-detail);
-    transition: all 0.2s ease;
-    cursor: pointer;
-    text-decoration: none;
-    color: inherit;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    position: relative;
-    overflow: hidden;
-}
-
-.access-card:active {
-    transform: scale(0.98);
-    border-color: var(--service-icon);
-}
-
-.access-card::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: linear-gradient(to bottom, var(--service-icon), var(--golden-vivid));
-    opacity: 0;
-    transition: opacity 0.2s;
-}
-
-.access-card:hover::before {
-    opacity: 0.8;
-}
-
-.card-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--service-icon), #b89a4a);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--matte-black);
-    font-size: 20px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-    flex-shrink: 0;
+    flex-wrap: wrap;
+    gap: 20px;
     border: 1px solid rgba(212, 175, 55, 0.3);
 }
 
-.card-content {
-    flex: 1;
-}
-
-.card-title {
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--creamy-white);
-    margin-bottom: 2px;
-    font-family: var(--modern-font);
-    letter-spacing: 0.3px;
-}
-
-.card-description {
-    font-size: 11px;
-    color: var(--service-title);
-    line-height: 1.3;
-    font-family: var(--modern-font);
-    opacity: 0.8;
-}
-
-.card-arrow {
-    color: var(--service-icon);
-    font-size: 12px;
-    opacity: 0.5;
-    transition: all 0.2s;
-    margin-left: 2px;
-}
-
-.access-card:hover .card-arrow {
-    transform: translateX(3px);
-    color: var(--golden-vivid);
-    opacity: 0.8;
-}
-
-.modal-footer {
-    padding: 12px 16px 16px;
-    text-align: center;
-    border-top: 1px solid var(--service-border-detail);
-    background: linear-gradient(135deg, #151515, var(--service-card-base));
-}
-
-.modal-footer p {
-    color: var(--service-title);
-    font-size: 0.75rem;
-    font-family: var(--modern-font);
-    line-height: 1.4;
-    opacity: 0.9;
-}
-
-/* Mobile Specific Modal Styles */
-@media (max-width: 480px) {
-    .modal-container {
-        max-width: 320px;
-        border-radius: 18px;
-    }
-    
-    .modal-header {
-        padding: 14px 16px;
-    }
-    
-    .modal-header h3 {
-        font-size: 1.1rem;
-    }
-    
-    .modal-content {
-        padding: 14px;
-    }
-    
-    .boxes-grid {
-        gap: 8px;
-    }
-    
-    .access-card {
-        padding: 12px 14px;
-        gap: 12px;
-    }
-    
-    .card-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-    }
-    
-    .card-title {
-        font-size: 15px;
-    }
-    
-    .card-description {
-        font-size: 10px;
-    }
-    
-    .modal-footer p {
-        font-size: 0.7rem;
-    }
-}
-
-@media (max-width: 360px) {
-    .modal-container {
-        max-width: 280px;
-    }
-    
-    .access-card {
-        padding: 10px 12px;
-    }
-    
-    .card-icon {
-        width: 36px;
-        height: 36px;
-        font-size: 16px;
-    }
-    
-    .card-title {
-        font-size: 14px;
-    }
-}
-
-/* ========== MAIN CONTENT AREA CSS - ONLY ========== */
-.main-content {
-    background: var(--service-card-base);
-    padding: 0 16px;
-    margin-top: 130px; /* 130px gap from header */
-    min-height: calc(100vh - 130px - 70px); /* 130px header gap, 70px bottom nav */
-}
-
-.home-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding-bottom: 70px;
-}
-
-/* Video Banner Section */
-.video-banner-section {
-    margin-bottom: 30px;
-    position: relative;
-    z-index: 1;
-    margin-top: 0;
-}
-
-.video-banner {
-    width: 100%;
-    height: 450px;
-    border-radius: 30px;
-    overflow: hidden;
-    border: 2px solid var(--service-icon);
-    box-shadow: var(--card-shadow);
-    position: relative;
-    background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
-    margin-top: 0;
-}
-
-.video-banner video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.video-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.3);
-    pointer-events: none;
-    z-index: 2;
-}
-
-.video-banner:hover {
-    border-color: var(--golden-vivid);
-    box-shadow: 0 0 25px var(--golden-glow);
-    transition: all 0.3s ease;
-}
-
-/* Services Section with 3D Carousel */
-.normal-section {
-    width: 100%;
-    margin-bottom: 40px;
-    position: relative;
-    z-index: 1;
-}
-
-.service-card-large {
-    background: linear-gradient(135deg, var(--service-card-base), #1a1a1a);
-    border: 1px solid var(--service-border-detail);
-    border-radius: 20px;
-    overflow: visible;
-    padding: 25px 30px;
-    transition: all 0.3s ease;
-    box-shadow: var(--card-shadow);
-    position: relative;
-}
-
-.service-card-large:hover {
-    border-color: var(--service-icon);
-    box-shadow: var(--bronze-glow);
-}
-
-.service-header {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.service-header h3 {
-    font-family: var(--serif-font);
-    font-size: 2rem;
-    color: var(--golden-vivid);
-    margin-bottom: 8px;
-}
-
-.service-header p {
-    color: var(--service-title);
-    font-size: 1rem;
-    max-width: 600px;
-    margin: 0 auto;
-    line-height: 1.4;
-}
-
-/* 3D Carousel Container */
-.carousel-container {
-    position: relative;
-    width: 100%;
-    height: 230px;
-    margin: 10px 0 20px;
+.stats-overview-content {
     display: flex;
-    justify-content: center;
     align-items: center;
-    perspective: 800px;
+    gap: 20px;
 }
 
-.carousel {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 100%;
-    height: 100%;
-    transform-style: preserve-3d;
-    cursor: grab;
-    transform: translate(-50%, -50%) rotateX(-5deg) rotateY(0deg);
-    will-change: transform;
-}
-
-.carousel:active {
-    cursor: grabbing;
-}
-
-.carousel-card {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 80px;
-    height: 106px;
-    margin-left: -40px;
-    margin-top: -53px;
-    transform-style: preserve-3d;
-    transform: rotateY(calc(var(--i) * 24deg)) translateZ(220px);
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    backface-visibility: visible;
-    border-radius: 10px;
-    overflow: hidden;
-    border: 2px solid var(--service-icon);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-    pointer-events: auto;
-}
-
-.carousel-card:hover {
-    border-color: var(--golden-vivid);
-    box-shadow: 0 0 15px var(--golden-glow);
-    z-index: 10;
-}
-
-.carousel-card img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.3s ease;
-}
-
-.carousel-card:hover img {
-    transform: scale(1.05);
-}
-
-.carousel-card::after {
-    content: '';
-    position: absolute;
-    bottom: -12px;
-    left: 0;
-    width: 100%;
-    height: 12px;
-    background: linear-gradient(to bottom, rgba(212, 175, 55, 0.2), transparent);
-    filter: blur(4px);
-    transform: rotateX(90deg) translateZ(-8px);
-    opacity: 0.3;
-    pointer-events: none;
-}
-
-.circle-path {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 440px;
-    height: 440px;
-    border: 1px dashed rgba(212, 175, 55, 0.2);
+.stats-icon-large {
+    width: 70px;
+    height: 70px;
+    background: rgba(0, 0, 0, 0.2);
     border-radius: 50%;
-    transform: translate(-50%, -50%) rotateX(90deg) translateZ(-110px);
-    pointer-events: none;
-    z-index: 1;
-}
-
-.service-card-btn {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 12px 28px;
-    background: linear-gradient(135deg, var(--golden-vivid), var(--golden-metallic));
+    justify-content: center;
+    font-size: 32px;
     color: #000000;
-    text-decoration: none;
-    border-radius: 8px;
+}
+
+.stats-info-large h2 {
+    font-size: 48px;
+    font-weight: 800;
+    color: #000000;
+    margin: 0;
+    line-height: 1;
+    font-family: var(--serif-font);
+}
+
+.stats-info-large p {
+    margin: 5px 0 0 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.8);
+}
+
+.stats-info-large span {
+    font-size: 12px;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.stats-grid-mini {
+    display: flex;
+    gap: 24px;
+}
+
+.stat-mini {
+    text-align: center;
+    background: rgba(0, 0, 0, 0.15);
+    padding: 10px 16px;
+    border-radius: 12px;
+    min-width: 70px;
+}
+
+.stat-mini i {
+    font-size: 20px;
+    color: #000000;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.stat-mini span {
+    font-size: 20px;
     font-weight: 700;
-    transition: all 0.3s;
-    width: fit-content;
-    margin: 5px auto 0;
-    position: relative;
+    color: #000000;
+    display: block;
+    line-height: 1;
+}
+
+.stat-mini small {
+    font-size: 10px;
+    color: rgba(0, 0, 0, 0.7);
+}
+
+/* Dashboard Grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 20px;
+}
+
+/* Dashboard Card */
+.dashboard-card {
+    background: var(--service-card-base);
+    border-radius: 12px;
+    border: 1px solid var(--service-border-detail);
     overflow: hidden;
-    border: none;
-    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
-.service-card-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.7s ease;
-}
-
-.service-card-btn:hover::before {
-    left: 100%;
-}
-
-.service-card-btn:hover {
+.dashboard-card:hover {
+    border-color: var(--service-icon);
     transform: translateY(-2px);
     box-shadow: var(--bronze-glow);
 }
 
-/* About Section - COMPACT MOBILE VERSION */
-.about-section {
-    font-family: var(--serif-font);
-    font-size: 1.8rem;
-    color: var(--creamy-white);
-    margin-bottom: 25px;
-    position: relative;
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, rgba(20, 20, 20, 0.8), rgba(10, 10, 10, 0.9));
+    border-bottom: 1px solid var(--service-border-detail);
 }
 
-.about-section::after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 0;
-    width: 80px;
-    height: 2px;
-    background: linear-gradient(90deg, var(--golden-vivid), transparent);
-}
-
-.about-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-}
-
-.about-card {
-    background: linear-gradient(135deg, var(--service-card-base), #1a1a1a);
-    border: 1px solid var(--service-border-detail);
-    border-radius: 15px;
-    padding: 25px;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.about-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(142, 125, 77, 0.1), transparent);
-    transition: left 0.7s ease;
-}
-
-.about-card:hover::before {
-    left: 100%;
-}
-
-.about-card:hover {
-    transform: translateY(-5px);
-    border-color: var(--service-icon);
-    box-shadow: var(--bronze-glow);
-}
-
-.about-card .card-icon {
-    width: 60px;
-    height: 60px;
-    background: rgba(142, 125, 77, 0.15);
-    border: 1px solid var(--service-border-detail);
-    border-radius: 50%;
+.card-title {
     display: flex;
     align-items: center;
-    justify-content: center;
-    margin-bottom: 18px;
-    transition: all 0.3s;
-}
-
-.about-card:hover .card-icon {
-    border-color: var(--service-icon);
-    transform: rotate(360deg);
-}
-
-.about-card .card-icon i {
-    font-size: 1.8rem;
-    color: var(--service-icon);
-    transition: all 0.3s;
-}
-
-.about-card:hover .card-icon i {
-    color: var(--golden-vivid);
-}
-
-.about-card h3 {
-    font-family: var(--serif-font);
-    font-size: 1.2rem;
-    color: var(--golden-vivid);
-    margin-bottom: 12px;
-}
-
-.about-card p {
-    color: var(--service-title);
-    line-height: 1.5;
-    font-size: 0.9rem;
-}
-
-/* Social Section - COMPACT MOBILE VERSION */
-.social-section {
-    font-family: var(--serif-font);
-    font-size: 1.8rem;
-    color: var(--creamy-white);
-    margin-bottom: 25px;
-    position: relative;
-}
-
-.social-section::after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 0;
-    width: 80px;
-    height: 2px;
-    background: linear-gradient(90deg, var(--golden-vivid), transparent);
-}
-
-.social-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-}
-
-.social-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 25px 15px;
-    background: linear-gradient(135deg, var(--service-card-base), #1a1a1a);
-    border: 1px solid var(--service-border-detail);
-    border-radius: 15px;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.social-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
-    transition: left 0.5s ease;
-}
-
-.social-item:hover::before {
-    left: 100%;
-}
-
-.social-item:hover {
-    transform: translateY(-5px);
-    border-color: var(--service-icon);
-    box-shadow: var(--bronze-glow);
-}
-
-.social-item i {
-    font-size: 2.2rem;
-    margin-bottom: 8px;
-    transition: all 0.3s;
-}
-
-.social-item span {
-    color: var(--creamy-white);
-    font-weight: 500;
-    font-size: 0.85rem;
-    transition: all 0.3s;
-}
-
-.social-item:hover i {
-    transform: scale(1.1);
-}
-
-.social-item.instagram i { color: var(--instagram-color); }
-.social-item.facebook i { color: var(--facebook-color); }
-.social-item.whatsapp i { color: var(--whatsapp-color); }
-.social-item.youtube i { color: var(--youtube-color); }
-.social-item.telegram i { color: var(--telegram-color); }
-.social-item.twitter i { color: var(--twitter-color); }
-
-/* Contact Section - COMPACT MOBILE VERSION */
-.contact-section {
-    font-family: var(--serif-font);
-    font-size: 1.8rem;
-    color: var(--creamy-white);
-    margin-bottom: 25px;
-    position: relative;
-}
-
-.contact-section::after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 0;
-    width: 80px;
-    height: 2px;
-    background: linear-gradient(90deg, var(--golden-vivid), transparent);
-}
-
-.contact-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-}
-
-.contact-item {
-    background: linear-gradient(135deg, var(--service-card-base), #1a1a1a);
-    border: 1px solid var(--service-border-detail);
-    border-radius: 15px;
-    padding: 25px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    transition: all 0.3s ease;
-}
-
-.contact-item:hover {
-    transform: translateY(-5px);
-    border-color: var(--service-icon);
-    box-shadow: var(--bronze-glow);
-}
-
-.contact-icon {
-    width: 50px;
-    height: 50px;
-    background: rgba(142, 125, 77, 0.15);
-    border: 1px solid var(--service-border-detail);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s;
-}
-
-.contact-item:hover .contact-icon {
-    border-color: var(--service-icon);
-    transform: scale(1.1);
-}
-
-.contact-icon i {
-    font-size: 1.3rem;
-    color: var(--service-icon);
-    transition: all 0.3s;
-}
-
-.contact-item:hover .contact-icon i {
-    color: var(--golden-vivid);
-}
-
-.contact-details {
-    flex: 1;
-}
-
-.contact-details h3 {
-    color: var(--creamy-white);
-    font-size: 1rem;
-    margin-bottom: 4px;
-}
-
-.contact-link {
-    color: var(--golden-vivid);
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 600;
-    transition: all 0.3s;
-    display: inline-block;
-}
-
-.contact-link:hover {
-    transform: translateX(5px);
-    color: var(--golden-metallic);
-}
-
-.contact-timing {
-    color: var(--service-title);
-    font-size: 0.75rem;
-    margin-top: 4px;
-}
-
-/* ========== PROFESSIONAL MOBILE FOOTER ========== */
-.footer {
-    background: linear-gradient(135deg, #0a0a0a, #000000);
-    border-top: 1px solid var(--service-border-detail);
-    padding: 60px 20px 20px;
-    margin-top: 0;
-}
-
-.footer-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 40px;
-    max-width: 1200px;
-    margin: 0 auto 40px;
-}
-
-.footer-column {
-    width: 100%;
-}
-
-.footer-column h4 {
-    font-family: var(--serif-font);
-    color: var(--golden-vivid);
-    font-size: 1.2rem;
-    margin-bottom: 20px;
-    position: relative;
-    letter-spacing: 0.5px;
-}
-
-.footer-column h4::after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 0;
-    width: 40px;
-    height: 2px;
-    background: linear-gradient(90deg, var(--golden-vivid), transparent);
-    border-radius: 2px;
-}
-
-/* Professional Quick Links & Legal Cards */
-.footer-column ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.footer-column ul li {
-    margin-bottom: 14px;
-}
-
-.footer-column ul li a {
-    color: var(--service-title);
-    text-decoration: none;
-    transition: all 0.3s ease;
-    display: inline-block;
-    font-size: 0.95rem;
-    font-weight: 400;
-    position: relative;
-    padding: 8px 0 8px 25px;
-    background: linear-gradient(135deg, rgba(20, 20, 20, 0.5), rgba(10, 10, 10, 0.5));
-    border-radius: 30px;
-    width: 100%;
-    border: 1px solid transparent;
-}
-
-.footer-column ul li a::before {
-    content: '→';
-    position: absolute;
-    left: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--service-icon);
-    font-size: 1rem;
-    opacity: 0.7;
-    transition: all 0.3s ease;
-}
-
-.footer-column ul li a:hover {
-    color: var(--golden-vivid);
-    transform: translateX(8px);
-    border-color: var(--service-icon);
-    background: linear-gradient(135deg, rgba(40, 40, 40, 0.8), rgba(30, 30, 30, 0.8));
-    box-shadow: var(--bronze-glow);
-}
-
-.footer-column ul li a:hover::before {
-    left: 12px;
-    color: var(--golden-vivid);
-    opacity: 1;
-}
-
-/* Social links with brand colors on hover - Professional Cards (NO ARROW) */
-.social-links {
-    display: flex;
-    flex-direction: column;
     gap: 10px;
 }
 
-.social-links li {
-    margin-bottom: 0 !important;
-    list-style: none;
-}
-
-.social-links li a {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 12px 18px !important;
-    background: linear-gradient(135deg, rgba(20, 20, 20, 0.8), rgba(10, 10, 10, 0.8));
-    border: 1px solid var(--service-border-detail);
-    border-radius: 16px;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    color: var(--creamy-white);
-    width: 100%;
-    position: relative;
-}
-
-.social-links li a i {
-    width: 28px;
-    font-size: 1.4rem;
-    transition: all 0.3s ease;
+.card-title i {
+    font-size: 18px;
     color: var(--service-icon);
-    text-align: center;
 }
 
-.social-links li a span {
-    font-size: 0.95rem;
-    font-weight: 500;
-    flex: 1;
-}
-
-/* Removed any arrow pseudo-elements */
-.social-links li a::before,
-.social-links li a::after {
-    display: none;
-    content: none;
-}
-
-.social-links li a:hover {
-    border-color: var(--service-icon);
-    transform: translateY(-3px) translateX(5px);
-    box-shadow: var(--bronze-glow);
-    background: linear-gradient(135deg, rgba(30, 30, 30, 0.95), rgba(20, 20, 20, 0.95));
-}
-
-.social-links li a:hover i {
-    transform: scale(1.2);
-}
-
-.social-links li a:hover i.fa-instagram { color: var(--instagram-color); }
-.social-links li a:hover i.fa-facebook { color: var(--facebook-color); }
-.social-links li a:hover i.fa-whatsapp { color: var(--whatsapp-color); }
-.social-links li a:hover i.fa-youtube { color: var(--youtube-color); }
-.social-links li a:hover i.fa-telegram { color: var(--telegram-color); }
-.social-links li a:hover i.fa-twitter { color: var(--twitter-color); }
-
-.social-links li a:hover span {
-    color: var(--golden-vivid);
-}
-
-/* BITE ME BUDDY Contact Info - Professional Clickable Cards */
-.footer-column:last-child p {
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    font-size: 0.95rem;
-    background: linear-gradient(135deg, rgba(20, 20, 20, 0.8), rgba(10, 10, 10, 0.8));
-    padding: 16px 20px;
-    border-radius: 16px;
-    border: 1px solid var(--service-border-detail);
-    transition: all 0.3s ease;
-    backdrop-filter: blur(5px);
-    cursor: pointer;
-}
-
-.footer-column:last-child p a {
+.card-title h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
     color: var(--creamy-white);
-    text-decoration: none;
+    font-family: var(--sans-font);
+}
+
+.card-badge {
+    background: var(--service-icon);
+    color: #000000;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.card-content {
+    padding: 8px 0;
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+/* Data Row */
+.data-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px dashed var(--service-border-detail);
+    transition: all 0.2s ease;
+}
+
+.data-row:hover {
+    background: rgba(142, 125, 77, 0.1);
+}
+
+.data-info {
     flex: 1;
-    transition: all 0.3s ease;
+    min-width: 0;
 }
 
-.footer-column:last-child p i {
-    color: var(--service-icon);
-    width: 28px;
-    font-size: 1.3rem;
-    text-align: center;
-    transition: all 0.3s ease;
+.data-name {
+    font-weight: 600;
+    color: var(--creamy-white);
+    font-size: 13px;
+    display: block;
+    font-family: var(--sans-font);
 }
 
-.footer-column:last-child p:hover {
-    border-color: var(--service-icon);
-    transform: translateX(8px) translateY(-2px);
-    box-shadow: var(--bronze-glow);
-    background: linear-gradient(135deg, rgba(40, 40, 40, 0.95), rgba(30, 30, 30, 0.95));
-}
-
-.footer-column:last-child p:hover i {
-    color: var(--golden-vivid);
-    transform: scale(1.1);
-}
-
-.footer-column:last-child p:hover a {
-    color: var(--golden-vivid);
-}
-
-.footer-bottom {
-    text-align: center;
-    padding: 25px 0 10px;
-    border-top: 1px solid var(--service-border-detail);
+.data-detail {
+    font-size: 11px;
     color: var(--service-title);
-    font-size: 0.85rem;
-    position: relative;
-    margin-top: 20px;
+    display: block;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.footer-bottom p {
-    opacity: 0.9;
-    letter-spacing: 0.3px;
-}
-
-.footer-bottom p::before {
-    content: '✦';
+.data-phone,
+.data-count {
+    font-size: 12px;
     color: var(--service-icon);
-    margin: 0 10px;
-    font-size: 0.9rem;
+    font-weight: 500;
+    flex-shrink: 0;
+    margin-left: 10px;
 }
 
-.footer-bottom p::after {
-    content: '✦';
+.data-price {
+    display: flex;
+    align-items: baseline;
+    gap: 1px;
+    flex-shrink: 0;
+    margin-left: 10px;
+}
+
+.rupee-symbol-small {
+    color: var(--rupee-color);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.data-price span:last-child {
+    font-weight: 700;
+    color: var(--rupee-color);
+    font-size: 13px;
+}
+
+.data-badge {
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    flex-shrink: 0;
+    margin-left: 10px;
+}
+
+.data-badge.default {
+    background: rgba(46, 125, 50, 0.2);
+    color: #2E7D32;
+    border: 1px solid rgba(46, 125, 50, 0.3);
+}
+
+.data-badge.unread {
+    background: rgba(212, 175, 55, 0.2);
+    color: var(--rupee-color);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.data-more {
+    text-align: center;
+    padding: 12px;
     color: var(--service-icon);
-    margin: 0 10px;
-    font-size: 0.9rem;
+    font-size: 12px;
+    font-weight: 500;
+    border-top: 1px solid var(--service-border-detail);
+    background: rgba(20, 20, 20, 0.4);
 }
 
-/* ========== RESPONSIVE DESIGN - ONLY FOR MAIN CONTENT ========== */
-@media (max-width: 992px) {
-    .main-content {
-        margin-top: 130px;
-        min-height: calc(100vh - 130px - 70px);
-    }
-    
-    .about-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 18px;
-    }
-    
-    .contact-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 18px;
-    }
-    
-    .carousel-card {
-        width: 70px;
-        height: 93px;
-        margin-left: -35px;
-        margin-top: -46.5px;
-        transform: rotateY(calc(var(--i) * 24deg)) translateZ(180px);
-    }
-    
-    .circle-path {
-        width: 360px;
-        height: 360px;
-        transform: translate(-50%, -50%) rotateX(90deg) translateZ(-90px);
-    }
-    
-    .video-banner {
-        height: 350px;
+.data-empty {
+    text-align: center;
+    padding: 30px 20px;
+    color: var(--service-title);
+    font-size: 13px;
+}
+
+/* Custom Scrollbar */
+.card-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.card-content::-webkit-scrollbar-track {
+    background: var(--service-border-detail);
+    border-radius: 10px;
+}
+
+.card-content::-webkit-scrollbar-thumb {
+    background: var(--service-icon);
+    border-radius: 10px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 16px;
     }
 }
 
 @media (max-width: 768px) {
     .main-content {
-        padding: 0 16px;
-        margin-top: 120px; /* Mobile par thoda kam */
-        min-height: calc(100vh - 120px - 70px);
+        padding: 12px;
     }
     
-    .video-banner {
-        height: 300px;
-        border-radius: 20px;
-    }
-    
-    .service-header h3 {
-        font-size: 1.6rem;
-    }
-    
-    .carousel-card {
-        width: 60px;
-        height: 80px;
-        margin-left: -30px;
-        margin-top: -40px;
-        transform: rotateY(calc(var(--i) * 24deg)) translateZ(150px);
-    }
-    
-    .circle-path {
-        width: 300px;
-        height: 300px;
-        transform: translate(-50%, -50%) rotateX(90deg) translateZ(-75px);
-    }
-    
-    .service-card-large {
-        padding: 18px 20px;
-    }
-    
-    .carousel-container {
-        height: 200px;
-        margin: 8px 0 15px;
-    }
-    
-    .about-section {
-        font-size: 1.6rem;
-        margin-bottom: 22px;
-    }
-    
-    .about-section::after {
-        width: 70px;
-        bottom: -7px;
-    }
-    
-    .about-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-    }
-    
-    .about-card {
-        padding: 20px;
-    }
-    
-    .about-card .card-icon {
-        width: 50px;
-        height: 50px;
-        margin-bottom: 15px;
-    }
-    
-    .about-card .card-icon i {
-        font-size: 1.5rem;
-    }
-    
-    .about-card h3 {
-        font-size: 1rem;
-        margin-bottom: 8px;
-    }
-    
-    .about-card p {
-        font-size: 0.75rem;
-        line-height: 1.4;
-    }
-    
-    .social-section {
-        font-size: 1.6rem;
-        margin-bottom: 22px;
-    }
-    
-    .social-section::after {
-        width: 70px;
-        bottom: -7px;
-    }
-    
-    .social-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-    }
-    
-    .social-item {
-        padding: 20px 15px;
-    }
-    
-    .social-item i {
-        font-size: 2rem;
-        margin-bottom: 6px;
-    }
-    
-    .social-item span {
-        font-size: 0.75rem;
-    }
-    
-    .contact-section {
-        font-size: 1.6rem;
-        margin-bottom: 22px;
-    }
-    
-    .contact-section::after {
-        width: 70px;
-        bottom: -7px;
-    }
-    
-    .contact-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-    }
-    
-    .contact-item {
-        padding: 20px;
-        gap: 12px;
-    }
-    
-    .contact-icon {
-        width: 45px;
-        height: 45px;
-    }
-    
-    .contact-icon i {
-        font-size: 1.2rem;
-    }
-    
-    .contact-details h3 {
-        font-size: 0.9rem;
-        margin-bottom: 3px;
-    }
-    
-    .contact-link {
-        font-size: 0.8rem;
-    }
-    
-    .contact-timing {
-        font-size: 0.7rem;
-    }
-    
-    /* ===== COMPACT MOBILE FOOTER ===== */
-    .footer {
-        padding: 40px 12px 20px;
-    }
-    
-    .footer-grid {
-        display: grid;
+    .dashboard-grid {
         grid-template-columns: 1fr;
-        gap: 30px;
-        margin-bottom: 30px;
-    }
-    
-    .footer-column {
-        width: 100%;
-        text-align: left;
-        padding: 0;
-    }
-    
-    .footer-column h4 {
-        font-size: 1.1rem;
-        margin-bottom: 16px;
-        color: var(--golden-vivid);
-        font-weight: 600;
-    }
-    
-    .footer-column h4::after {
-        width: 50px;
-        height: 2px;
-        bottom: -6px;
-    }
-    
-    /* Compact Quick Links & Legal Cards */
-    .footer-column ul li {
-        margin-bottom: 8px;
-    }
-    
-    .footer-column ul li a {
-        font-size: 0.9rem;
-        padding: 6px 0 6px 28px;
-        border-radius: 25px;
-        background: linear-gradient(135deg, rgba(25, 25, 25, 0.7), rgba(15, 15, 15, 0.7));
-    }
-    
-    .footer-column ul li a::before {
-        left: 10px;
-        font-size: 0.9rem;
-    }
-    
-    .footer-column ul li a:hover {
-        transform: translateX(8px);
-    }
-    
-    .footer-column ul li a:hover::before {
-        left: 14px;
-    }
-    
-    /* Compact Social Links Cards */
-    .social-links {
-        gap: 8px;
-    }
-    
-    .social-links li a {
-        padding: 10px 14px !important;
-        border-radius: 14px;
-        gap: 12px;
-    }
-    
-    .social-links li a i {
-        font-size: 1.2rem !important;
-        width: 24px;
-    }
-    
-    .social-links li a span {
-        font-size: 0.85rem;
-        font-weight: 500;
-    }
-    
-    /* Compact BITE ME BUDDY Contact Cards */
-    .footer-column:last-child p {
-        margin-bottom: 12px;
-        padding: 12px 16px;
-        font-size: 0.9rem;
-        border-radius: 14px;
         gap: 14px;
     }
     
-    .footer-column:last-child p i {
-        font-size: 1.1rem;
-        width: 24px;
+    .stats-overview-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 16px;
     }
     
-    .footer-column:last-child p:hover {
-        transform: translateX(8px) translateY(-2px);
+    .stats-overview-content {
+        flex-direction: column;
+        text-align: center;
     }
     
-    /* Compact Footer Bottom */
-    .footer-bottom {
-        padding: 20px 10px 10px;
-        font-size: 0.8rem;
-        margin-top: 15px;
+    .stats-grid-mini {
+        justify-content: center;
+        flex-wrap: wrap;
     }
     
-    .footer-bottom p::before,
-    .footer-bottom p::after {
-        margin: 0 6px;
-        font-size: 0.8rem;
-    }
-}
-
-@media (max-width: 580px) {
-    .main-content {
-        margin-top: 110px; /* Chhoti screen par aur kam */
-        min-height: calc(100vh - 110px - 70px);
-        padding: 0 12px;
+    .stat-mini {
+        min-width: 60px;
+        padding: 8px 12px;
     }
     
-    .about-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
+    .stat-mini span {
+        font-size: 18px;
     }
     
-    .about-card {
-        padding: 18px;
+    .stats-info-large h2 {
+        font-size: 40px;
     }
     
-    .about-card .card-icon {
-        width: 45px;
-        height: 45px;
-        margin-bottom: 12px;
+    .card-header {
+        padding: 12px 14px;
     }
     
-    .about-card .card-icon i {
-        font-size: 1.3rem;
+    .data-row {
+        padding: 8px 12px;
     }
     
-    .about-card h3 {
-        font-size: 0.95rem;
+    .data-name {
+        font-size: 12px;
     }
     
-    .about-card p {
-        font-size: 0.7rem;
-    }
-    
-    .social-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-    }
-    
-    .social-item {
-        padding: 18px 12px;
-    }
-    
-    .social-item i {
-        font-size: 1.8rem;
-    }
-    
-    .social-item span {
-        font-size: 0.7rem;
-    }
-    
-    .contact-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
-    }
-    
-    .video-banner {
-        height: 250px;
-    }
-    
-    .carousel-card {
-        width: 50px;
-        height: 67px;
-        margin-left: -25px;
-        margin-top: -33.5px;
-        transform: rotateY(calc(var(--i) * 24deg)) translateZ(130px);
-    }
-    
-    .circle-path {
-        width: 260px;
-        height: 260px;
-        transform: translate(-50%, -50%) rotateX(90deg) translateZ(-65px);
-    }
-    
-    .service-card-large {
-        padding: 15px;
-    }
-    
-    .carousel-container {
-        height: 180px;
-    }
-    
-    /* Even more compact for very small screens */
-    .footer {
-        padding: 35px 10px 15px;
-    }
-    
-    .footer-grid {
-        gap: 25px;
-    }
-    
-    .footer-column h4 {
-        font-size: 1rem;
-        margin-bottom: 14px;
-    }
-    
-    .footer-column ul li a {
-        font-size: 0.85rem;
-        padding: 5px 0 5px 26px;
-    }
-    
-    .social-links li a {
-        padding: 8px 12px !important;
-    }
-    
-    .social-links li a i {
-        font-size: 1rem !important;
-        width: 20px;
-    }
-    
-    .social-links li a span {
-        font-size: 0.8rem;
-    }
-    
-    .footer-column:last-child p {
-        padding: 10px 14px;
-        font-size: 0.85rem;
-        gap: 12px;
-    }
-    
-    .footer-column:last-child p i {
-        font-size: 1rem;
-        width: 20px;
+    .data-detail {
+        font-size: 10px;
     }
 }
 
 @media (max-width: 480px) {
     .main-content {
-        margin-top: 100px;
-        min-height: calc(100vh - 100px - 70px);
-        padding: 0 10px;
-    }
-}
-
-@media (max-width: 400px) {
-    .main-content {
-        margin-top: 90px;
-        min-height: calc(100vh - 90px - 70px);
-        padding: 0 8px;
+        padding: 10px;
     }
     
-    .about-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
+    .stats-grid-mini {
+        gap: 12px;
     }
     
-    .about-card {
-        padding: 15px;
+    .stat-mini {
+        min-width: 55px;
+        padding: 6px 10px;
     }
     
-    .about-card .card-icon {
-        width: 40px;
-        height: 40px;
-        margin-bottom: 10px;
+    .stat-mini i {
+        font-size: 16px;
     }
     
-    .about-card .card-icon i {
-        font-size: 1.2rem;
+    .stat-mini span {
+        font-size: 16px;
     }
     
-    .about-card h3 {
-        font-size: 0.9rem;
-        margin-bottom: 6px;
+    .stats-info-large h2 {
+        font-size: 32px;
     }
     
-    .about-card p {
-        font-size: 0.65rem;
-        line-height: 1.3;
+    .stats-icon-large {
+        width: 55px;
+        height: 55px;
+        font-size: 26px;
     }
     
-    .social-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
+    .card-title h3 {
+        font-size: 13px;
     }
     
-    .social-item {
-        padding: 15px 10px;
+    .card-badge {
+        font-size: 10px;
+        padding: 3px 8px;
     }
     
-    .social-item i {
-        font-size: 1.6rem;
+    .data-name {
+        font-size: 11px;
     }
     
-    .social-item span {
-        font-size: 0.65rem;
+    .data-detail {
+        font-size: 9px;
     }
     
-    .carousel-card {
-        width: 45px;
-        height: 60px;
-        margin-left: -22.5px;
-        margin-top: -30px;
-        transform: rotateY(calc(var(--i) * 24deg)) translateZ(110px);
+    .data-phone,
+    .data-count {
+        font-size: 10px;
     }
-    
-    .circle-path {
-        width: 220px;
-        height: 220px;
-        transform: translate(-50%, -50%) rotateX(90deg) translateZ(-55px);
-    }
-    
-    .service-header h3 {
-        font-size: 1.4rem;
-    }
-    
-    .video-banner {
-        height: 200px;
-    }
-    
-    /* Most compact for smallest screens */
-    .footer-column ul li a {
-        font-size: 0.8rem;
-        padding: 4px 0 4px 24px;
-    }
-    
-    .social-links li a {
-        padding: 6px 10px !important;
-    }
-    
-    .footer-column:last-child p {
-        padding: 8px 12px;
-        font-size: 0.8rem;
-    }
-}
-
-/* Scrollbar styles - keep these */
-::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--service-card-base);
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--service-border-detail);
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--service-icon);
 }
 </style>
 
 <script>
-// ========== MODAL FUNCTIONS ==========
-function showModal(event) {
-    event.preventDefault();
-    const modal = document.getElementById('accessModal');
-    
-    modal.classList.add('active');
-    document.body.classList.add('modal-open');
-}
-
-function closeModal() {
-    const modal = document.getElementById('accessModal');
-    
-    modal.classList.remove('active');
-    document.body.classList.remove('modal-open');
-}
-
-function handleCardClick(event, type) {
-    // Allow the link to work normally (redirect to register or login)
-    // But first close the modal
-    closeModal();
-    
-    // Visual feedback
-    const card = event.currentTarget;
-    card.style.transform = 'scale(0.98)';
-    card.style.borderColor = 'var(--service-icon)';
-    
-    setTimeout(() => {
-        card.style.transform = '';
-        card.style.borderColor = '';
-    }, 150);
-    
-    console.log(type === 'new-registration' ? 'Opening Registration...' : 'Opening Login...');
-}
-
-// Close modal when clicking outside
-document.addEventListener('click', function(event) {
-    const modal = document.getElementById('accessModal');
-    const modalContainer = document.querySelector('.modal-container');
-    
-    if (modal.classList.contains('active') && 
-        !modalContainer.contains(event.target) && 
-        !event.target.closest('.nav-item') && 
-        !event.target.closest('.profile-pic') && 
-        !event.target.closest('.service-card-btn') &&
-        !event.target.closest('.footer-column a')) {
-        closeModal();
+// Anti-flicker script - runs immediately
+(function() {
+    // Add loaded class to body after a tiny delay
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                document.body.classList.add('loaded');
+            }, 10);
+        });
+    } else {
+        setTimeout(function() {
+            document.body.classList.add('loaded');
+        }, 10);
     }
-});
-
-// Close modal with Escape key
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape') {
-        closeModal();
-    }
-});
-
-// ========== DOM CONTENT LOADED ==========
-document.addEventListener('DOMContentLoaded', function() {
-    // Smooth scroll for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        });
-    });
-    
-    // ========== 3D CAROUSEL FUNCTIONALITY ==========
-    const carousel = document.getElementById('carousel');
-    
-    if (carousel) {
-        let isDragging = false;
-        let startX;
-        let startRotation = 0;
-        let currentRotation = 0;
-        let velocity = 0;
-        let animationFrame;
-        let lastX;
-        let lastTime;
-        
-        const friction = 0.95;
-        const minVelocity = 0.01;
-        let autoRotate = true;
-        const autoRotateSpeed = 0.2;
-
-        carousel.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            startX = e.clientX;
-            lastX = e.clientX;
-            lastTime = Date.now();
-            startRotation = currentRotation;
-            carousel.style.cursor = 'grabbing';
-            autoRotate = false;
-            
-            if (animationFrame) {
-                cancelAnimationFrame(animationFrame);
-                animationFrame = null;
-            }
-        });
-
-        window.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            
-            e.preventDefault();
-            
-            const deltaX = e.clientX - startX;
-            currentRotation = startRotation + deltaX * 0.3;
-            
-            carousel.style.transform = `translate(-50%, -50%) rotateX(-5deg) rotateY(${currentRotation}deg)`;
-            
-            const now = Date.now();
-            const timeDelta = now - lastTime;
-            if (timeDelta > 0) {
-                velocity = (e.clientX - lastX) / timeDelta * 6;
-            }
-            
-            lastX = e.clientX;
-            lastTime = now;
-        });
-
-        window.addEventListener('mouseup', () => {
-            if (isDragging) {
-                isDragging = false;
-                carousel.style.cursor = 'grab';
-                
-                if (Math.abs(velocity) > minVelocity) {
-                    startInertia();
-                } else {
-                    autoRotate = true;
-                }
-            }
-        });
-
-        function startInertia() {
-            function inertia() {
-                velocity *= friction;
-                currentRotation += velocity;
-                
-                carousel.style.transform = `translate(-50%, -50%) rotateX(-5deg) rotateY(${currentRotation}deg)`;
-                
-                if (Math.abs(velocity) > minVelocity) {
-                    animationFrame = requestAnimationFrame(inertia);
-                } else {
-                    animationFrame = null;
-                    autoRotate = true;
-                }
-            }
-            
-            if (animationFrame) {
-                cancelAnimationFrame(animationFrame);
-            }
-            animationFrame = requestAnimationFrame(inertia);
-        }
-
-        function startAutoRotate() {
-            function rotate() {
-                if (autoRotate && !isDragging) {
-                    currentRotation += autoRotateSpeed;
-                    carousel.style.transform = `translate(-50%, -50%) rotateX(-5deg) rotateY(${currentRotation}deg)`;
-                }
-                requestAnimationFrame(rotate);
-            }
-            rotate();
-        }
-
-        carousel.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            isDragging = true;
-            startX = e.touches[0].clientX;
-            lastX = e.touches[0].clientX;
-            lastTime = Date.now();
-            startRotation = currentRotation;
-            autoRotate = false;
-        });
-
-        window.addEventListener('touchmove', (e) => {
-            if (!isDragging) return;
-            e.preventDefault();
-            
-            const deltaX = e.touches[0].clientX - startX;
-            currentRotation = startRotation + deltaX * 0.3;
-            
-            carousel.style.transform = `translate(-50%, -50%) rotateX(-5deg) rotateY(${currentRotation}deg)`;
-            
-            const now = Date.now();
-            const timeDelta = now - lastTime;
-            if (timeDelta > 0) {
-                velocity = (e.touches[0].clientX - lastX) / timeDelta * 6;
-            }
-            
-            lastX = e.touches[0].clientX;
-            lastTime = now;
-        });
-
-        window.addEventListener('touchend', () => {
-            if (isDragging) {
-                isDragging = false;
-                if (Math.abs(velocity) > minVelocity) {
-                    startInertia();
-                } else {
-                    autoRotate = true;
-                }
-            }
-        });
-
-        carousel.style.transform = `translate(-50%, -50%) rotateX(-5deg) rotateY(0deg)`;
-        startAutoRotate();
-
-        document.addEventListener('dragstart', (e) => e.preventDefault());
-    }
-    
-    // Animation on scroll for cards
-    const cards = document.querySelectorAll('.about-card, .contact-item, .social-item');
-    
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
-            }
-        });
-    }, { threshold: 0.1 });
-    
-    cards.forEach(card => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(20px)';
-        card.style.transition = 'all 0.5s ease';
-        observer.observe(card);
-    });
-
-    // Handle navigation active state
-    const currentPath = window.location.pathname;
-    const navItems = document.querySelectorAll('.nav-item');
-    
-    navItems.forEach(item => {
-        const href = item.getAttribute('href');
-        if (href === currentPath || (currentPath === '/' && href === '/services')) {
-            item.classList.add('active');
-        }
-    });
-});
+})();
 </script>
 {% endblock %}
