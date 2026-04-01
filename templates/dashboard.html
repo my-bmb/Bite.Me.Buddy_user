@@ -33,451 +33,189 @@
 
     <!-- Main Content -->
     <main class="main-content">
-        <!-- Stats Overview Card -->
-        <div class="stats-overview-card">
-            <div class="stats-overview-content">
-                <div class="stats-icon-large">
-                    <i class="fas fa-database"></i>
+        
+        <!-- 🔥 HOT DISCOUNTS & OFFERS SECTION - HORIZONTAL AUTO-SCROLL -->
+        <div class="discount-section">
+            <div class="section-header">
+                <div class="section-title-wrapper">
+                    <i class="fas fa-fire"></i>
+                    <h2>🔥 Hot Discounts & Offers</h2>
                 </div>
-                <div class="stats-info-large">
-                    <h2>{{ total_records }}</h2>
-                    <p>Total Records</p>
-                    <span>across 13 tables</span>
-                </div>
-            </div>
-            <div class="stats-grid-mini">
-                <div class="stat-mini">
-                    <i class="fas fa-users"></i>
-                    <span>{{ dashboard_data.users.count if dashboard_data.users else 0 }}</span>
-                    <small>Users</small>
-                </div>
-                <div class="stat-mini">
-                    <i class="fas fa-concierge-bell"></i>
-                    <span>{{ dashboard_data.services.count if dashboard_data.services else 0 }}</span>
-                    <small>Services</small>
-                </div>
-                <div class="stat-mini">
-                    <i class="fas fa-utensils"></i>
-                    <span>{{ dashboard_data.menu_items.count if dashboard_data.menu_items else 0 }}</span>
-                    <small>Menu Items</small>
-                </div>
-                <div class="stat-mini">
-                    <i class="fas fa-receipt"></i>
-                    <span>{{ dashboard_data.orders.count if dashboard_data.orders else 0 }}</span>
-                    <small>Orders</small>
+                <div class="scroll-controls">
+                    <button class="scroll-btn scroll-prev" id="scrollPrevBtn">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="scroll-btn scroll-next" id="scrollNextBtn">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
                 </div>
             </div>
-        </div>
-
-        <!-- Tables Grid - 2 Column Layout -->
-        <div class="dashboard-grid">
             
-            <!-- 1. Users Table Card -->
-            <div class="dashboard-card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-users"></i>
-                        <h3>Users</h3>
-                    </div>
-                    <span class="card-badge">{{ dashboard_data.users.count if dashboard_data.users else 0 }}</span>
-                </div>
-                <div class="card-content">
-                    {% if dashboard_data.users and dashboard_data.users.data %}
-                        {% for user in dashboard_data.users.data[:4] %}
-                        <div class="data-row">
-                            <div class="data-info">
-                                <span class="data-name">{{ user.full_name }}</span>
-                                <span class="data-detail">{{ user.email }}</span>
+            <div class="discount-scroll-container" id="discountScrollContainer">
+                <div class="discount-scroll-wrapper" id="discountScrollWrapper">
+                    {% if top_discount_items and top_discount_items|length > 0 %}
+                        {% for item in top_discount_items %}
+                            <div class="discount-card {% if item.type == 'service' %}service-card{% else %}menu-card{% endif %}" 
+                                 onclick="window.location.href='{{ item.url }}'"
+                                 data-item-type="{{ item.type }}">
+                                <div class="discount-card-photo">
+                                    <img src="{{ item.photo }}" 
+                                         alt="{{ item.name }}"
+                                         onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
+                                    <div class="discount-badge">
+                                        <span>{{ item.discount }}%</span>
+                                        <small>OFF</small>
+                                    </div>
+                                    <div class="item-type-badge {% if item.type == 'service' %}service-badge{% else %}menu-badge{% endif %}">
+                                        <i class="fas fa-{{ 'concierge-bell' if item.type == 'service' else 'utensils' }}"></i>
+                                        <span>{{ item.type|title }}</span>
+                                    </div>
+                                </div>
+                                <div class="discount-card-info">
+                                    <h4 class="discount-card-name">{{ item.name }}</h4>
+                                    <div class="discount-card-pricing">
+                                        <span class="original-price">₹{{ "%.2f"|format(item.price) }}</span>
+                                        <span class="final-price">₹{{ "%.2f"|format(item.final_price) }}</span>
+                                    </div>
+                                    <div class="savings-info">
+                                        <i class="fas fa-tag"></i>
+                                        <span>Save ₹{{ "%.2f"|format(item.price - item.final_price) }}</span>
+                                    </div>
+                                </div>
                             </div>
-                            <span class="data-phone">{{ user.phone }}</span>
-                        </div>
                         {% endfor %}
-                        {% if dashboard_data.users.count > 4 %}
-                        <div class="data-more">+ {{ dashboard_data.users.count - 4 }} more users</div>
-                        {% endif %}
                     {% else %}
-                        <div class="data-empty">No users found</div>
+                        <div class="no-discounts">
+                            <i class="fas fa-tag"></i>
+                            <p>No active discounts at the moment. Check back soon!</p>
+                        </div>
                     {% endif %}
                 </div>
             </div>
-
-            <!-- 2. Service Collections Card -->
-            <div class="dashboard-card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-layer-group"></i>
-                        <h3>Service Collections</h3>
-                    </div>
-                    <span class="card-badge">{{ dashboard_data.service_collections.count if dashboard_data.service_collections else 0 }}</span>
-                </div>
-                <div class="card-content">
-                    {% if dashboard_data.service_collections and dashboard_data.service_collections.data %}
-                        {% for col in dashboard_data.service_collections.data[:4] %}
-                        <div class="data-row">
-                            <div class="data-info">
-                                <span class="data-name">{{ col.name }}</span>
-                                {% if col.description %}
-                                <span class="data-detail">{{ col.description|truncate(40) }}</span>
-                                {% endif %}
-                            </div>
-                            <span class="data-count">{{ col.category_count or 0 }} cats</span>
-                        </div>
-                        {% endfor %}
-                        {% if dashboard_data.service_collections.count > 4 %}
-                        <div class="data-more">+ {{ dashboard_data.service_collections.count - 4 }} more collections</div>
-                        {% endif %}
-                    {% else %}
-                        <div class="data-empty">No service collections found</div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- 3. Service Categories Card -->
-            <div class="dashboard-card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-tags"></i>
-                        <h3>Service Categories</h3>
-                    </div>
-                    <span class="card-badge">{{ dashboard_data.service_categories.count if dashboard_data.service_categories else 0 }}</span>
-                </div>
-                <div class="card-content">
-                    {% if dashboard_data.service_categories and dashboard_data.service_categories.data %}
-                        {% for cat in dashboard_data.service_categories.data[:4] %}
-                        <div class="data-row">
-                            <div class="data-info">
-                                <span class="data-name">{{ cat.name }}</span>
-                                {% if cat.description %}
-                                <span class="data-detail">{{ cat.description|truncate(35) }}</span>
-                                {% endif %}
-                            </div>
-                            <span class="data-count">{{ cat.service_count or 0 }} services</span>
-                        </div>
-                        {% endfor %}
-                        {% if dashboard_data.service_categories.count > 4 %}
-                        <div class="data-more">+ {{ dashboard_data.service_categories.count - 4 }} more categories</div>
-                        {% endif %}
-                    {% else %}
-                        <div class="data-empty">No service categories found</div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- 4. Services Card -->
-            <div class="dashboard-card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-concierge-bell"></i>
-                        <h3>Services</h3>
-                    </div>
-                    <span class="card-badge">{{ dashboard_data.services.count if dashboard_data.services else 0 }}</span>
-                </div>
-                <div class="card-content">
-                    {% if dashboard_data.services and dashboard_data.services.data %}
-                        {% for service in dashboard_data.services.data[:4] %}
-                        <div class="data-row">
-                            <div class="data-info">
-                                <span class="data-name">{{ service.name }}</span>
-                                {% if service.description %}
-                                <span class="data-detail">{{ service.description|truncate(30) }}</span>
-                                {% endif %}
-                            </div>
-                            <div class="data-price">
-                                <span class="rupee-symbol-small">₹</span>
-                                <span>{{ "%.2f"|format(service.final_price) }}</span>
-                            </div>
-                        </div>
-                        {% endfor %}
-                        {% if dashboard_data.services.count > 4 %}
-                        <div class="data-more">+ {{ dashboard_data.services.count - 4 }} more services</div>
-                        {% endif %}
-                    {% else %}
-                        <div class="data-empty">No services found</div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- 5. Menu Collections Card -->
-            <div class="dashboard-card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-utensils"></i>
-                        <h3>Menu Collections</h3>
-                    </div>
-                    <span class="card-badge">{{ dashboard_data.menu_collections.count if dashboard_data.menu_collections else 0 }}</span>
-                </div>
-                <div class="card-content">
-                    {% if dashboard_data.menu_collections and dashboard_data.menu_collections.data %}
-                        {% for col in dashboard_data.menu_collections.data[:4] %}
-                        <div class="data-row">
-                            <div class="data-info">
-                                <span class="data-name">{{ col.name }}</span>
-                                {% if col.description %}
-                                <span class="data-detail">{{ col.description|truncate(40) }}</span>
-                                {% endif %}
-                            </div>
-                            <span class="data-count">{{ col.category_count or 0 }} cats</span>
-                        </div>
-                        {% endfor %}
-                        {% if dashboard_data.menu_collections.count > 4 %}
-                        <div class="data-more">+ {{ dashboard_data.menu_collections.count - 4 }} more collections</div>
-                        {% endif %}
-                    {% else %}
-                        <div class="data-empty">No menu collections found</div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- 6. Menu Categories Card -->
-            <div class="dashboard-card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-tag"></i>
-                        <h3>Menu Categories</h3>
-                    </div>
-                    <span class="card-badge">{{ dashboard_data.menu_categories.count if dashboard_data.menu_categories else 0 }}</span>
-                </div>
-                <div class="card-content">
-                    {% if dashboard_data.menu_categories and dashboard_data.menu_categories.data %}
-                        {% for cat in dashboard_data.menu_categories.data[:4] %}
-                        <div class="data-row">
-                            <div class="data-info">
-                                <span class="data-name">{{ cat.name }}</span>
-                                {% if cat.description %}
-                                <span class="data-detail">{{ cat.description|truncate(35) }}</span>
-                                {% endif %}
-                            </div>
-                            <span class="data-count">{{ cat.item_count or 0 }} items</span>
-                        </div>
-                        {% endfor %}
-                        {% if dashboard_data.menu_categories.count > 4 %}
-                        <div class="data-more">+ {{ dashboard_data.menu_categories.count - 4 }} more categories</div>
-                        {% endif %}
-                    {% else %}
-                        <div class="data-empty">No menu categories found</div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- 7. Menu Items Card -->
-            <div class="dashboard-card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-hamburger"></i>
-                        <h3>Menu Items</h3>
-                    </div>
-                    <span class="card-badge">{{ dashboard_data.menu_items.count if dashboard_data.menu_items else 0 }}</span>
-                </div>
-                <div class="card-content">
-                    {% if dashboard_data.menu_items and dashboard_data.menu_items.data %}
-                        {% for item in dashboard_data.menu_items.data[:4] %}
-                        <div class="data-row">
-                            <div class="data-info">
-                                <span class="data-name">{{ item.name }}</span>
-                                {% if item.description %}
-                                <span class="data-detail">{{ item.description|truncate(30) }}</span>
-                                {% endif %}
-                            </div>
-                            <div class="data-price">
-                                <span class="rupee-symbol-small">₹</span>
-                                <span>{{ "%.2f"|format(item.final_price) }}</span>
-                            </div>
-                        </div>
-                        {% endfor %}
-                        {% if dashboard_data.menu_items.count > 4 %}
-                        <div class="data-more">+ {{ dashboard_data.menu_items.count - 4 }} more items</div>
-                        {% endif %}
-                    {% else %}
-                        <div class="data-empty">No menu items found</div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- 8. Cart Card -->
-            <div class="dashboard-card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-shopping-cart"></i>
-                        <h3>Your Cart</h3>
-                    </div>
-                    <span class="card-badge">{{ dashboard_data.cart.count if dashboard_data.cart else 0 }}</span>
-                </div>
-                <div class="card-content">
-                    {% if dashboard_data.cart and dashboard_data.cart.data %}
-                        {% for item in dashboard_data.cart.data[:4] %}
-                        <div class="data-row">
-                            <div class="data-info">
-                                <span class="data-name">{{ item.item_type|title }}</span>
-                                <span class="data-detail">ID: {{ item.item_id }}</span>
-                            </div>
-                            <span class="data-count">x{{ item.quantity }}</span>
-                        </div>
-                        {% endfor %}
-                        {% if dashboard_data.cart.count > 4 %}
-                        <div class="data-more">+ {{ dashboard_data.cart.count - 4 }} more items</div>
-                        {% endif %}
-                    {% else %}
-                        <div class="data-empty">Your cart is empty</div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- 9. Orders Card -->
-            <div class="dashboard-card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-receipt"></i>
-                        <h3>Recent Orders</h3>
-                    </div>
-                    <span class="card-badge">{{ dashboard_data.orders.count if dashboard_data.orders else 0 }}</span>
-                </div>
-                <div class="card-content">
-                    {% if dashboard_data.orders and dashboard_data.orders.data %}
-                        {% for order in dashboard_data.orders.data[:4] %}
-                        <div class="data-row">
-                            <div class="data-info">
-                                <span class="data-name">Order #{{ order.order_id }}</span>
-                                <span class="data-detail">{{ order.status|title }}</span>
-                            </div>
-                            <div class="data-price">
-                                <span class="rupee-symbol-small">₹</span>
-                                <span>{{ "%.2f"|format(order.total_amount) }}</span>
-                            </div>
-                        </div>
-                        {% endfor %}
-                        {% if dashboard_data.orders.count > 4 %}
-                        <div class="data-more">+ {{ dashboard_data.orders.count - 4 }} more orders</div>
-                        {% endif %}
-                    {% else %}
-                        <div class="data-empty">No orders found</div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- 10. Payments Card -->
-            <div class="dashboard-card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-credit-card"></i>
-                        <h3>Payments</h3>
-                    </div>
-                    <span class="card-badge">{{ dashboard_data.payments.count if dashboard_data.payments else 0 }}</span>
-                </div>
-                <div class="card-content">
-                    {% if dashboard_data.payments and dashboard_data.payments.data %}
-                        {% for payment in dashboard_data.payments.data[:4] %}
-                        <div class="data-row">
-                            <div class="data-info">
-                                <span class="data-name">Order #{{ payment.order_id }}</span>
-                                <span class="data-detail">{{ payment.payment_mode|default('COD') }}</span>
-                            </div>
-                            <div class="data-price">
-                                <span class="rupee-symbol-small">₹</span>
-                                <span>{{ "%.2f"|format(payment.amount) }}</span>
-                            </div>
-                        </div>
-                        {% endfor %}
-                        {% if dashboard_data.payments.count > 4 %}
-                        <div class="data-more">+ {{ dashboard_data.payments.count - 4 }} more payments</div>
-                        {% endif %}
-                    {% else %}
-                        <div class="data-empty">No payments found</div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- 11. Addresses Card -->
-            <div class="dashboard-card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <h3>Addresses</h3>
-                    </div>
-                    <span class="card-badge">{{ dashboard_data.addresses.count if dashboard_data.addresses else 0 }}</span>
-                </div>
-                <div class="card-content">
-                    {% if dashboard_data.addresses and dashboard_data.addresses.data %}
-                        {% for addr in dashboard_data.addresses.data[:4] %}
-                        <div class="data-row">
-                            <div class="data-info">
-                                <span class="data-name">{{ addr.full_name }}</span>
-                                <span class="data-detail">{{ addr.city }}, {{ addr.state }}</span>
-                            </div>
-                            {% if addr.is_default %}
-                            <span class="data-badge default">Default</span>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                        {% if dashboard_data.addresses.count > 4 %}
-                        <div class="data-more">+ {{ dashboard_data.addresses.count - 4 }} more addresses</div>
-                        {% endif %}
-                    {% else %}
-                        <div class="data-empty">No addresses found</div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- 12. Notifications Card -->
-            <div class="dashboard-card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-bell"></i>
-                        <h3>Notifications</h3>
-                    </div>
-                    <span class="card-badge">{{ dashboard_data.notifications.count if dashboard_data.notifications else 0 }}</span>
-                </div>
-                <div class="card-content">
-                    {% if dashboard_data.notifications and dashboard_data.notifications.data %}
-                        {% for notif in dashboard_data.notifications.data[:4] %}
-                        <div class="data-row">
-                            <div class="data-info">
-                                <span class="data-name">{{ notif.title }}</span>
-                                <span class="data-detail">{{ notif.message|truncate(35) }}</span>
-                            </div>
-                            {% if not notif.is_read %}
-                            <span class="data-badge unread">New</span>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                        {% if dashboard_data.notifications.count > 4 %}
-                        <div class="data-more">+ {{ dashboard_data.notifications.count - 4 }} more notifications</div>
-                        {% endif %}
-                    {% else %}
-                        <div class="data-empty">No notifications</div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- 13. Order Items Card -->
-            <div class="dashboard-card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <i class="fas fa-boxes"></i>
-                        <h3>Order Items</h3>
-                    </div>
-                    <span class="card-badge">{{ dashboard_data.order_items.count if dashboard_data.order_items else 0 }}</span>
-                </div>
-                <div class="card-content">
-                    {% if dashboard_data.order_items and dashboard_data.order_items.data %}
-                        {% for item in dashboard_data.order_items.data[:4] %}
-                        <div class="data-row">
-                            <div class="data-info">
-                                <span class="data-name">{{ item.item_name }}</span>
-                                <span class="data-detail">Order #{{ item.order_id }}</span>
-                            </div>
-                            <span class="data-count">x{{ item.quantity }}</span>
-                        </div>
-                        {% endfor %}
-                        {% if dashboard_data.order_items.count > 4 %}
-                        <div class="data-more">+ {{ dashboard_data.order_items.count - 4 }} more items</div>
-                        {% endif %}
-                    {% else %}
-                        <div class="data-empty">No order items found</div>
-                    {% endif %}
-                </div>
-            </div>
-
         </div>
+
+        <!-- 📊 QUICK STATS SECTION -->
+        <div class="quick-stats">
+            <div class="stat-card-mini">
+                <i class="fas fa-shopping-cart"></i>
+                <div class="stat-info">
+                    <span class="stat-number">{{ cart_count }}</span>
+                    <span class="stat-label">Cart Items</span>
+                </div>
+            </div>
+            <div class="stat-card-mini">
+                <i class="fas fa-receipt"></i>
+                <div class="stat-info">
+                    <span class="stat-number">{{ order_count }}</span>
+                    <span class="stat-label">Orders</span>
+                </div>
+            </div>
+            <div class="stat-card-mini">
+                <i class="fas fa-rupee-sign"></i>
+                <div class="stat-info">
+                    <span class="stat-number">₹{{ "%.0f"|format(total_spent) }}</span>
+                    <span class="stat-label">Total Spent</span>
+                </div>
+            </div>
+            <div class="stat-card-mini">
+                <i class="fas fa-clock"></i>
+                <div class="stat-info">
+                    <span class="stat-number">{{ pending_orders }}</span>
+                    <span class="stat-label">Pending</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ⚡ QUICK ACTIONS -->
+        <div class="quick-actions">
+            <a href="{{ url_for('services') }}" class="action-btn">
+                <i class="fas fa-concierge-bell"></i>
+                <span>Services</span>
+            </a>
+            <a href="{{ url_for('menu') }}" class="action-btn">
+                <i class="fas fa-utensils"></i>
+                <span>Menu</span>
+            </a>
+            <a href="{{ url_for('cart') }}" class="action-btn">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Cart</span>
+            </a>
+            <a href="{{ url_for('order_history') }}" class="action-btn">
+                <i class="fas fa-history"></i>
+                <span>Orders</span>
+            </a>
+            <a href="{{ url_for('profile') }}" class="action-btn">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
+        </div>
+
+        <!-- 🛒 RECENT ORDERS -->
+        {% if recent_orders and recent_orders|length > 0 %}
+        <div class="recent-orders-section">
+            <div class="section-header">
+                <div class="section-title-wrapper">
+                    <i class="fas fa-clock"></i>
+                    <h2>Recent Orders</h2>
+                </div>
+                <a href="{{ url_for('order_history') }}" class="view-all-link">
+                    View All <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            
+            <div class="recent-orders-list">
+                {% for order in recent_orders[:3] %}
+                <div class="recent-order-card" onclick="window.location.href='/order/{{ order.order_id }}'">
+                    <div class="order-number">
+                        <span class="order-label">Order #</span>
+                        <span class="order-value">{{ order.order_no }}</span>
+                    </div>
+                    <div class="order-date">
+                        <i class="far fa-calendar"></i>
+                        <span>{{ order.order_date }}</span>
+                    </div>
+                    <div class="order-amount">
+                        <span class="rupee-symbol">₹</span>
+                        <span>{{ "%.2f"|format(order.total_amount) }}</span>
+                    </div>
+                    <div class="order-status status-{{ order.status|lower }}">
+                        {{ order.status|title }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 🔔 NOTIFICATIONS -->
+        {% if recent_notifications and recent_notifications|length > 0 %}
+        <div class="notifications-section">
+            <div class="section-header">
+                <div class="section-title-wrapper">
+                    <i class="fas fa-bell"></i>
+                    <h2>Notifications</h2>
+                    {% if unread_count > 0 %}
+                    <span class="unread-badge">{{ unread_count }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="notifications-list">
+                {% for notif in recent_notifications[:3] %}
+                <div class="notification-item {% if not notif.is_read %}unread{% endif %}">
+                    <div class="notification-icon">
+                        <i class="fas fa-{{ 'check-circle' if notif.type == 'success' else 'info-circle' if notif.type == 'info' else 'exclamation-circle' }}"></i>
+                    </div>
+                    <div class="notification-content">
+                        <h4 class="notification-title">{{ notif.title }}</h4>
+                        <p class="notification-message">{{ notif.message|truncate(60) }}</p>
+                        <span class="notification-time">{{ notif.created_at_formatted }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     </main>
 
     <!-- Bottom Navigation -->
@@ -506,13 +244,15 @@
 </div>
 
 <style>
-/* ✅ DASHBOARD STYLES - MATCHING EXISTING THEME */
+/* ✅ DASHBOARD STYLES */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
     --service-card-base: #0D0D0D;
     --service-title: #A0A0A0;
     --service-icon: #8e7d4d;
+    --service-accent: #8e7d4d;
+    --menu-accent: #2E7D32;
     --golden-vivid: #D4AF37;
     --golden-metallic: #C0B283;
     --service-border-detail: #333333;
@@ -565,392 +305,589 @@ body {
     padding-top: 0 !important;
 }
 
-/* Stats Overview Card */
-.stats-overview-card {
-    background: linear-gradient(135deg, var(--service-icon), #6e5d3d);
-    border-radius: 16px;
-    padding: 20px;
+/* ========== DISCOUNT SECTION - HORIZONTAL AUTO-SCROLL ========== */
+.discount-section {
     margin-bottom: 24px;
+}
+
+.section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 20px;
-    border: 1px solid rgba(212, 175, 55, 0.3);
+    margin-bottom: 16px;
+    padding: 0 4px;
 }
 
-.stats-overview-content {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.stats-icon-large {
-    width: 70px;
-    height: 70px;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 32px;
-    color: #000000;
-}
-
-.stats-info-large h2 {
-    font-size: 48px;
-    font-weight: 800;
-    color: #000000;
-    margin: 0;
-    line-height: 1;
-    font-family: var(--serif-font);
-}
-
-.stats-info-large p {
-    margin: 5px 0 0 0;
-    font-size: 14px;
-    font-weight: 600;
-    color: rgba(0, 0, 0, 0.8);
-}
-
-.stats-info-large span {
-    font-size: 12px;
-    color: rgba(0, 0, 0, 0.6);
-}
-
-.stats-grid-mini {
-    display: flex;
-    gap: 24px;
-}
-
-.stat-mini {
-    text-align: center;
-    background: rgba(0, 0, 0, 0.15);
-    padding: 10px 16px;
-    border-radius: 12px;
-    min-width: 70px;
-}
-
-.stat-mini i {
-    font-size: 20px;
-    color: #000000;
-    display: block;
-    margin-bottom: 5px;
-}
-
-.stat-mini span {
-    font-size: 20px;
-    font-weight: 700;
-    color: #000000;
-    display: block;
-    line-height: 1;
-}
-
-.stat-mini small {
-    font-size: 10px;
-    color: rgba(0, 0, 0, 0.7);
-}
-
-/* Dashboard Grid */
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-    gap: 20px;
-}
-
-/* Dashboard Card */
-.dashboard-card {
-    background: var(--service-card-base);
-    border-radius: 12px;
-    border: 1px solid var(--service-border-detail);
-    overflow: hidden;
-    transition: all 0.3s ease;
-}
-
-.dashboard-card:hover {
-    border-color: var(--service-icon);
-    transform: translateY(-2px);
-    box-shadow: var(--bronze-glow);
-}
-
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px 16px;
-    background: linear-gradient(135deg, rgba(20, 20, 20, 0.8), rgba(10, 10, 10, 0.9));
-    border-bottom: 1px solid var(--service-border-detail);
-}
-
-.card-title {
+.section-title-wrapper {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-.card-title i {
-    font-size: 18px;
+.section-title-wrapper i {
+    font-size: 20px;
     color: var(--service-icon);
 }
 
-.card-title h3 {
+.section-title-wrapper h2 {
     margin: 0;
-    font-size: 15px;
+    font-size: 18px;
     font-weight: 600;
     color: var(--creamy-white);
     font-family: var(--sans-font);
 }
 
-.card-badge {
+.scroll-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.scroll-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(142, 125, 77, 0.2);
+    border: 1px solid var(--service-border-detail);
+    color: var(--service-icon);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.scroll-btn:hover {
     background: var(--service-icon);
     color: #000000;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 700;
+    border-color: var(--service-icon);
 }
 
-.card-content {
-    padding: 8px 0;
-    max-height: 280px;
-    overflow-y: auto;
+.discount-scroll-container {
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    position: relative;
 }
 
-/* Data Row */
-.data-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 16px;
-    border-bottom: 1px dashed var(--service-border-detail);
-    transition: all 0.2s ease;
+.discount-scroll-container::-webkit-scrollbar {
+    height: 4px;
 }
 
-.data-row:hover {
-    background: rgba(142, 125, 77, 0.1);
-}
-
-.data-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.data-name {
-    font-weight: 600;
-    color: var(--creamy-white);
-    font-size: 13px;
-    display: block;
-    font-family: var(--sans-font);
-}
-
-.data-detail {
-    font-size: 11px;
-    color: var(--service-title);
-    display: block;
-    margin-top: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.data-phone,
-.data-count {
-    font-size: 12px;
-    color: var(--service-icon);
-    font-weight: 500;
-    flex-shrink: 0;
-    margin-left: 10px;
-}
-
-.data-price {
-    display: flex;
-    align-items: baseline;
-    gap: 1px;
-    flex-shrink: 0;
-    margin-left: 10px;
-}
-
-.rupee-symbol-small {
-    color: var(--rupee-color);
-    font-size: 11px;
-    font-weight: 600;
-}
-
-.data-price span:last-child {
-    font-weight: 700;
-    color: var(--rupee-color);
-    font-size: 13px;
-}
-
-.data-badge {
-    padding: 3px 8px;
-    border-radius: 12px;
-    font-size: 10px;
-    font-weight: 600;
-    flex-shrink: 0;
-    margin-left: 10px;
-}
-
-.data-badge.default {
-    background: rgba(46, 125, 50, 0.2);
-    color: #2E7D32;
-    border: 1px solid rgba(46, 125, 50, 0.3);
-}
-
-.data-badge.unread {
-    background: rgba(212, 175, 55, 0.2);
-    color: var(--rupee-color);
-    border: 1px solid rgba(212, 175, 55, 0.3);
-}
-
-.data-more {
-    text-align: center;
-    padding: 12px;
-    color: var(--service-icon);
-    font-size: 12px;
-    font-weight: 500;
-    border-top: 1px solid var(--service-border-detail);
-    background: rgba(20, 20, 20, 0.4);
-}
-
-.data-empty {
-    text-align: center;
-    padding: 30px 20px;
-    color: var(--service-title);
-    font-size: 13px;
-}
-
-/* Custom Scrollbar */
-.card-content::-webkit-scrollbar {
-    width: 4px;
-}
-
-.card-content::-webkit-scrollbar-track {
+.discount-scroll-container::-webkit-scrollbar-track {
     background: var(--service-border-detail);
     border-radius: 10px;
 }
 
-.card-content::-webkit-scrollbar-thumb {
+.discount-scroll-container::-webkit-scrollbar-thumb {
     background: var(--service-icon);
     border-radius: 10px;
 }
 
-/* Responsive */
-@media (max-width: 900px) {
-    .dashboard-grid {
-        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-        gap: 16px;
-    }
+.discount-scroll-wrapper {
+    display: flex;
+    gap: 16px;
+    padding: 8px 4px 12px 4px;
+    min-width: min-content;
 }
 
+/* Discount Card */
+.discount-card {
+    flex-shrink: 0;
+    width: 240px;
+    background: var(--service-card-base);
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--card-shadow);
+    position: relative;
+}
+
+.discount-card.service-card {
+    border: 1px solid rgba(142, 125, 77, 0.3);
+}
+
+.discount-card.menu-card {
+    border: 1px solid rgba(46, 125, 50, 0.3);
+}
+
+.discount-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--bronze-glow);
+}
+
+.discount-card.service-card:hover {
+    border-color: var(--service-icon);
+}
+
+.discount-card.menu-card:hover {
+    border-color: var(--menu-accent);
+}
+
+.discount-card-photo {
+    position: relative;
+    width: 100%;
+    height: 160px;
+    overflow: hidden;
+    background: var(--matte-black);
+}
+
+.discount-card-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+    filter: saturate(1.4) contrast(1.2) brightness(1.05);
+}
+
+.discount-card:hover .discount-card-photo img {
+    transform: scale(1.05);
+    filter: saturate(1.6) contrast(1.3) brightness(1.1);
+}
+
+/* Discount Badge */
+.discount-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-weight: 700;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    z-index: 2;
+}
+
+.discount-badge span {
+    font-size: 16px;
+    font-weight: 800;
+    display: block;
+    line-height: 1;
+}
+
+.discount-badge small {
+    font-size: 8px;
+    display: block;
+    margin-top: 2px;
+}
+
+/* Item Type Badge */
+.item-type-badge {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    backdrop-filter: blur(5px);
+    z-index: 2;
+}
+
+.item-type-badge i {
+    font-size: 9px;
+}
+
+.service-badge {
+    background: rgba(142, 125, 77, 0.9);
+    color: #000000;
+    border: 1px solid rgba(212, 175, 55, 0.5);
+}
+
+.menu-badge {
+    background: rgba(46, 125, 50, 0.9);
+    color: white;
+    border: 1px solid rgba(46, 125, 50, 0.5);
+}
+
+.discount-card-info {
+    padding: 12px;
+}
+
+.discount-card-name {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--creamy-white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: var(--sans-font);
+}
+
+.discount-card-pricing {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.original-price {
+    font-size: 11px;
+    color: var(--service-title);
+    text-decoration: line-through;
+}
+
+.final-price {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--rupee-color);
+}
+
+.savings-info {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    color: #22c55e;
+}
+
+.savings-info i {
+    font-size: 9px;
+}
+
+.no-discounts {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--service-title);
+}
+
+.no-discounts i {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+/* ========== QUICK STATS ========== */
+.quick-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.stat-card-mini {
+    background: var(--service-card-base);
+    border: 1px solid var(--service-border-detail);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+}
+
+.stat-card-mini:hover {
+    border-color: var(--service-icon);
+    transform: translateY(-2px);
+}
+
+.stat-card-mini i {
+    font-size: 24px;
+    color: var(--service-icon);
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-number {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--creamy-white);
+    font-family: var(--serif-font);
+}
+
+.stat-label {
+    font-size: 11px;
+    color: var(--service-title);
+}
+
+/* ========== QUICK ACTIONS ========== */
+.quick-actions {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    flex: 1;
+    background: rgba(20, 20, 20, 0.8);
+    border: 1px solid var(--service-border-detail);
+    border-radius: 10px;
+    padding: 12px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+.action-btn i {
+    font-size: 20px;
+    color: var(--service-icon);
+}
+
+.action-btn span {
+    font-size: 12px;
+    color: var(--creamy-white);
+    font-weight: 500;
+}
+
+.action-btn:hover {
+    border-color: var(--service-icon);
+    background: rgba(142, 125, 77, 0.1);
+    transform: translateY(-2px);
+}
+
+/* ========== RECENT ORDERS ========== */
+.recent-orders-section,
+.notifications-section {
+    margin-bottom: 24px;
+}
+
+.view-all-link {
+    color: var(--service-icon);
+    font-size: 13px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s;
+}
+
+.view-all-link:hover {
+    color: var(--golden-vivid);
+    gap: 6px;
+}
+
+.recent-orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.recent-order-card {
+    background: var(--service-card-base);
+    border: 1px solid var(--service-border-detail);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.recent-order-card:hover {
+    border-color: var(--service-icon);
+    background: rgba(20, 20, 20, 0.6);
+    transform: translateX(2px);
+}
+
+.order-number {
+    display: flex;
+    flex-direction: column;
+}
+
+.order-label {
+    font-size: 10px;
+    color: var(--service-title);
+}
+
+.order-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--creamy-white);
+}
+
+.order-date {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--service-title);
+}
+
+.order-amount {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--rupee-color);
+}
+
+.order-status {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.status-pending {
+    background: rgba(217, 119, 6, 0.15);
+    color: #d97706;
+    border: 1px solid rgba(217, 119, 6, 0.3);
+}
+
+.status-completed {
+    background: rgba(46, 125, 50, 0.15);
+    color: #2E7D32;
+    border: 1px solid rgba(46, 125, 50, 0.3);
+}
+
+.status-processing {
+    background: rgba(142, 125, 77, 0.15);
+    color: var(--service-icon);
+    border: 1px solid rgba(142, 125, 77, 0.3);
+}
+
+.status-cancelled {
+    background: rgba(160, 160, 160, 0.15);
+    color: #A0A0A0;
+    border: 1px solid rgba(160, 160, 160, 0.3);
+}
+
+/* ========== NOTIFICATIONS ========== */
+.notifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.notification-item {
+    background: rgba(20, 20, 20, 0.4);
+    border: 1px solid var(--service-border-detail);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    gap: 12px;
+    transition: all 0.3s ease;
+}
+
+.notification-item.unread {
+    background: rgba(142, 125, 77, 0.08);
+    border-color: rgba(142, 125, 77, 0.3);
+}
+
+.notification-icon i {
+    font-size: 20px;
+    color: var(--service-icon);
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    margin: 0 0 4px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--creamy-white);
+}
+
+.notification-message {
+    margin: 0 0 6px 0;
+    font-size: 11px;
+    color: var(--service-title);
+    line-height: 1.4;
+}
+
+.notification-time {
+    font-size: 10px;
+    color: var(--silver-mist);
+}
+
+.unread-badge {
+    background: var(--service-icon);
+    color: #000000;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+/* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
     .main-content {
         padding: 12px;
     }
     
-    .dashboard-grid {
-        grid-template-columns: 1fr;
-        gap: 14px;
+    .quick-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
     }
     
-    .stats-overview-card {
-        flex-direction: column;
-        text-align: center;
-        padding: 16px;
+    .quick-actions {
+        gap: 8px;
     }
     
-    .stats-overview-content {
-        flex-direction: column;
-        text-align: center;
+    .action-btn {
+        padding: 10px 6px;
     }
     
-    .stats-grid-mini {
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-    
-    .stat-mini {
-        min-width: 60px;
-        padding: 8px 12px;
-    }
-    
-    .stat-mini span {
+    .action-btn i {
         font-size: 18px;
     }
     
-    .stats-info-large h2 {
-        font-size: 40px;
-    }
-    
-    .card-header {
-        padding: 12px 14px;
-    }
-    
-    .data-row {
-        padding: 8px 12px;
-    }
-    
-    .data-name {
-        font-size: 12px;
-    }
-    
-    .data-detail {
+    .action-btn span {
         font-size: 10px;
+    }
+    
+    .recent-order-card {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .order-number {
+        flex: 1;
+    }
+    
+    .section-title-wrapper h2 {
+        font-size: 16px;
+    }
+    
+    .discount-card {
+        width: 200px;
+    }
+    
+    .discount-card-photo {
+        height: 140px;
     }
 }
 
 @media (max-width: 480px) {
-    .main-content {
-        padding: 10px;
+    .quick-stats {
+        grid-template-columns: repeat(2, 1fr);
     }
     
-    .stats-grid-mini {
-        gap: 12px;
+    .discount-card {
+        width: 180px;
     }
     
-    .stat-mini {
-        min-width: 55px;
-        padding: 6px 10px;
+    .discount-card-photo {
+        height: 125px;
     }
     
-    .stat-mini i {
-        font-size: 16px;
+    .discount-badge span {
+        font-size: 14px;
     }
     
-    .stat-mini span {
-        font-size: 16px;
+    .section-header {
+        flex-wrap: wrap;
+        gap: 10px;
     }
     
-    .stats-info-large h2 {
-        font-size: 32px;
-    }
-    
-    .stats-icon-large {
-        width: 55px;
-        height: 55px;
-        font-size: 26px;
-    }
-    
-    .card-title h3 {
-        font-size: 13px;
-    }
-    
-    .card-badge {
-        font-size: 10px;
-        padding: 3px 8px;
-    }
-    
-    .data-name {
-        font-size: 11px;
-    }
-    
-    .data-detail {
-        font-size: 9px;
-    }
-    
-    .data-phone,
-    .data-count {
-        font-size: 10px;
+    .final-price {
+        font-size: 14px;
     }
 }
 </style>
@@ -958,7 +895,6 @@ body {
 <script>
 // Anti-flicker script - runs immediately
 (function() {
-    // Add loaded class to body after a tiny delay
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
@@ -971,5 +907,112 @@ body {
         }, 10);
     }
 })();
+
+// ========== AUTO-SCROLL DISCOUNT CARDS (3 SECONDS) ==========
+document.addEventListener('DOMContentLoaded', function() {
+    const scrollContainer = document.getElementById('discountScrollContainer');
+    const scrollWrapper = document.getElementById('discountScrollWrapper');
+    const prevBtn = document.getElementById('scrollPrevBtn');
+    const nextBtn = document.getElementById('scrollNextBtn');
+    
+    let autoScrollInterval;
+    let isHovering = false;
+    
+    if (scrollContainer && scrollWrapper) {
+        const cards = document.querySelectorAll('.discount-card');
+        const cardCount = cards.length;
+        
+        if (cardCount > 1) {
+            // Auto-scroll function
+            function autoScroll() {
+                if (!isHovering && cardCount > 0) {
+                    const currentScroll = scrollContainer.scrollLeft;
+                    const cardWidth = cards[0].offsetWidth + 16; // width + gap
+                    const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+                    
+                    let newScroll = currentScroll + cardWidth;
+                    
+                    if (newScroll >= maxScroll) {
+                        newScroll = 0;
+                    }
+                    
+                    scrollContainer.scrollTo({
+                        left: newScroll,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+            
+            // Start auto-scroll every 3 seconds
+            function startAutoScroll() {
+                if (autoScrollInterval) clearInterval(autoScrollInterval);
+                autoScrollInterval = setInterval(autoScroll, 3000);
+            }
+            
+            function stopAutoScroll() {
+                if (autoScrollInterval) {
+                    clearInterval(autoScrollInterval);
+                    autoScrollInterval = null;
+                }
+            }
+            
+            // Mouse enter - stop auto-scroll
+            scrollContainer.addEventListener('mouseenter', function() {
+                isHovering = true;
+                stopAutoScroll();
+            });
+            
+            // Mouse leave - restart auto-scroll
+            scrollContainer.addEventListener('mouseleave', function() {
+                isHovering = false;
+                startAutoScroll();
+            });
+            
+            // Touch events for mobile
+            scrollContainer.addEventListener('touchstart', function() {
+                stopAutoScroll();
+            });
+            
+            scrollContainer.addEventListener('touchend', function() {
+                setTimeout(() => {
+                    if (!isHovering) startAutoScroll();
+                }, 3000);
+            });
+            
+            // Manual scroll buttons
+            if (prevBtn) {
+                prevBtn.addEventListener('click', function() {
+                    stopAutoScroll();
+                    const currentScroll = scrollContainer.scrollLeft;
+                    const cardWidth = cards[0].offsetWidth + 16;
+                    let newScroll = currentScroll - cardWidth;
+                    if (newScroll < 0) newScroll = 0;
+                    scrollContainer.scrollTo({ left: newScroll, behavior: 'smooth' });
+                    setTimeout(() => {
+                        if (!isHovering) startAutoScroll();
+                    }, 3000);
+                });
+            }
+            
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function() {
+                    stopAutoScroll();
+                    const currentScroll = scrollContainer.scrollLeft;
+                    const cardWidth = cards[0].offsetWidth + 16;
+                    const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+                    let newScroll = currentScroll + cardWidth;
+                    if (newScroll > maxScroll) newScroll = maxScroll;
+                    scrollContainer.scrollTo({ left: newScroll, behavior: 'smooth' });
+                    setTimeout(() => {
+                        if (!isHovering) startAutoScroll();
+                    }, 3000);
+                });
+            }
+            
+            // Start auto-scroll
+            startAutoScroll();
+        }
+    }
+});
 </script>
 {% endblock %}
