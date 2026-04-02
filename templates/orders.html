@@ -181,7 +181,7 @@
                                                     >
                                                 {% else %}
                                                     <div class="item-square-photo.placeholder {{ item.type|default(item.item_type)|default('unknown')|lower }}">
-                                                        <i class="fas fa-{{ 'concierge-bell' if item.type|default(item.item_type) == 'service' else 'utensils' if item.type|default(item.item_type) == 'menu' else 'box' }}"></i>
+                                                        <i class="fas fa-{{ 'concierge-bell' if item.type|default(item.item_type) == 'service' else 'box' }}"></i>
                                                     </div>
                                                 {% endif %}
                                             </div>
@@ -191,7 +191,7 @@
                                                 <div class="square-item-header">
                                                     <h4 class="square-item-name">{{ item.name|default(item.item_name|default('Unknown Item'))|truncate(25) }}</h4>
                                                     <div class="square-item-type {{ item.type|default(item.item_type)|default('unknown')|lower }}">
-                                                        <i class="fas fa-{{ 'concierge-bell' if item.type|default(item.item_type) == 'service' else 'utensils' if item.type|default(item.item_type) == 'menu' else 'box' }}"></i>
+                                                        <i class="fas fa-{{ 'concierge-bell' if item.type|default(item.item_type) == 'service' else 'box' }}"></i>
                                                         <span>{{ item.type|default(item.item_type)|default('item')|title }}</span>
                                                     </div>
                                                 </div>
@@ -311,11 +311,11 @@
                                 <span class="btn-arrow">→</span>
                             </a>
                             
-                            <a href="{{ url_for('menu') }}" class="empty-state-btn btn-bronze-outline">
+                            <a href="{{ url_for('goods') }}" class="empty-state-btn btn-bronze-outline">
                                 <span class="btn-icon">
-                                    <i class="fas fa-utensils"></i>
+                                    <i class="fas fa-box"></i>
                                 </span>
-                                <span class="btn-text">Menu</span>
+                                <span class="btn-text">Goods</span>
                                 <span class="btn-arrow">→</span>
                             </a>
                             
@@ -339,9 +339,9 @@
             <i class="fas fa-concierge-bell"></i>
             <span>Services</span>
         </a>
-        <a href="{{ url_for('menu') }}" class="nav-item">
-            <i class="fas fa-utensils"></i>
-            <span>Menu</span>
+        <a href="{{ url_for('goods') }}" class="nav-item">
+            <i class="fas fa-box"></i>
+            <span>Goods</span>
         </a>
         <a href="{{ url_for('cart') }}" class="nav-item">
             <i class="fas fa-shopping-cart"></i>
@@ -1002,7 +1002,7 @@ body {
     color: var(--service-icon);
 }
 
-.item-square-photo.placeholder.menu {
+.item-square-photo.placeholder.goods {
     background: linear-gradient(135deg, var(--service-card-base), rgba(46, 125, 50, 0.2));
     color: var(--service-status-available);
 }
@@ -1070,7 +1070,7 @@ body {
     border-color: rgba(142, 125, 77, 0.3);
 }
 
-.square-item-type.menu {
+.square-item-type.goods {
     background: rgba(46, 125, 50, 0.15);
     color: var(--service-status-available);
     border-color: rgba(46, 125, 50, 0.3);
