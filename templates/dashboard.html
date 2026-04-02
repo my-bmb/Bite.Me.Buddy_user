@@ -102,11 +102,11 @@
                 </div>
                 <span>Services</span>
             </a>
-            <a href="{{ url_for('menu') }}" class="quick-link-top-btn">
+            <a href="{{ url_for('goods') }}" class="quick-link-top-btn">
                 <div class="quick-link-icon">
                     <i class="fas fa-box"></i>
                 </div>
-                <span>Products</span>
+                <span>Goods</span>
             </a>
             <a href="{{ url_for('cart') }}" class="quick-link-top-btn">
                 <div class="quick-link-icon">
@@ -221,27 +221,27 @@
             </div>
         </div>
 
-        <!-- 📦 PRODUCT COLLECTIONS SECTION - HORIZONTAL SCROLL (renamed from Menu Collections) -->
+        <!-- 📦 GOODS COLLECTIONS SECTION - HORIZONTAL SCROLL (renamed from Menu Collections) -->
         <div class="section-container">
             <div class="section-header">
                 <div class="section-title-wrapper">
                     <div class="section-icon product-collection-icon">
                         <i class="fas fa-boxes"></i>
                     </div>
-                    <h2>Product Collections</h2>
+                    <h2>Goods Collections</h2>
                 </div>
-                <a href="{{ url_for('menu') }}" class="view-all-link">
+                <a href="{{ url_for('goods') }}" class="view-all-link">
                     View All <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
             <div class="collection-horizontal-scroll">
                 <div class="collection-horizontal-wrapper">
-                    {% if menu_collections and menu_collections|length > 0 %}
-                        {% for collection in menu_collections[:15] %}
+                    {% if goods_collections and goods_collections|length > 0 %}
+                        {% for collection in goods_collections[:15] %}
                             <div class="collection-horizontal-card" 
-                                 onclick="window.location.href='{{ url_for('menu_collection_categories', collection_id=collection.id) }}'">
+                                 onclick="window.location.href='{{ url_for('goods_collection_categories', collection_id=collection.id) }}'">
                                 <div class="collection-horizontal-photo-square">
-                                    <img src="{{ collection.collection_photo }}" alt="{{ collection.name }}" onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/default_menu_collection.jpg'">
+                                    <img src="{{ collection.collection_photo }}" alt="{{ collection.name }}" onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/default_goods_collection.jpg'">
                                 </div>
                                 <div class="collection-horizontal-name">{{ collection.name|truncate(15) }}</div>
                             </div>
@@ -249,7 +249,7 @@
                     {% else %}
                         <div class="no-items">
                             <i class="fas fa-boxes"></i>
-                            <p>No product collections available.</p>
+                            <p>No goods collections available.</p>
                         </div>
                     {% endif %}
                 </div>
@@ -368,27 +368,27 @@
             </div>
         </div>
 
-        <!-- 📦 ALL PRODUCTS SECTION -->
+        <!-- 📦 ALL GOODS SECTION -->
         <div class="section-container">
             <div class="section-header">
                 <div class="section-title-wrapper">
                     <div class="section-icon all-products-icon">
                         <i class="fas fa-box-open"></i>
                     </div>
-                    <h2>All Products</h2>
+                    <h2>All Goods</h2>
                 </div>
-                <a href="{{ url_for('menu') }}" class="view-all-link">
+                <a href="{{ url_for('goods') }}" class="view-all-link">
                     View All <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
-            <div class="scroll-container manual-scroll" id="allProductsScrollContainer">
+            <div class="scroll-container manual-scroll" id="allGoodsScrollContainer">
                 <div class="scroll-wrapper">
-                    {% if all_menu_items and all_menu_items|length > 0 %}
-                        {% for item in all_menu_items[:12] %}
+                    {% if all_goods_items and all_goods_items|length > 0 %}
+                        {% for item in all_goods_items[:12] %}
                             <div class="item-card product-card" 
-                                 onclick="window.location.href='{{ url_for('menu_item_details', item_id=item.id) }}'">
+                                 onclick="window.location.href='{{ url_for('goods_item_details', item_id=item.id) }}'">
                                 <div class="item-card-photo">
-                                    <img src="{{ item.photo }}" alt="{{ item.name }}" onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_food.jpg'">
+                                    <img src="{{ item.photo }}" alt="{{ item.name }}" onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_goods.jpg'">
                                 </div>
                                 <div class="item-card-info">
                                     <h4 class="item-card-name">{{ item.name|truncate(18) }}</h4>
@@ -398,7 +398,7 @@
                                     <div class="item-card-footer">
                                         <div class="product-badge-sm">
                                             <i class="fas fa-box"></i>
-                                            <span>Product</span>
+                                            <span>Goods</span>
                                         </div>
                                         {% if item.discount and item.discount > 0 %}
                                         <div class="discount-tag">
@@ -416,7 +416,7 @@
                     {% else %}
                         <div class="no-items">
                             <i class="fas fa-box-open"></i>
-                            <p>No products available at the moment.</p>
+                            <p>No goods available at the moment.</p>
                         </div>
                     {% endif %}
                 </div>
@@ -431,9 +431,9 @@
             <i class="fas fa-concierge-bell"></i>
             <span>Services</span>
         </a>
-        <a href="{{ url_for('menu') }}" class="nav-item">
-            <i class="fas fa-utensils"></i>
-            <span>Menu</span>
+        <a href="{{ url_for('goods') }}" class="nav-item">
+            <i class="fas fa-box"></i>
+            <span>Goods</span>
         </a>
         <a href="{{ url_for('cart') }}" class="nav-item">
             <i class="fas fa-shopping-cart"></i>
@@ -474,7 +474,7 @@
     --rupee-bg: rgba(212, 175, 55, 0.1);
 }
 
-/* Main Content - Matching menu_item_details.html spacing */
+/* Main Content - Matching goods_item_details.html spacing */
 .main-content {
     flex: 1;
     padding: 78px 5px 100px 5px;
@@ -764,7 +764,7 @@
     line-height: 1.2;
 }
 
-/* Product Card - Updated from menu-card */
+/* Product Card - Updated from goods-card */
 .product-card {
     border-color: rgba(46, 125, 50, 0.3);
 }
@@ -1088,7 +1088,7 @@
     font-weight: 600;
 }
 
-/* Responsive adjustments - Matching menu_item_details.html */
+/* Responsive adjustments - Matching goods_item_details.html */
 @media (max-width: 768px) {
     .main-content {
         padding: 68px 10px 100px 10px;
