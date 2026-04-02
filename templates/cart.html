@@ -63,7 +63,7 @@
                                          onerror="this.onerror=null; this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg';">
                                     {% else %}
                                     <div class="item-square-photo placeholder {{ item.type }}">
-                                        <i class="fas fa-{{ 'concierge-bell' if item.type == 'service' else 'utensils' }}"></i>
+                                        <i class="fas fa-{{ 'concierge-bell' if item.type == 'service' else 'box' }}"></i>
                                     </div>
                                     {% endif %}
                                 </div>
@@ -73,7 +73,7 @@
                                     <div class="square-item-header">
                                         <h4 class="square-item-name">{{ item.details.name|truncate(25) }}</h4>
                                         <div class="square-item-type {{ item.type }}">
-                                            <i class="fas fa-{{ 'concierge-bell' if item.type == 'service' else 'utensils' }}"></i>
+                                            <i class="fas fa-{{ 'concierge-bell' if item.type == 'service' else 'box' }}"></i>
                                             <span>{{ item.type|title }}</span>
                                         </div>
                                     </div>
@@ -183,11 +183,11 @@
                                 <span class="btn-arrow">→</span>
                             </a>
                             
-                            <a href="{{ url_for('menu') }}" class="empty-state-btn btn-bronze-outline">
+                            <a href="{{ url_for('goods') }}" class="empty-state-btn btn-bronze-outline">
                                 <span class="btn-icon">
-                                    <i class="fas fa-utensils"></i>
+                                    <i class="fas fa-box"></i>
                                 </span>
-                                <span class="btn-text">Menu</span>
+                                <span class="btn-text">Goods</span>
                                 <span class="btn-arrow">→</span>
                             </a>
                         </div>
@@ -203,9 +203,9 @@
             <i class="fas fa-concierge-bell"></i>
             <span>Services</span>
         </a>
-        <a href="{{ url_for('menu') }}" class="nav-item">
-            <i class="fas fa-utensils"></i>
-            <span>Menu</span>
+        <a href="{{ url_for('goods') }}" class="nav-item">
+            <i class="fas fa-box"></i>
+            <span>Goods</span>
         </a>
         <a href="{{ url_for('cart') }}" class="nav-item active">
             <i class="fas fa-shopping-cart"></i>
@@ -352,7 +352,7 @@
     color: var(--service-icon);
 }
 
-.item-square-photo.placeholder.menu {
+.item-square-photo.placeholder.goods {
     background: linear-gradient(135deg, var(--service-card-base), rgba(46, 125, 50, 0.2));
     color: var(--service-status-available);
 }
@@ -749,7 +749,7 @@
     font-family: var(--serif-font);
 }
 
-/* ✅ PREMIUM CHECKOUT BUTTON - GOLDEN ACTION */
+/* ✅ PREMIUM CHECKOUT BUTTON - GOLDEN ACTION (GOLDEN THEME - NO COLOR CHANGE) */
 .btn-checkout-golden {
     background: linear-gradient(135deg, var(--golden-vivid) 0%, var(--golden-metallic) 100%);
     color: #000000;
@@ -773,6 +773,7 @@
     overflow: hidden;
     z-index: 10;
     font-family: var(--sans-font);
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
 }
 
 /* ✅ GOLD SHINE EFFECT */
@@ -786,7 +787,7 @@
     background: linear-gradient(
         90deg, 
         transparent, 
-        rgba(255, 255, 255, 0.2), 
+        rgba(255, 255, 255, 0.3), 
         transparent
     );
     transition: left 0.7s ease;
@@ -801,6 +802,7 @@
     transform: translateY(-2px);
     background: linear-gradient(135deg, #E4C158 0%, #D0C08D 100%);
     color: #000000;
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.5);
 }
 
 /* Button Inner Elements */
