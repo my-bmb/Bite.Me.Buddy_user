@@ -49,9 +49,9 @@
                      data-item-discount="{{ item.discount }}"
                      data-item-final="{{ item.final_price }}">
                     
-                    <!-- Left Column: Photo Square -->
+                    <!-- Left Column: Photo Square - SIMPLE DIRECT APPROACH -->
                     <div class="item-modal-photo-square">
-                        <img src="{% if item.photo and item.photo.startswith('http') %}{{ item.photo }}{% else %}{{ url_for('static', filename='uploads/' + item.photo) if item.photo else 'https://res.cloudinary.com/demo/image/upload/v1633427556/sample_goods.jpg' }}{% endif %}" 
+                        <img src="{{ item.photo }}" 
                              alt="{{ item.name }}"
                              onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_goods.jpg'">
                     </div>
@@ -110,7 +110,9 @@
             <a href="{{ url_for('goods_category_items', category_id=cat.id) }}" 
                class="browse-category-card {% if cat.id == category.id %}active{% endif %}">
                 <div class="browse-category-photo-square">
-                    <img src="{{ cat.category_photo }}" alt="{{ cat.name }}">
+                    <img src="{{ cat.category_photo }}" 
+                         alt="{{ cat.name }}"
+                         onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/default_goods_category.jpg'">
                     <div class="browse-category-number">
                         <span>{{ loop.index }}</span>
                     </div>
@@ -167,7 +169,6 @@
 <script>
 // Anti-flicker script - runs immediately
 (function() {
-    // Add loaded class to body after a tiny delay
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
@@ -189,11 +190,7 @@ function addGoodsItemToCart(itemId) {
     })
     .then(response => response.json())
     .then(data => {
-        if (data.success) {
-            showCartNotification();
-        } else {
-            showCartNotification();
-        }
+        showCartNotification();
     })
     .catch(error => {
         console.error("Add to cart error:", error);
@@ -620,7 +617,7 @@ document.querySelectorAll('.item-modal-card').forEach(card => {
     overflow-x: visible;
 }
 
-/* CATEGORIES HEADER - EXACTLY LIKE COLLECTIONS HEADER */
+/* CATEGORIES HEADER */
 .categories-header {
     text-align: center;
     margin-bottom: 4px;
@@ -746,14 +743,8 @@ document.querySelectorAll('.item-modal-card').forEach(card => {
 }
 
 @keyframes slideIn {
-    from {
-        width: 0;
-        opacity: 0;
-    }
-    to {
-        width: 24px;
-        opacity: 1;
-    }
+    from { width: 0; opacity: 0; }
+    to { width: 24px; opacity: 1; }
 }
 
 @media (max-width: 480px) {
@@ -764,7 +755,7 @@ document.querySelectorAll('.item-modal-card').forEach(card => {
     }
 }
 
-/* ========== BOTTOM NAVIGATION OVERRIDE FOR ACTIVE GOODS TAB ========== */
+/* ========== BOTTOM NAVIGATION OVERRIDE ========== */
 .bottom-nav .nav-item.active {
     background: linear-gradient(135deg, var(--champagne-primary), var(--champagne-light)) !important;
     color: var(--matte-black-darkest) !important;
