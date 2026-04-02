@@ -213,7 +213,7 @@
                                             >
                                         {% else %}
                                             <div class="item-square-photo.placeholder {{ item.type|default(item.item_type)|default('unknown')|lower }}">
-                                                <i class="fas fa-{{ 'concierge-bell' if item.type|default(item.item_type) == 'service' else 'utensils' if item.type|default(item.item_type) == 'menu' else 'box' }}"></i>
+                                                <i class="fas fa-{{ 'concierge-bell' if item.type|default(item.item_type) == 'service' else 'box' if item.type|default(item.item_type) == 'goods' else 'box' }}"></i>
                                             </div>
                                         {% endif %}
                                     </div>
@@ -223,7 +223,7 @@
                                         <div class="square-item-header">
                                             <h4 class="square-item-name">{{ item.name|default(item.item_name|default('Unknown Item'))|truncate(25) }}</h4>
                                             <div class="square-item-type {{ item.type|default(item.item_type)|default('unknown')|lower }}">
-                                                <i class="fas fa-{{ 'concierge-bell' if item.type|default(item.item_type) == 'service' else 'utensils' if item.type|default(item.item_type) == 'menu' else 'box' }}"></i>
+                                                <i class="fas fa-{{ 'concierge-bell' if item.type|default(item.item_type) == 'service' else 'box' if item.type|default(item.item_type) == 'goods' else 'box' }}"></i>
                                                 <span>{{ item.type|default(item.item_type)|default('item')|title }}</span>
                                             </div>
                                         </div>
@@ -335,9 +335,9 @@
             <i class="fas fa-concierge-bell"></i>
             <span>Services</span>
         </a>
-        <a href="{{ url_for('menu') }}" class="nav-item">
-            <i class="fas fa-utensils"></i>
-            <span>Menu</span>
+        <a href="{{ url_for('goods') }}" class="nav-item">
+            <i class="fas fa-box"></i>
+            <span>Goods</span>
         </a>
         <a href="{{ url_for('cart') }}" class="nav-item">
             <i class="fas fa-shopping-cart"></i>
@@ -664,7 +664,7 @@ body {
     color: var(--service-icon);
 }
 
-.item-square-photo.placeholder.menu {
+.item-square-photo.placeholder.goods {
     background: linear-gradient(135deg, var(--service-card-base), rgba(46, 125, 50, 0.2));
     color: var(--service-status-available);
 }
@@ -733,7 +733,7 @@ body {
     border-color: rgba(142, 125, 77, 0.3);
 }
 
-.square-item-type.menu {
+.square-item-type.goods {
     background: rgba(46, 125, 50, 0.15);
     color: var(--service-status-available);
     border-color: rgba(46, 125, 50, 0.3);
@@ -1523,7 +1523,7 @@ body {
     }
 })();
 
-// Government Style Invoice Function - COMPLETE VERSION
+// Government Style Invoice Function - COMPLETE VERSION (KEEP AS IS - NO CHANGES)
 function generateGovernmentInvoice() {
     const orderId = '{{ order.order_id }}';
     const orderNo = '{{ order.order_no }}';
@@ -1639,7 +1639,7 @@ function generateGovernmentInvoice() {
     
     const sessionTimestamp = now.toLocaleTimeString('en-IN', indianOptions);
     
-    // Create Government Style Invoice HTML
+    // Create Government Style Invoice HTML (FULL INVOICE - KEEP AS IS)
     const invoiceHTML = `
     <!DOCTYPE html>
     <html lang="en">
@@ -2341,7 +2341,7 @@ function generateGovernmentInvoice() {
                 <!-- Government Header -->
                 <div class="government-header">
                     <h1>GOVERNMENT OF INDIA RECOGNIZED</h1>
-                    <h2>BITE ME BUDDY FOOD SERVICES</h2>
+                    <h2>BITE ME BUDDY GOODS & SERVICES</h2>
                     <p>
                         <strong>FSSAI License No:</strong> 12345678901234 | 
                         <strong>GSTIN:</strong> 09AABCU9603R1ZX | 
@@ -2586,7 +2586,7 @@ function generateGovernmentInvoice() {
                                         <span style="padding: 2px 5px; background: ${'{% if item.type|lower == "service" %}'}#dbeafe${'{% else %}'}#dcfce7${'{% endif %}'}; 
                                               color: ${'{% if item.type|lower == "service" %}'}#1e40af${'{% else %}'}#166534${'{% endif %}'}; 
                                               border-radius: 8px; font-size: 8px; font-weight: 600;">
-                                            ${'{{ item.type|default("Menu")|title }}'}
+                                            ${'{{ item.type|default("Goods")|title }}'}
                                         </span>
                                     </td>
                                     <td>${'{{ item.quantity }}'}</td>
@@ -2662,7 +2662,7 @@ function generateGovernmentInvoice() {
                     
                     <!-- Micro Text -->
                     <div class="micro-text">
-                        OFFICIAL DOCUMENT ISSUED BY BITE ME BUDDY FOOD SERVICES UNDER GOVERNMENT OF INDIA RECOGNITION. FSSAI LICENSE: 12345678901234. GSTIN: 09AABCU9603R1ZX. THIS DOCUMENT CONTAINS SECURITY FEATURES THAT ARE VISIBLE UNDER UV LIGHT AND WILL NOT REPRODUCE CLEARLY WHEN COPIED. ANY UNAUTHORIZED REPRODUCTION, ALTERATION, OR FORGERY OF THIS DOCUMENT IS PUNISHABLE UNDER SECTIONS 463, 464, AND 465 OF THE INDIAN PENAL CODE, 1860. DOCUMENT SERIAL: ${orderNo}${userId}${orderDateFirst8} SECURITY CODE: BMBSEC${subtotal.toFixed(0).padStart(6, '0')} SESSION: ${sessionId.substring(0, 8).toUpperCase()} IP HASH: ${ipAddress.replace(/\./g, '').substring(0, 12)} VERIFICATION TIMESTAMP (IST): ${indianTime} ${indianDate}
+                        OFFICIAL DOCUMENT ISSUED BY BITE ME BUDDY GOODS & SERVICES UNDER GOVERNMENT OF INDIA RECOGNITION. FSSAI LICENSE: 12345678901234. GSTIN: 09AABCU9603R1ZX. THIS DOCUMENT CONTAINS SECURITY FEATURES THAT ARE VISIBLE UNDER UV LIGHT AND WILL NOT REPRODUCE CLEARLY WHEN COPIED. ANY UNAUTHORIZED REPRODUCTION, ALTERATION, OR FORGERY OF THIS DOCUMENT IS PUNISHABLE UNDER SECTIONS 463, 464, AND 465 OF THE INDIAN PENAL CODE, 1860. DOCUMENT SERIAL: ${orderNo}${userId}${orderDateFirst8} SECURITY CODE: BMBSEC${subtotal.toFixed(0).padStart(6, '0')} SESSION: ${sessionId.substring(0, 8).toUpperCase()} IP HASH: ${ipAddress.replace(/\./g, '').substring(0, 12)} VERIFICATION TIMESTAMP (IST): ${indianTime} ${indianDate}
                     </div>
                     
                     <!-- QR Code -->
@@ -2708,7 +2708,7 @@ function generateGovernmentInvoice() {
                             </div>
                             <div class="signature-text">Official Receipt Stamp</div>
                             <p style="font-size: 8.5px; color: #64748b; margin-top: 3px;">
-                                Bite Me Buddy Food Services
+                                Bite Me Buddy Goods & Services
                             </p>
                         </div>
                         
@@ -2752,7 +2752,7 @@ function generateGovernmentInvoice() {
                     <!-- Invoice Footer -->
                     <div class="invoice-footer">
                         <p>
-                            <strong>BITE ME BUDDY FOOD SERVICES</strong><br>
+                            <strong>BITE ME BUDDY GOODS & SERVICES</strong><br>
                             Varanasi Ghats, Uttar Pradesh, India | Phone: +91 7275726604 | Email: info@bitemebuddy.com<br>
                             Website: https://bitemebuddy.com | FSSAI License No: 12345678901234 | GSTIN: 09AABCU9603R1ZX
                         </p>
@@ -2763,7 +2763,7 @@ function generateGovernmentInvoice() {
                             Document ID: INV-${orderNo}-${userId}-${dateStr}
                         </p>
                         <div class="footer-note">
-                            Thank you for choosing Bite Me Buddy! For any queries, please contact our customer support.
+                            Thank you for choosing Bite Me Buddy Goods & Services! For any queries, please contact our customer support.
                         </div>
                     </div>
                 </div>

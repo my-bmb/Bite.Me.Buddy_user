@@ -1,0 +1,959 @@
+{% extends "base.html" %}
+
+{% block title %}{{ goods_item.name }} - Item Details{% endblock %}
+
+{% block content %}
+<!-- ANTI-FLICKER: Body-level fade - loads instantly, no FOUC -->
+<style>
+    /* Critical CSS - loads immediately */
+    body {
+        opacity: 0;
+        transition: opacity 0.2s ease-in;
+        background: #0D0D0D;
+    }
+    
+    body.loaded {
+        opacity: 1;
+    }
+    
+    .dashboard {
+        background: #0D0D0D;
+        min-height: 100vh;
+    }
+</style>
+
+<div class="dashboard">
+    <!-- Top Header -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1>{{ goods_item.name }}</h1>
+            <p class="welcome-text">{{ category.name if category else 'Item Details' }}</p>
+        </div>
+        <div class="header-right">
+            <img src="{{ session.profile_pic }}" alt="Profile" class="profile-pic"
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+    </header>
+
+    <main class="main-content">
+        <!-- Item Details Section -->
+        <div class="item-detail-container">
+            <!-- Left Column: Photo -->
+            <div class="item-detail-photo">
+                <img src="{{ goods_item.photo }}" alt="{{ goods_item.name }}"
+                     onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_goods.jpg'">
+            </div>
+            
+            <!-- Right Column: Details -->
+            <div class="item-detail-info">
+                <div class="item-detail-header">
+                    <h2>{{ goods_item.name }}</h2>
+                    {% if category %}
+                    <span class="item-detail-category">{{ category.name }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="item-detail-description">
+                    <p>{{ goods_item.description or 'No description available' }}</p>
+                </div>
+                
+                <div class="item-detail-pricing">
+                    {% if goods_item.discount and goods_item.discount > 0 %}
+                    <div class="item-detail-discount-row">
+                        <span class="item-detail-original-price">₹{{ "%.2f"|format(goods_item.price) }}</span>
+                        <span class="item-detail-discount-badge">-{{ goods_item.discount }}% OFF</span>
+                    </div>
+                    {% endif %}
+                    <div class="item-detail-final-price">
+                        <span class="item-detail-rupee">₹</span>
+                        <span class="item-detail-price-value">{{ "%.2f"|format(goods_item.final_price) }}</span>
+                    </div>
+                </div>
+                
+                <div class="item-detail-actions">
+                    <button class="btn-item-detail-add" onclick="addGoodsItemToCart({{ goods_item.id }})">
+                        <i class="fas fa-cart-plus"></i> Add to Cart
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- All Categories with their Items (Horizontal Scroll) -->
+        {% if all_categories_with_items %}
+            {% for cat_data in all_categories_with_items %}
+            <div class="category-items-section">
+                <h3 class="section-title">{{ cat_data.category.name }}</h3>
+                <div class="category-items-horizontal-scroll">
+                    {% for cat_item in cat_data.get('items', []) %}
+                    {% if cat_item.id != goods_item.id %}
+                    <div class="category-item-card" onclick="window.location.href='/goods-item/{{ cat_item.id }}'">
+                        <div class="category-item-photo-square">
+                            <img src="{{ cat_item.photo }}" alt="{{ cat_item.name }}"
+                                 onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_goods.jpg'">
+                        </div>
+                        <div class="category-item-details">
+                            <div class="category-item-name">{{ cat_item.name }}</div>
+                            <div class="category-item-pricing">
+                                {% if cat_item.discount and cat_item.discount > 0 %}
+                                <span class="category-original-price">₹{{ "%.2f"|format(cat_item.price) }}</span>
+                                <span class="category-discount-badge">-{{ cat_item.discount }}%</span>
+                                {% endif %}
+                                <div class="category-final-price">
+                                    <span>₹</span>
+                                    <span>{{ "%.2f"|format(cat_item.final_price) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Browse By Collection Section -->
+        {% if all_collections %}
+        <div class="browse-collection-section">
+            <h3 class="section-title">Browse By Collection</h3>
+            <div class="collection-horizontal-scroll">
+                {% for col in all_collections %}
+                <a href="{{ url_for('goods_collection_categories', collection_id=col.id) }}" 
+                   class="browse-collection-horizontal-card">
+                    <div class="browse-collection-horizontal-photo-square">
+                        <img src="{{ col.collection_photo }}" alt="{{ col.name }}">
+                    </div>
+                    <div class="browse-collection-horizontal-name">{{ col.name }}</div>
+                    <div class="browse-collection-horizontal-count">{{ col.category_count }} Categories</div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item">
+            <i class="fas fa-concierge-bell"></i><span>Services</span>
+        </a>
+        <a href="{{ url_for('goods') }}" class="nav-item active" style="background: linear-gradient(135deg, var(--champagne-primary), var(--champagne-light)) !important; color: var(--matte-black-darkest) !important; transform: translateY(-3px) !important; box-shadow: 0 6px 15px rgba(192, 178, 131, 0.3) !important; position: relative !important;">
+            <i class="fas fa-box" style="color: var(--matte-black-darkest) !important;"></i><span style="color: var(--matte-black-darkest) !important;">Goods</span>
+            <span class="active-underline"></span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item">
+            <i class="fas fa-shopping-cart"></i><span>Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item">
+            <i class="fas fa-history"></i><span>Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item">
+            <i class="fas fa-user"></i><span>Profile</span>
+        </a>
+    </nav>
+</div>
+
+<!-- ADD TO CART NOTIFICATION -->
+<div id="cartNotification" class="cart-notification-fixed" style="display: none;">
+    <div class="notification-fixed-content">
+        <div class="notification-fixed-icon">
+            <i class="fas fa-shopping-cart"></i>
+        </div>
+        <div class="notification-fixed-text">
+            <strong>Item Added Successfully!</strong>
+            <span>Added to your cart</span>
+        </div>
+        <div class="notification-fixed-actions">
+            <button class="btn-view-cart-fixed" onclick="window.location.href='/cart'">
+                View Cart
+            </button>
+            <button class="btn-close-fixed" onclick="closeCartNotification()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Anti-flicker script - runs immediately
+(function() {
+    // Add loaded class to body after a tiny delay
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                document.body.classList.add('loaded');
+            }, 10);
+        });
+    } else {
+        setTimeout(function() {
+            document.body.classList.add('loaded');
+        }, 10);
+    }
+})();
+
+function addGoodsItemToCart(itemId) {
+    fetch('/add_to_cart', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `item_type=goods&item_id=${itemId}&quantity=1`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showCartNotification();
+        } else {
+            showCartNotification();
+        }
+    })
+    .catch(error => {
+        console.error("Add to cart error:", error);
+        showCartNotification();
+    });
+}
+
+function showCartNotification() {
+    const notification = document.getElementById('cartNotification');
+    notification.style.display = 'block';
+    notification.offsetHeight;
+    notification.classList.add('show');
+    setTimeout(() => {
+        closeCartNotification();
+    }, 5000);
+}
+
+function closeCartNotification() {
+    const notification = document.getElementById('cartNotification');
+    notification.classList.remove('show');
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 400);
+}
+</script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --matte-black: #0D0D0D;
+    --champagne-gold: #C0B283;
+    --champagne-primary: #C0B283;
+    --champagne-light: #D4C5A1;
+    --onyx-black: #1A1A1A;
+    --vivid-gold: #D4AF37;
+    --creamy-white: #F4F1E1;
+    --gold-light: #D4C19C;
+    --gold-dark: #A8955E;
+    --dark-border: #333333;
+    --antique-bronze: #8e7d4d;
+    --silver-mist: #A0A0A0;
+    --text-charcoal: #A6A6A6;
+    --matte-black-darkest: #050505;
+    --burnt-orange: #D98324;
+    --price-glow: rgba(212, 175, 55, 0.3);
+    --gold-glow: 0 0 15px rgba(192, 178, 131, 0.3);
+    --serif-font: 'Playfair Display', Georgia, serif;
+    --sans-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.dashboard {
+    position: relative;
+    min-height: 100vh;
+    background: var(--matte-black);
+}
+
+.main-content {
+    flex: 1;
+    padding: 78px 5px 100px 5px;
+    overflow-y: auto;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* ========== ITEM DETAIL SECTION - COMPACT ========== */
+.item-detail-container {
+    display: flex;
+    gap: 20px;
+    background: var(--onyx-black);
+    border-radius: 16px;
+    border: 1px solid var(--dark-border);
+    overflow: hidden;
+    margin-bottom: 25px;
+    padding: 16px;
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+}
+
+/* FIXED ASPECT RATIO FOR PHOTO - 4:3 FOR ALL DEVICES */
+.item-detail-photo {
+    flex: 0 0 280px;
+    aspect-ratio: 4 / 3;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--dark-border);
+}
+
+.item-detail-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(1.2) contrast(1.1);
+}
+
+.item-detail-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.item-detail-header h2 {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--creamy-white);
+    margin: 0 0 4px 0;
+    font-family: var(--serif-font);
+    letter-spacing: 0.02em;
+}
+
+.item-detail-category {
+    display: inline-block;
+    background: rgba(192, 178, 131, 0.15);
+    color: var(--champagne-gold);
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--sans-font);
+    border: 1px solid rgba(192, 178, 131, 0.3);
+}
+
+.item-detail-description p {
+    color: var(--silver-mist);
+    font-size: 13px;
+    line-height: 1.5;
+    font-family: var(--sans-font);
+    margin: 0;
+}
+
+.item-detail-pricing {
+    padding: 4px 0;
+}
+
+.item-detail-discount-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.item-detail-original-price {
+    color: var(--silver-mist);
+    text-decoration: line-through;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.item-detail-discount-badge {
+    background: linear-gradient(135deg, var(--burnt-orange) 0%, #b86d1a 100%);
+    color: var(--creamy-white);
+    padding: 2px 7px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.item-detail-final-price {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+}
+
+.item-detail-rupee {
+    color: var(--antique-bronze);
+    font-size: 22px;
+    font-weight: 900;
+}
+
+.item-detail-price-value {
+    font-weight: 900;
+    color: var(--vivid-gold);
+    font-size: 28px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.15), 0 0 5px var(--price-glow);
+}
+
+/* ========== ADD TO CART BUTTON ========== */
+.btn-item-detail-add {
+    background: linear-gradient(135deg, var(--champagne-gold), var(--antique-bronze));
+    color: #000000;
+    border: none;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    font-family: var(--sans-font);
+    width: fit-content;
+}
+
+.btn-item-detail-add i {
+    font-size: 14px;
+}
+
+.btn-item-detail-add:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(192, 178, 131, 0.3);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold-dark));
+}
+
+.item-detail-actions {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 4px;
+}
+
+/* ========== SECTION STYLES ========== */
+.section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--creamy-white);
+    margin-bottom: 20px;
+    font-family: var(--serif-font);
+    letter-spacing: 0.02em;
+    border-left: 3px solid var(--champagne-gold);
+    padding-left: 10px;
+}
+
+.category-items-section,
+.browse-collection-section {
+    margin-bottom: 30px;
+}
+
+/* ========== HORIZONTAL SCROLL CONTAINERS ========== */
+.category-items-horizontal-scroll,
+.collection-horizontal-scroll {
+    display: flex;
+    overflow-x: auto;
+    gap: 16px;
+    padding: 8px 2px 12px 2px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--champagne-gold) var(--dark-border);
+}
+
+.category-items-horizontal-scroll::-webkit-scrollbar,
+.collection-horizontal-scroll::-webkit-scrollbar {
+    height: 4px;
+}
+
+.category-items-horizontal-scroll::-webkit-scrollbar-track,
+.collection-horizontal-scroll::-webkit-scrollbar-track {
+    background: var(--dark-border);
+    border-radius: 10px;
+}
+
+.category-items-horizontal-scroll::-webkit-scrollbar-thumb,
+.collection-horizontal-scroll::-webkit-scrollbar-thumb {
+    background: var(--champagne-gold);
+    border-radius: 10px;
+}
+
+/* ========== CATEGORY ITEMS CARDS ========== */
+.category-item-card {
+    flex-shrink: 0;
+    width: 180px;
+    background: var(--onyx-black);
+    border-radius: 12px;
+    border: 1px solid var(--dark-border);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.category-item-card:hover {
+    border-color: var(--champagne-gold);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4), 0 0 8px rgba(192, 178, 131, 0.3);
+}
+
+.category-item-photo-square {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.category-item-photo-square img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.category-item-card:hover .category-item-photo-square img {
+    transform: scale(1.05);
+}
+
+.category-item-details {
+    padding: 10px;
+}
+
+.category-item-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--creamy-white);
+    margin-bottom: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--serif-font);
+}
+
+.category-item-pricing {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+}
+
+.category-original-price {
+    color: var(--silver-mist);
+    text-decoration: line-through;
+    font-size: 10px;
+}
+
+.category-discount-badge {
+    background: linear-gradient(135deg, var(--burnt-orange) 0%, #b86d1a 100%);
+    color: var(--creamy-white);
+    padding: 2px 5px;
+    border-radius: 8px;
+    font-size: 8px;
+    font-weight: 700;
+}
+
+.category-final-price {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    font-weight: 700;
+    color: var(--vivid-gold);
+    font-size: 14px;
+}
+
+.category-final-price span:first-child {
+    font-size: 11px;
+}
+
+/* ========== COLLECTION HORIZONTAL CARDS ========== */
+.browse-collection-horizontal-card {
+    flex-shrink: 0;
+    width: 120px;
+    background: rgba(26, 26, 26, 0.9);
+    border-radius: 12px;
+    border: 1px solid rgba(192, 178, 131, 0.2);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 6px;
+}
+
+.browse-collection-horizontal-card:hover {
+    border-color: var(--champagne-gold);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 6px rgba(192, 178, 131, 0.3);
+}
+
+.browse-collection-horizontal-photo-square {
+    width: 75px;
+    aspect-ratio: 1 / 1;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    background: var(--matte-black);
+    border: 1px solid rgba(192, 178, 131, 0.3);
+    margin-bottom: 6px;
+}
+
+.browse-collection-horizontal-photo-square img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.browse-collection-horizontal-name {
+    color: var(--gold-light);
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+    font-family: var(--serif-font);
+    margin-bottom: 3px;
+}
+
+.browse-collection-horizontal-count {
+    color: var(--silver-mist);
+    font-size: 9px;
+    font-weight: 500;
+    text-align: center;
+    font-family: var(--sans-font);
+}
+
+/* No Items Message */
+.no-items-message {
+    text-align: center;
+    color: var(--silver-mist);
+    padding: 40px 20px;
+    font-family: var(--sans-font);
+    font-size: 14px;
+    background: var(--onyx-black);
+    border-radius: 12px;
+    border: 1px solid var(--dark-border);
+    min-width: 300px;
+}
+
+/* ========== ACTIVE TAB UNDERLINE ========== */
+.active-underline {
+    position: absolute;
+    bottom: -3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 2.5px;
+    background: linear-gradient(90deg, var(--champagne-primary), var(--champagne-light));
+    border-radius: 3px;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { width: 0; opacity: 0; }
+    to { width: 24px; opacity: 1; }
+}
+
+@media (max-width: 480px) {
+    .active-underline {
+        bottom: -3px !important;
+        width: 24px !important;
+        height: 2.5px !important;
+    }
+}
+
+/* ========== BOTTOM NAVIGATION OVERRIDE ========== */
+.bottom-nav .nav-item.active {
+    background: linear-gradient(135deg, var(--champagne-primary), var(--champagne-light)) !important;
+    color: var(--matte-black-darkest) !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 6px 15px rgba(192, 178, 131, 0.3) !important;
+    position: relative !important;
+}
+
+.bottom-nav .nav-item.active i,
+.bottom-nav .nav-item.active span {
+    color: var(--matte-black-darkest) !important;
+}
+
+.bottom-nav .nav-item:not(.active) {
+    background: transparent !important;
+    color: var(--text-charcoal) !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.bottom-nav .nav-item:not(.active):hover {
+    background: rgba(192, 178, 131, 0.12) !important;
+    color: var(--champagne-light) !important;
+    transform: translateY(-3px) !important;
+}
+
+@media (max-width: 480px) {
+    .bottom-nav .nav-item.active {
+        transform: translateY(-1.5px) !important;
+        box-shadow: 0 6px 12px rgba(192, 178, 131, 0.25) !important;
+    }
+}
+
+/* ========== NOTIFICATION ========== */
+.cart-notification-fixed {
+    position: fixed;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    max-width: 400px;
+    background: var(--onyx-black);
+    border-radius: 12px;
+    border: 1px solid var(--champagne-gold);
+    z-index: 99999;
+    transition: top 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: 0 0 30px rgba(0,0,0,0.8), 0 0 10px rgba(192, 178, 131, 0.1);
+    overflow: hidden;
+}
+
+.cart-notification-fixed.show { top: 15px; }
+
+.notification-fixed-content {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    gap: 10px;
+}
+
+.notification-fixed-icon {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--antique-bronze) 100%);
+    color: #000000;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.notification-fixed-text strong {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--creamy-white);
+    margin-bottom: 2px;
+    font-family: var(--serif-font);
+}
+
+.notification-fixed-text span {
+    font-size: 11px;
+    color: var(--silver-mist);
+    font-family: var(--sans-font);
+}
+
+.notification-fixed-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+.btn-view-cart-fixed {
+    background: linear-gradient(135deg, var(--champagne-gold) 0%, var(--antique-bronze) 100%);
+    color: #000000;
+    border: 1px solid var(--champagne-gold);
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.3s;
+}
+
+.btn-view-cart-fixed:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--gold-glow);
+}
+
+.btn-close-fixed {
+    background: #2A2A2A;
+    color: var(--silver-mist);
+    border: 1px solid var(--dark-border);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-close-fixed:hover {
+    background: #333;
+    border-color: var(--champagne-gold);
+    color: var(--champagne-gold);
+}
+
+/* ========== MOBILE RESPONSIVE ========== */
+@media (max-width: 768px) {
+    .main-content {
+        padding: 68px 10px 100px 10px;
+    }
+    
+    .item-detail-container {
+        flex-direction: column;
+        padding: 14px;
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+    
+    .item-detail-photo {
+        flex: 0 0 auto;
+        width: 100%;
+        aspect-ratio: 4 / 3;
+    }
+    
+    .item-detail-info {
+        gap: 8px;
+    }
+    
+    .item-detail-header h2 {
+        font-size: 20px;
+        margin-bottom: 2px;
+    }
+    
+    .item-detail-category {
+        padding: 2px 8px;
+        font-size: 10px;
+    }
+    
+    .item-detail-description p {
+        font-size: 12px;
+        line-height: 1.4;
+    }
+    
+    .item-detail-price-value {
+        font-size: 26px;
+    }
+    
+    .item-detail-rupee {
+        font-size: 20px;
+    }
+    
+    .item-detail-pricing {
+        padding: 2px 0;
+    }
+    
+    .btn-item-detail-add {
+        width: 100%;
+        justify-content: center;
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+    
+    .item-detail-actions {
+        justify-content: center;
+    }
+    
+    .section-title {
+        font-size: 16px;
+        margin-bottom: 15px;
+        padding-left: 8px;
+    }
+    
+    .category-items-section,
+    .browse-collection-section {
+        margin-bottom: 25px;
+    }
+    
+    .category-items-horizontal-scroll,
+    .collection-horizontal-scroll {
+        gap: 12px;
+        padding: 6px 2px 10px 2px;
+    }
+    
+    .category-item-card {
+        width: 150px;
+    }
+    
+    .category-item-details {
+        padding: 8px;
+    }
+    
+    .category-item-name {
+        font-size: 12px;
+    }
+    
+    .browse-collection-horizontal-card {
+        width: 105px;
+        padding: 8px 4px;
+    }
+    
+    .browse-collection-horizontal-photo-square {
+        width: 65px;
+    }
+    
+    .browse-collection-horizontal-name {
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        padding: 63px 8px 85px 8px;
+    }
+    
+    .item-detail-container {
+        padding: 12px;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    
+    .item-detail-header h2 {
+        font-size: 18px;
+    }
+    
+    .item-detail-price-value {
+        font-size: 24px;
+    }
+    
+    .item-detail-rupee {
+        font-size: 18px;
+    }
+    
+    .btn-item-detail-add {
+        padding: 6px 14px;
+        font-size: 12px;
+    }
+    
+    .section-title {
+        font-size: 14px;
+        margin-bottom: 12px;
+    }
+    
+    .category-items-section,
+    .browse-collection-section {
+        margin-bottom: 20px;
+    }
+    
+    .category-items-horizontal-scroll,
+    .collection-horizontal-scroll {
+        gap: 10px;
+    }
+    
+    .category-item-card {
+        width: 130px;
+    }
+    
+    .category-item-details {
+        padding: 6px;
+    }
+    
+    .category-item-name {
+        font-size: 11px;
+    }
+    
+    .category-final-price {
+        font-size: 12px;
+    }
+    
+    .browse-collection-horizontal-card {
+        width: 95px;
+    }
+    
+    .browse-collection-horizontal-photo-square {
+        width: 60px;
+    }
+    
+    .browse-collection-horizontal-name {
+        font-size: 9px;
+    }
+}
+</style>
+{% endblock %}
