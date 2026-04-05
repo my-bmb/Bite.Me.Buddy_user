@@ -36,15 +36,15 @@
     </header>
 
     <main class="main-content">
-        <!-- Item Details Section -->
+        <!-- Item Details Section - STACKED VERTICALLY: PHOTO ON TOP, DETAILS BELOW -->
         <div class="item-detail-container">
-            <!-- Left Column: Photo -->
+            <!-- Top: Photo (4:3 aspect ratio) -->
             <div class="item-detail-photo">
                 <img src="{{ goods_item.photo }}" alt="{{ goods_item.name }}"
                      onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_goods.jpg'">
             </div>
             
-            <!-- Right Column: Details -->
+            <!-- Bottom: Details -->
             <div class="item-detail-info">
                 <div class="item-detail-header">
                     <h2>{{ goods_item.name }}</h2>
@@ -53,8 +53,9 @@
                     {% endif %}
                 </div>
                 
+                <!-- Description with safe rendering - NO CARD, NO SCROLLING, NATURAL FLOW -->
                 <div class="item-detail-description">
-                    <p>{{ goods_item.description or 'No description available' }}</p>
+                    {{ goods_item.description | safe if goods_item.description else 'No description available' }}
                 </div>
                 
                 <div class="item-detail-pricing">
@@ -177,7 +178,6 @@
 <script>
 // Anti-flicker script - runs immediately
 (function() {
-    // Add loaded class to body after a tiny delay
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
@@ -270,9 +270,10 @@ function closeCartNotification() {
     width: 100%;
 }
 
-/* ========== ITEM DETAIL SECTION - COMPACT ========== */
+/* ========== ITEM DETAIL SECTION - STACKED VERTICAL (PHOTO TOP, DETAILS BELOW) ========== */
 .item-detail-container {
     display: flex;
+    flex-direction: column;
     gap: 20px;
     background: var(--onyx-black);
     border-radius: 16px;
@@ -283,9 +284,9 @@ function closeCartNotification() {
     box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
 }
 
-/* FIXED ASPECT RATIO FOR PHOTO - 4:3 FOR ALL DEVICES */
+/* FIXED ASPECT RATIO FOR PHOTO - 4:3 FOR ALL DEVICES (SAME RATIO MAINTAINED) */
 .item-detail-photo {
-    flex: 0 0 280px;
+    width: 100%;
     aspect-ratio: 4 / 3;
     border-radius: 12px;
     overflow: hidden;
@@ -300,7 +301,7 @@ function closeCartNotification() {
 }
 
 .item-detail-info {
-    flex: 1;
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -327,12 +328,73 @@ function closeCartNotification() {
     border: 1px solid rgba(192, 178, 131, 0.3);
 }
 
-.item-detail-description p {
+/* ========== DESCRIPTION STYLES - NO CARD, NO SCROLLING, NATURAL FLOW ========== */
+.item-detail-description {
+    width: 100%;
     color: var(--silver-mist);
     font-size: 13px;
     line-height: 1.5;
     font-family: var(--sans-font);
+    background: transparent;
+    border: none;
+    padding: 0;
     margin: 0;
+    overflow: visible;
+}
+
+.item-detail-description * {
+    max-width: 100%;
+}
+
+.item-detail-description img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+.item-detail-description iframe,
+.item-detail-description video {
+    max-width: 100%;
+}
+
+/* ========== ADD TO CART BUTTON - FULL WIDTH ON DESKTOP ========== */
+.btn-item-detail-add {
+    background: linear-gradient(135deg, var(--champagne-gold), var(--antique-bronze));
+    color: #000000;
+    border: none;
+    font-weight: bold;
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    font-family: var(--sans-font);
+    width: 100%;
+    min-height: 52px;
+}
+
+.btn-item-detail-add i {
+    font-size: 18px;
+}
+
+.btn-item-detail-add:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(192, 178, 131, 0.3);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold-dark));
+}
+
+.item-detail-actions {
+    display: flex;
+    justify-content: stretch;
+    margin-top: 6px;
+    width: 100%;
 }
 
 .item-detail-pricing {
@@ -379,44 +441,6 @@ function closeCartNotification() {
     color: var(--vivid-gold);
     font-size: 28px;
     text-shadow: 0 1px 2px rgba(0,0,0,0.15), 0 0 5px var(--price-glow);
-}
-
-/* ========== ADD TO CART BUTTON ========== */
-.btn-item-detail-add {
-    background: linear-gradient(135deg, var(--champagne-gold), var(--antique-bronze));
-    color: #000000;
-    border: none;
-    font-weight: bold;
-    padding: 10px 20px;
-    border-radius: 10px;
-    font-size: 14px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    font-family: var(--sans-font);
-    width: fit-content;
-}
-
-.btn-item-detail-add i {
-    font-size: 14px;
-}
-
-.btn-item-detail-add:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(192, 178, 131, 0.3);
-    background: linear-gradient(135deg, var(--gold-light), var(--gold-dark));
-}
-
-.item-detail-actions {
-    display: flex;
-    justify-content: flex-start;
-    margin-top: 4px;
 }
 
 /* ========== SECTION STYLES ========== */
@@ -686,7 +710,7 @@ function closeCartNotification() {
     }
 }
 
-/* ========== NOTIFICATION ========== */
+/* ========== NOTIFICATION - ORIGINAL SIZE (NOT COMPACT) ========== */
 .cart-notification-fixed {
     position: fixed;
     top: -100px;
@@ -787,14 +811,12 @@ function closeCartNotification() {
     }
     
     .item-detail-container {
-        flex-direction: column;
         padding: 14px;
         gap: 14px;
         margin-bottom: 20px;
     }
     
     .item-detail-photo {
-        flex: 0 0 auto;
         width: 100%;
         aspect-ratio: 4 / 3;
     }
@@ -813,9 +835,11 @@ function closeCartNotification() {
         font-size: 10px;
     }
     
-    .item-detail-description p {
-        font-size: 12px;
-        line-height: 1.4;
+    .item-detail-description {
+        font-size: 13px;
+        line-height: 1.5;
+        width: 100%;
+        overflow: visible;
     }
     
     .item-detail-price-value {
@@ -830,15 +854,21 @@ function closeCartNotification() {
         padding: 2px 0;
     }
     
+    /* Mobile button also full width */
     .btn-item-detail-add {
         width: 100%;
         justify-content: center;
-        padding: 8px 16px;
-        font-size: 13px;
+        padding: 14px 20px;
+        font-size: 15px;
+        min-height: 52px;
+    }
+    
+    .btn-item-detail-add i {
+        font-size: 18px;
     }
     
     .item-detail-actions {
-        justify-content: center;
+        justify-content: stretch;
     }
     
     .section-title {
@@ -899,6 +929,13 @@ function closeCartNotification() {
         font-size: 18px;
     }
     
+    .item-detail-description {
+        font-size: 12px;
+        line-height: 1.45;
+        width: 100%;
+        overflow: visible;
+    }
+    
     .item-detail-price-value {
         font-size: 24px;
     }
@@ -908,8 +945,13 @@ function closeCartNotification() {
     }
     
     .btn-item-detail-add {
-        padding: 6px 14px;
-        font-size: 12px;
+        padding: 12px 16px;
+        font-size: 14px;
+        min-height: 48px;
+    }
+    
+    .btn-item-detail-add i {
+        font-size: 16px;
     }
     
     .section-title {
