@@ -3,22 +3,808 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<!-- ANTI-FLICKER: Body-level fade - loads instantly, no FOUC -->
 <style>
-    /* Critical CSS - loads immediately */
+    /* ANTI-FLICKER & Skeleton Styles */
     body {
         opacity: 0;
         transition: opacity 0.2s ease-in;
         background: #0D0D0D;
     }
+    body.loaded { opacity: 1; }
     
-    body.loaded {
-        opacity: 1;
+    /* ========== SKELETON LOADING STYLES ========== */
+    .skeleton-card {
+        flex-shrink: 0;
+        width: 140px;
+        background: #1a1a1a;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #333;
+    }
+    .skeleton-photo {
+        width: 100%;
+        height: 95px;
+        background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+    }
+    .skeleton-title {
+        height: 12px;
+        width: 80%;
+        background: #2a2a2a;
+        margin: 8px 6px 6px;
+        border-radius: 4px;
+    }
+    .skeleton-price {
+        height: 10px;
+        width: 50%;
+        background: #2a2a2a;
+        margin: 0 6px 8px;
+        border-radius: 4px;
+    }
+    .skeleton-footer {
+        height: 8px;
+        width: 40%;
+        background: #2a2a2a;
+        margin: 0 6px 10px;
+        border-radius: 4px;
+    }
+    
+    @keyframes shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+    
+    /* ========== LOAD MORE BUTTON ========== */
+    .load-more-container {
+        display: flex;
+        justify-content: center;
+        padding: 20px;
+    }
+    .load-more-btn {
+        background: linear-gradient(135deg, #8e7d4d, #6e5d3d);
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 30px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .load-more-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(142, 125, 77, 0.4);
+    }
+    .load-more-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    /* Loading spinner */
+    .spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Infinite scroll trigger */
+    .scroll-trigger {
+        height: 20px;
+        width: 100%;
+        visibility: hidden;
+    }
+    
+    /* Rest of your existing styles remain same */
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    :root {
+        --service-card-base: #0D0D0D;
+        --service-title: #A0A0A0;
+        --service-icon: #8e7d4d;
+        --service-accent: #8e7d4d;
+        --product-accent: #2E7D32;
+        --golden-vivid: #D4AF37;
+        --golden-metallic: #C0B283;
+        --service-border-detail: #333333;
+        --creamy-white: #F4F1E1;
+        --silver-mist: #A0A0A0;
+        --matte-black: #0D0D0D;
+        --serif-font: 'Playfair Display', Georgia, serif;
+        --sans-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        --bronze-glow: 0 0 15px rgba(142, 125, 77, 0.3);
+        --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        --rupee-color: #D4AF37;
+        --rupee-bg: rgba(212, 175, 55, 0.1);
+    }
+    
+    .main-content {
+        flex: 1;
+        padding: 78px 5px 100px 5px;
+        overflow-y: auto;
+        max-width: 1200px;
+        margin: 0 auto;
+        width: 100%;
+    }
+    
+    .quick-links-top {
+        display: flex;
+        gap: 12px;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        background: var(--service-card-base);
+        border-radius: 12px;
+        border: 1px solid var(--service-border-detail);
+        padding: 16px 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .quick-links-top:hover {
+        border-color: var(--service-icon);
+        box-shadow: var(--bronze-glow);
+    }
+    
+    .quick-link-top-btn {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        padding: 10px 6px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        background: rgba(20, 20, 20, 0.6);
+        border: 1px solid var(--service-border-detail);
+    }
+    
+    .quick-link-top-btn:hover {
+        transform: translateY(-3px);
+        border-color: var(--service-icon);
+        background: rgba(142, 125, 77, 0.1);
+    }
+    
+    .quick-link-icon {
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, rgba(142, 125, 77, 0.2), rgba(212, 175, 55, 0.1));
+        border-radius: 12px;
+        border: 1px solid rgba(212, 175, 55, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .quick-link-top-btn:hover .quick-link-icon {
+        border-color: var(--golden-vivid);
+        background: linear-gradient(135deg, rgba(142, 125, 77, 0.3), rgba(212, 175, 55, 0.2));
+    }
+    
+    .quick-link-icon i {
+        font-size: 22px;
+        color: var(--service-icon);
+    }
+    
+    .quick-link-top-btn:hover .quick-link-icon i {
+        color: var(--golden-vivid);
+        transform: scale(1.05);
+    }
+    
+    .quick-link-top-btn span {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--creamy-white);
+        letter-spacing: 0.5px;
+    }
+    
+    .quick-link-top-btn:hover span {
+        color: var(--golden-vivid);
+    }
+    
+    .section-container {
+        background: var(--service-card-base);
+        border-radius: 12px;
+        border: 1px solid var(--service-border-detail);
+        padding: 14px 12px;
+        margin-bottom: 18px;
+        transition: all 0.3s ease;
+    }
+    
+    .section-container:hover {
+        border-color: var(--service-icon);
+        box-shadow: var(--bronze-glow);
+    }
+    
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        padding: 0 4px 0 0;
+    }
+    
+    .section-title-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .section-title-wrapper h2 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--creamy-white);
+    }
+    
+    .section-icon {
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, rgba(142, 125, 77, 0.2), rgba(212, 175, 55, 0.1));
+        border-radius: 8px;
+        border: 1px solid rgba(212, 175, 55, 0.3);
+    }
+    
+    .section-icon i {
+        font-size: 14px;
+        color: var(--golden-vivid);
+    }
+    
+    .section-badge {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        background: rgba(20, 20, 20, 0.6);
+        padding: 4px 10px;
+        border-radius: 18px;
+        border: 1px solid var(--service-border-detail);
+    }
+    
+    .section-badge i {
+        font-size: 10px;
+        color: var(--service-icon);
+    }
+    
+    .section-badge span {
+        font-size: 10px;
+        font-weight: 500;
+        color: var(--service-title);
+    }
+    
+    .best-deals-badge, .trending-badge, .latest-badge {
+        border-color: rgba(212, 175, 55, 0.3);
+    }
+    
+    .best-deals-badge i, .trending-badge i, .latest-badge i {
+        color: var(--golden-vivid);
+    }
+    
+    .best-deals-badge span, .trending-badge span, .latest-badge span {
+        color: var(--golden-vivid);
+        font-weight: 600;
+    }
+    
+    .collection-horizontal-scroll {
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+    
+    .collection-horizontal-scroll::-webkit-scrollbar {
+        height: 3px;
+    }
+    
+    .collection-horizontal-scroll::-webkit-scrollbar-track {
+        background: var(--service-border-detail);
+        border-radius: 10px;
+    }
+    
+    .collection-horizontal-scroll::-webkit-scrollbar-thumb {
+        background: var(--service-icon);
+        border-radius: 10px;
+    }
+    
+    .collection-horizontal-wrapper {
+        display: flex;
+        gap: 12px;
+        padding: 4px 2px 8px 2px;
+        min-width: min-content;
+    }
+    
+    .collection-horizontal-card {
+        flex-shrink: 0;
+        width: 90px;
+        background: rgba(26, 26, 26, 0.9);
+        border-radius: 10px;
+        border: 1px solid rgba(192, 178, 131, 0.2);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        cursor: pointer;
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        padding: 6px 4px;
+    }
+    
+    .collection-horizontal-card:hover {
+        border-color: var(--golden-vivid);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4), 0 0 8px rgba(192, 178, 131, 0.3);
+    }
+    
+    .collection-horizontal-photo-square {
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+        background: var(--matte-black);
+        border: 1px solid rgba(192, 178, 131, 0.3);
+        margin-bottom: 5px;
+        transition: all 0.3s ease;
+    }
+    
+    .collection-horizontal-card:hover .collection-horizontal-photo-square {
+        border-color: var(--golden-vivid);
+    }
+    
+    .collection-horizontal-photo-square img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: saturate(1.2) contrast(1.1);
+    }
+    
+    .collection-horizontal-name {
+        margin: 0;
+        color: var(--creamy-white);
+        font-size: 7px;
+        font-weight: 600;
+        text-align: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 100%;
+        font-family: var(--sans-font);
+        letter-spacing: 0.2px;
+        line-height: 1.2;
+    }
+    
+    .product-card {
+        border-color: rgba(46, 125, 50, 0.3);
+    }
+    
+    .product-card .card-hover-effect {
+        background: linear-gradient(135deg, var(--product-accent), #1e5a23);
+        color: white;
+    }
+    
+    .scroll-container {
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+    
+    .scroll-container::-webkit-scrollbar {
+        height: 2px;
+    }
+    
+    .scroll-container::-webkit-scrollbar-track {
+        background: var(--service-border-detail);
+        border-radius: 10px;
+    }
+    
+    .scroll-container::-webkit-scrollbar-thumb {
+        background: var(--service-icon);
+        border-radius: 10px;
+    }
+    
+    .scroll-wrapper {
+        display: flex;
+        gap: 10px;
+        padding: 4px 2px 6px 2px;
+        min-width: min-content;
+    }
+    
+    .item-card {
+        flex-shrink: 0;
+        width: 140px;
+        background: var(--service-card-base);
+        border-radius: 8px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: var(--card-shadow);
+        position: relative;
+        border: 1px solid var(--service-border-detail);
+    }
+    
+    .item-card.service-card {
+        border-color: rgba(142, 125, 77, 0.3);
+    }
+    
+    .item-card.product-card {
+        border-color: rgba(46, 125, 50, 0.3);
+    }
+    
+    .item-card:hover {
+        transform: translateY(-3px) scale(1.01);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4), var(--bronze-glow);
+    }
+    
+    .item-card-photo {
+        position: relative;
+        width: 100%;
+        height: 95px;
+        overflow: hidden;
+        background: var(--matte-black);
+    }
+    
+    .item-card-photo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+    
+    .item-card:hover .item-card-photo img {
+        transform: scale(1.05);
+    }
+    
+    .discount-badge {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+        padding: 2px 5px;
+        border-radius: 12px;
+        font-weight: 700;
+        text-align: center;
+        z-index: 2;
+    }
+    
+    .discount-badge span {
+        font-size: 9px;
+        font-weight: 800;
+        display: block;
+        line-height: 1;
+    }
+    
+    .discount-badge small {
+        font-size: 5px;
+        display: block;
+        margin-top: 1px;
+    }
+    
+    .new-badge {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: linear-gradient(135deg, var(--golden-vivid), var(--golden-metallic));
+        color: #000000;
+        padding: 2px 6px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 8px;
+        z-index: 2;
+    }
+    
+    .trending-rank {
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        background: linear-gradient(135deg, var(--golden-vivid), var(--golden-metallic));
+        color: #000000;
+        width: 20px;
+        height: 20px;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 9px;
+        z-index: 2;
+    }
+    
+    .discount-tag {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+        padding: 1px 4px;
+        border-radius: 8px;
+        font-size: 7px;
+        font-weight: 600;
+    }
+    
+    .item-card-info {
+        padding: 6px 6px 8px 6px;
+    }
+    
+    .item-card-name {
+        margin: 0 0 4px 0;
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--creamy-white);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .item-card-pricing {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-bottom: 4px;
+    }
+    
+    .original-price {
+        font-size: 8px;
+        color: var(--service-title);
+        text-decoration: line-through;
+    }
+    
+    .final-price {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--rupee-color);
+    }
+    
+    .item-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 3px;
+    }
+    
+    .item-type-badge-sm {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        font-size: 6px;
+        padding: 1px 4px;
+        border-radius: 8px;
+        font-weight: 500;
+        flex-shrink: 0;
+    }
+    
+    .service-badge-sm, .product-badge-sm {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        background: rgba(142, 125, 77, 0.15);
+        color: var(--service-icon);
+        padding: 2px 6px;
+        border-radius: 16px;
+        font-size: 8px;
+        font-weight: 500;
+        border: 1px solid rgba(142, 125, 77, 0.3);
+    }
+    
+    .service-badge-sm i, .product-badge-sm i {
+        font-size: 7px;
+    }
+    
+    .savings-info, .added-date {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        font-size: 7px;
+        color: #22c55e;
+    }
+    
+    .savings-info i, .added-date i {
+        font-size: 6px;
+    }
+    
+    .added-date {
+        color: var(--service-title);
+    }
+    
+    .card-hover-effect {
+        position: absolute;
+        bottom: -32px;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, var(--service-icon), #6e5d3d);
+        color: #000000;
+        padding: 6px;
+        text-align: center;
+        font-size: 9px;
+        font-weight: 600;
+        transition: bottom 0.25s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        z-index: 10;
+    }
+    
+    .item-card.product-card .card-hover-effect {
+        background: linear-gradient(135deg, var(--product-accent), #1e5a23);
+        color: white;
+    }
+    
+    .item-card:hover .card-hover-effect {
+        bottom: 0;
+    }
+    
+    .view-all-link {
+        color: var(--service-icon);
+        font-size: 11px;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+    }
+    
+    .view-all-link:hover {
+        color: var(--golden-vivid);
+    }
+    
+    .no-items {
+        text-align: center;
+        padding: 20px;
+        color: var(--service-title);
+    }
+    
+    .no-items i {
+        font-size: 28px;
+        margin-bottom: 8px;
+        opacity: 0.5;
+    }
+    
+    .order-count-badge {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        background: rgba(142, 125, 77, 0.2);
+        padding: 1px 5px;
+        border-radius: 10px;
+        font-size: 8px;
+        font-weight: 600;
+        color: var(--service-icon);
+    }
+    
+    .trending-price {
+        display: flex;
+        align-items: baseline;
+        gap: 1px;
+        font-weight: 700;
+        color: var(--rupee-color);
+        font-size: 10px;
+    }
+    
+    .rupee-symbol-sm {
+        font-size: 8px;
+        font-weight: 600;
+    }
+    
+    @media (max-width: 768px) {
+        .main-content {
+            padding: 68px 10px 100px 10px;
+        }
+        .quick-links-top {
+            gap: 8px;
+            padding: 12px 8px;
+        }
+        .quick-link-top-btn {
+            padding: 6px 4px;
+        }
+        .quick-link-icon {
+            width: 38px;
+            height: 38px;
+        }
+        .quick-link-icon i {
+            font-size: 18px;
+        }
+        .quick-link-top-btn span {
+            font-size: 9px;
+        }
+        .section-container {
+            padding: 10px;
+            margin-bottom: 14px;
+        }
+        .item-card {
+            width: 125px;
+        }
+        .item-card-photo {
+            height: 85px;
+        }
+        .collection-horizontal-card {
+            width: 80px;
+            padding: 4px 3px;
+        }
+        .collection-horizontal-photo-square {
+            width: 52px;
+            height: 52px;
+            margin-bottom: 4px;
+        }
+        .collection-horizontal-name {
+            font-size: 6.5px;
+        }
+        .collection-horizontal-wrapper {
+            gap: 10px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .main-content {
+            padding: 63px 8px 85px 8px;
+        }
+        .quick-links-top {
+            gap: 6px;
+            padding: 10px 6px;
+        }
+        .quick-link-top-btn {
+            padding: 5px 3px;
+        }
+        .quick-link-icon {
+            width: 34px;
+            height: 34px;
+        }
+        .quick-link-icon i {
+            font-size: 16px;
+        }
+        .quick-link-top-btn span {
+            font-size: 8px;
+        }
+        .item-card {
+            width: 115px;
+        }
+        .item-card-photo {
+            height: 78px;
+        }
+        .collection-horizontal-card {
+            width: 70px;
+            padding: 3px 2px;
+        }
+        .collection-horizontal-photo-square {
+            width: 48px;
+            height: 48px;
+        }
+        .collection-horizontal-name {
+            font-size: 6px;
+        }
+        .collection-horizontal-wrapper {
+            gap: 8px;
+        }
+        .section-title-wrapper h2 {
+            font-size: 13px;
+        }
+        .section-icon {
+            width: 24px;
+            height: 24px;
+        }
+        .section-icon i {
+            font-size: 12px;
+        }
+        .section-badge span {
+            font-size: 8px;
+        }
+        .section-badge i {
+            font-size: 9px;
+        }
     }
 </style>
 
 <div class="dashboard">
-    <!-- Top Header - Style from style.css -->
     <header class="dashboard-header">
         <div class="header-left">
             <h1>Dashboard</h1>
@@ -27,14 +813,14 @@
         <div class="header-right">
             <img src="{{ session.profile_pic }}" 
                  alt="Profile" class="profile-pic"
-                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'"
+                 loading="lazy">
         </div>
     </header>
 
-    <!-- Main Content -->
     <main class="main-content">
         
-        <!-- 🏆 BEST DEALS SECTION - AUTO-SCROLL -->
+        <!-- 🏆 BEST DEALS SECTION - With skeleton loading -->
         <div class="section-container">
             <div class="section-header">
                 <div class="section-title-wrapper">
@@ -45,90 +831,41 @@
                 </div>
                 <div class="section-badge best-deals-badge">
                     <i class="fas fa-percent"></i>
-                    <span>Up to {{ max_discount }}% OFF</span>
+                    <span id="maxDiscountSpan">Loading...</span>
                 </div>
             </div>
             <div class="scroll-container" id="discountScrollContainer">
-                <div class="scroll-wrapper">
-                    {% if top_discount_items and top_discount_items|length > 0 %}
-                        {% for item in top_discount_items %}
-                            <div class="item-card {% if item.type == 'service' %}service-card{% else %}product-card{% endif %}" 
-                                 onclick="window.location.href='{{ item.url }}'">
-                                <div class="item-card-photo">
-                                    <img src="{{ item.photo }}" alt="{{ item.name }}" onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
-                                    <div class="discount-badge">
-                                        <span>{{ item.discount }}%</span>
-                                        <small>OFF</small>
-                                    </div>
-                                </div>
-                                <div class="item-card-info">
-                                    <h4 class="item-card-name">{{ item.name|truncate(18) }}</h4>
-                                    <div class="item-card-pricing">
-                                        <span class="original-price">₹{{ "%.2f"|format(item.price) }}</span>
-                                        <span class="final-price">₹{{ "%.2f"|format(item.final_price) }}</span>
-                                    </div>
-                                    <div class="item-card-footer">
-                                        <div class="item-type-badge-sm {{ item.type }}-badge-sm">
-                                            <i class="fas fa-{{ 'concierge-bell' if item.type == 'service' else 'box' }}"></i>
-                                            <span>{{ item.type|title }}</span>
-                                        </div>
-                                        <div class="savings-info">
-                                            <i class="fas fa-tag"></i>
-                                            <span>Save ₹{{ "%.2f"|format(item.price - item.final_price) }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card-hover-effect">
-                                    <i class="fas fa-eye"></i>
-                                    <span>View Details</span>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="no-items">
-                            <i class="fas fa-tag"></i>
-                            <p>No active discounts at the moment.</p>
-                        </div>
-                    {% endif %}
+                <div class="scroll-wrapper" id="discountScrollWrapper">
+                    <!-- Skeleton will be replaced by JS -->
                 </div>
             </div>
         </div>
 
-        <!-- ⚡ QUICK LINKS - 5 LINKS BELOW BEST DEALS -->
+        <!-- ⚡ QUICK LINKS -->
         <div class="quick-links-top">
             <a href="{{ url_for('services') }}" class="quick-link-top-btn">
-                <div class="quick-link-icon">
-                    <i class="fas fa-concierge-bell"></i>
-                </div>
+                <div class="quick-link-icon"><i class="fas fa-concierge-bell"></i></div>
                 <span>Services</span>
             </a>
             <a href="{{ url_for('goods') }}" class="quick-link-top-btn">
-                <div class="quick-link-icon">
-                    <i class="fas fa-box"></i>
-                </div>
+                <div class="quick-link-icon"><i class="fas fa-box"></i></div>
                 <span>Goods</span>
             </a>
             <a href="{{ url_for('cart') }}" class="quick-link-top-btn">
-                <div class="quick-link-icon">
-                    <i class="fas fa-shopping-cart"></i>
-                </div>
+                <div class="quick-link-icon"><i class="fas fa-shopping-cart"></i></div>
                 <span>Cart</span>
             </a>
             <a href="{{ url_for('order_history') }}" class="quick-link-top-btn">
-                <div class="quick-link-icon">
-                    <i class="fas fa-history"></i>
-                </div>
+                <div class="quick-link-icon"><i class="fas fa-history"></i></div>
                 <span>Orders</span>
             </a>
             <a href="{{ url_for('profile') }}" class="quick-link-top-btn">
-                <div class="quick-link-icon">
-                    <i class="fas fa-user"></i>
-                </div>
+                <div class="quick-link-icon"><i class="fas fa-user"></i></div>
                 <span>Profile</span>
             </a>
         </div>
 
-        <!-- 🆕 NEW ARRIVALS SECTION - WITH ICON -->
+        <!-- 🆕 NEW ARRIVALS SECTION -->
         <div class="section-container">
             <div class="section-header">
                 <div class="section-title-wrapper">
@@ -143,50 +880,13 @@
                 </div>
             </div>
             <div class="scroll-container manual-scroll" id="newArrivalsScrollContainer">
-                <div class="scroll-wrapper">
-                    {% if new_arrivals and new_arrivals|length > 0 %}
-                        {% for item in new_arrivals %}
-                            <div class="item-card {% if item.type == 'service' %}service-card{% else %}product-card{% endif %}" 
-                                 onclick="window.location.href='{{ item.url }}'">
-                                <div class="item-card-photo">
-                                    <img src="{{ item.photo }}" alt="{{ item.name }}" onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
-                                    <div class="new-badge">
-                                        <span>NEW</span>
-                                    </div>
-                                </div>
-                                <div class="item-card-info">
-                                    <h4 class="item-card-name">{{ item.name|truncate(18) }}</h4>
-                                    <div class="item-card-pricing">
-                                        <span class="final-price">₹{{ "%.2f"|format(item.final_price) }}</span>
-                                    </div>
-                                    <div class="item-card-footer">
-                                        <div class="item-type-badge-sm {{ item.type }}-badge-sm">
-                                            <i class="fas fa-{{ 'concierge-bell' if item.type == 'service' else 'box' }}"></i>
-                                            <span>{{ item.type|title }}</span>
-                                        </div>
-                                        <div class="added-date">
-                                            <i class="fas fa-calendar-alt"></i>
-                                            <span>{{ item.added_date }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card-hover-effect">
-                                    <i class="fas fa-eye"></i>
-                                    <span>View Details</span>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="no-items">
-                            <i class="fas fa-box-open"></i>
-                            <p>No new arrivals yet. Check back soon!</p>
-                        </div>
-                    {% endif %}
+                <div class="scroll-wrapper" id="newArrivalsScrollWrapper">
+                    <!-- Skeleton will be replaced by JS -->
                 </div>
             </div>
         </div>
 
-        <!-- 📁 SERVICE COLLECTIONS SECTION - HORIZONTAL SCROLL -->
+        <!-- 📁 SERVICE COLLECTIONS -->
         <div class="section-container">
             <div class="section-header">
                 <div class="section-title-wrapper">
@@ -199,29 +899,14 @@
                     View All <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
-            <div class="collection-horizontal-scroll">
-                <div class="collection-horizontal-wrapper">
-                    {% if service_collections and service_collections|length > 0 %}
-                        {% for collection in service_collections[:15] %}
-                            <div class="collection-horizontal-card" 
-                                 onclick="window.location.href='{{ url_for('service_collection_categories', collection_id=collection.id) }}'">
-                                <div class="collection-horizontal-photo-square">
-                                    <img src="{{ collection.collection_photo }}" alt="{{ collection.name }}" onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/default_service_collection.jpg'">
-                                </div>
-                                <div class="collection-horizontal-name">{{ collection.name|truncate(15) }}</div>
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="no-items">
-                            <i class="fas fa-layer-group"></i>
-                            <p>No service collections available.</p>
-                        </div>
-                    {% endif %}
+            <div class="collection-horizontal-scroll" id="serviceCollectionsScroll">
+                <div class="collection-horizontal-wrapper" id="serviceCollectionsWrapper">
+                    <!-- Skeleton will be replaced by JS -->
                 </div>
             </div>
         </div>
 
-        <!-- 📦 GOODS COLLECTIONS SECTION - HORIZONTAL SCROLL (renamed from Menu Collections) -->
+        <!-- 📦 GOODS COLLECTIONS -->
         <div class="section-container">
             <div class="section-header">
                 <div class="section-title-wrapper">
@@ -234,31 +919,15 @@
                     View All <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
-            <div class="collection-horizontal-scroll">
-                <div class="collection-horizontal-wrapper">
-                    {% if goods_collections and goods_collections|length > 0 %}
-                        {% for collection in goods_collections[:15] %}
-                            <div class="collection-horizontal-card" 
-                                 onclick="window.location.href='{{ url_for('goods_collection_categories', collection_id=collection.id) }}'">
-                                <div class="collection-horizontal-photo-square">
-                                    <img src="{{ collection.collection_photo }}" alt="{{ collection.name }}" onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/default_goods_collection.jpg'">
-                                </div>
-                                <div class="collection-horizontal-name">{{ collection.name|truncate(15) }}</div>
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="no-items">
-                            <i class="fas fa-boxes"></i>
-                            <p>No goods collections available.</p>
-                        </div>
-                    {% endif %}
+            <div class="collection-horizontal-scroll" id="goodsCollectionsScroll">
+                <div class="collection-horizontal-wrapper" id="goodsCollectionsWrapper">
+                    <!-- Skeleton will be replaced by JS -->
                 </div>
             </div>
         </div>
 
         <!-- 📈 TRENDING NOW SECTION -->
-        {% if trending_items and trending_items|length > 0 %}
-        <div class="section-container">
+        <div class="section-container" id="trendingSection" style="display: none;">
             <div class="section-header">
                 <div class="section-title-wrapper">
                     <div class="section-icon trending-icon">
@@ -273,45 +942,11 @@
                 </div>
             </div>
             <div class="scroll-container manual-scroll" id="trendingScrollContainer">
-                <div class="scroll-wrapper">
-                    {% for item in trending_items %}
-                        <div class="item-card {% if item.type == 'service' %}service-card{% else %}product-card{% endif %}" 
-                             onclick="window.location.href='{{ item.url }}'">
-                            <div class="item-card-photo">
-                                <img src="{{ item.photo }}" alt="{{ item.name }}" onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
-                                <div class="trending-rank">
-                                    <span>#{{ loop.index }}</span>
-                                </div>
-                            </div>
-                            <div class="item-card-info">
-                                <div class="item-card-header">
-                                    <h4 class="item-card-name">{{ item.name|truncate(16) }}</h4>
-                                    <div class="order-count-badge">
-                                        <i class="fas fa-chart-simple"></i>
-                                        <span>{{ item.order_count }}</span>
-                                    </div>
-                                </div>
-                                <div class="item-card-footer">
-                                    <div class="item-type-badge-sm {{ item.type }}-badge-sm">
-                                        <i class="fas fa-{{ 'concierge-bell' if item.type == 'service' else 'box' }}"></i>
-                                        <span>{{ item.type|title }}</span>
-                                    </div>
-                                    <div class="trending-price">
-                                        <span class="rupee-symbol-sm">₹</span>
-                                        <span>{{ "%.0f"|format(item.price) }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-hover-effect">
-                                <i class="fas fa-eye"></i>
-                                <span>View Details</span>
-                            </div>
-                        </div>
-                    {% endfor %}
+                <div class="scroll-wrapper" id="trendingScrollWrapper">
+                    <!-- Skeleton will be replaced by JS -->
                 </div>
             </div>
         </div>
-        {% endif %}
 
         <!-- 🛎️ ALL SERVICES SECTION -->
         <div class="section-container">
@@ -327,44 +962,15 @@
                 </a>
             </div>
             <div class="scroll-container manual-scroll" id="allServicesScrollContainer">
-                <div class="scroll-wrapper">
-                    {% if all_services and all_services|length > 0 %}
-                        {% for service in all_services[:12] %}
-                            <div class="item-card service-card" 
-                                 onclick="window.location.href='{{ url_for('service_details', service_id=service.id) }}'">
-                                <div class="item-card-photo">
-                                    <img src="{{ service.photo }}" alt="{{ service.name }}" onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
-                                </div>
-                                <div class="item-card-info">
-                                    <h4 class="item-card-name">{{ service.name|truncate(18) }}</h4>
-                                    <div class="item-card-pricing">
-                                        <span class="final-price">₹{{ "%.2f"|format(service.final_price) }}</span>
-                                    </div>
-                                    <div class="item-card-footer">
-                                        <div class="service-badge-sm">
-                                            <i class="fas fa-concierge-bell"></i>
-                                            <span>Service</span>
-                                        </div>
-                                        {% if service.discount and service.discount > 0 %}
-                                        <div class="discount-tag">
-                                            <span>-{{ service.discount }}%</span>
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                <div class="card-hover-effect">
-                                    <i class="fas fa-eye"></i>
-                                    <span>View Details</span>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="no-items">
-                            <i class="fas fa-concierge-bell"></i>
-                            <p>No services available at the moment.</p>
-                        </div>
-                    {% endif %}
+                <div class="scroll-wrapper" id="allServicesScrollWrapper">
+                    <!-- Skeleton will be replaced by JS -->
                 </div>
+            </div>
+            <div class="load-more-container" id="servicesLoadMoreContainer" style="display: none;">
+                <button class="load-more-btn" id="servicesLoadMoreBtn">
+                    <span>Load More Services</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
             </div>
         </div>
 
@@ -382,50 +988,23 @@
                 </a>
             </div>
             <div class="scroll-container manual-scroll" id="allGoodsScrollContainer">
-                <div class="scroll-wrapper">
-                    {% if all_goods_items and all_goods_items|length > 0 %}
-                        {% for item in all_goods_items[:12] %}
-                            <div class="item-card product-card" 
-                                 onclick="window.location.href='{{ url_for('goods_item_details', item_id=item.id) }}'">
-                                <div class="item-card-photo">
-                                    <img src="{{ item.photo }}" alt="{{ item.name }}" onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_goods.jpg'">
-                                </div>
-                                <div class="item-card-info">
-                                    <h4 class="item-card-name">{{ item.name|truncate(18) }}</h4>
-                                    <div class="item-card-pricing">
-                                        <span class="final-price">₹{{ "%.2f"|format(item.final_price) }}</span>
-                                    </div>
-                                    <div class="item-card-footer">
-                                        <div class="product-badge-sm">
-                                            <i class="fas fa-box"></i>
-                                            <span>Goods</span>
-                                        </div>
-                                        {% if item.discount and item.discount > 0 %}
-                                        <div class="discount-tag">
-                                            <span>-{{ item.discount }}%</span>
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                <div class="card-hover-effect">
-                                    <i class="fas fa-eye"></i>
-                                    <span>View Details</span>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="no-items">
-                            <i class="fas fa-box-open"></i>
-                            <p>No goods available at the moment.</p>
-                        </div>
-                    {% endif %}
+                <div class="scroll-wrapper" id="allGoodsScrollWrapper">
+                    <!-- Skeleton will be replaced by JS -->
                 </div>
+            </div>
+            <div class="load-more-container" id="goodsLoadMoreContainer" style="display: none;">
+                <button class="load-more-btn" id="goodsLoadMoreBtn">
+                    <span>Load More Goods</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
             </div>
         </div>
 
+        <!-- Infinite scroll trigger -->
+        <div id="scrollTrigger" class="scroll-trigger"></div>
+
     </main>
 
-    <!-- Bottom Navigation - Style from style.css -->
     <nav class="bottom-nav">
         <a href="{{ url_for('services') }}" class="nav-item">
             <i class="fas fa-concierge-bell"></i>
@@ -450,839 +1029,437 @@
     </nav>
 </div>
 
-<style>
-/* ✅ MAIN CONTENT STYLES ONLY - Header and Bottom Nav come from style.css */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
-
-:root {
-    --service-card-base: #0D0D0D;
-    --service-title: #A0A0A0;
-    --service-icon: #8e7d4d;
-    --service-accent: #8e7d4d;
-    --product-accent: #2E7D32;
-    --golden-vivid: #D4AF37;
-    --golden-metallic: #C0B283;
-    --service-border-detail: #333333;
-    --creamy-white: #F4F1E1;
-    --silver-mist: #A0A0A0;
-    --matte-black: #0D0D0D;
-    --serif-font: 'Playfair Display', Georgia, serif;
-    --sans-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --bronze-glow: 0 0 15px rgba(142, 125, 77, 0.3);
-    --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    --rupee-color: #D4AF37;
-    --rupee-bg: rgba(212, 175, 55, 0.1);
-}
-
-/* Main Content - Matching goods_item_details.html spacing */
-.main-content {
-    flex: 1;
-    padding: 78px 5px 100px 5px;
-    overflow-y: auto;
-    max-width: 1200px;
-    margin: 0 auto;
-    width: 100%;
-}
-
-/* Quick Links Top Section - 5 Links Below Best Deals */
-.quick-links-top {
-    display: flex;
-    gap: 12px;
-    justify-content: space-between;
-    margin-bottom: 24px;
-    background: var(--service-card-base);
-    border-radius: 12px;
-    border: 1px solid var(--service-border-detail);
-    padding: 16px 12px;
-    transition: all 0.3s ease;
-}
-
-.quick-links-top:hover {
-    border-color: var(--service-icon);
-    box-shadow: var(--bronze-glow);
-}
-
-.quick-link-top-btn {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    padding: 10px 6px;
-    border-radius: 10px;
-    transition: all 0.3s ease;
-    background: rgba(20, 20, 20, 0.6);
-    border: 1px solid var(--service-border-detail);
-}
-
-.quick-link-top-btn:hover {
-    transform: translateY(-3px);
-    border-color: var(--service-icon);
-    background: rgba(142, 125, 77, 0.1);
-}
-
-.quick-link-icon {
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, rgba(142, 125, 77, 0.2), rgba(212, 175, 55, 0.1));
-    border-radius: 12px;
-    border: 1px solid rgba(212, 175, 55, 0.3);
-    transition: all 0.3s ease;
-}
-
-.quick-link-top-btn:hover .quick-link-icon {
-    border-color: var(--golden-vivid);
-    background: linear-gradient(135deg, rgba(142, 125, 77, 0.3), rgba(212, 175, 55, 0.2));
-}
-
-.quick-link-icon i {
-    font-size: 22px;
-    color: var(--service-icon);
-}
-
-.quick-link-top-btn:hover .quick-link-icon i {
-    color: var(--golden-vivid);
-    transform: scale(1.05);
-}
-
-.quick-link-top-btn span {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--creamy-white);
-    letter-spacing: 0.5px;
-}
-
-.quick-link-top-btn:hover span {
-    color: var(--golden-vivid);
-}
-
-/* Section Container */
-.section-container {
-    background: var(--service-card-base);
-    border-radius: 12px;
-    border: 1px solid var(--service-border-detail);
-    padding: 14px 12px;
-    margin-bottom: 18px;
-    transition: all 0.3s ease;
-}
-
-.section-container:hover {
-    border-color: var(--service-icon);
-    box-shadow: var(--bronze-glow);
-}
-
-/* Section Header */
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    padding: 0 4px 0 0;
-}
-
-.section-title-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.section-title-wrapper h2 {
-    margin: 0;
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--creamy-white);
-}
-
-/* Section Icon */
-.section-icon {
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, rgba(142, 125, 77, 0.2), rgba(212, 175, 55, 0.1));
-    border-radius: 8px;
-    border: 1px solid rgba(212, 175, 55, 0.3);
-}
-
-.section-icon i {
-    font-size: 14px;
-    color: var(--golden-vivid);
-}
-
-/* Section Badge */
-.section-badge {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    background: rgba(20, 20, 20, 0.6);
-    padding: 4px 10px;
-    border-radius: 18px;
-    border: 1px solid var(--service-border-detail);
-}
-
-.section-badge i {
-    font-size: 10px;
-    color: var(--service-icon);
-}
-
-.section-badge span {
-    font-size: 10px;
-    font-weight: 500;
-    color: var(--service-title);
-}
-
-.best-deals-badge, .trending-badge, .latest-badge {
-    border-color: rgba(212, 175, 55, 0.3);
-}
-
-.best-deals-badge i, .trending-badge i, .latest-badge i {
-    color: var(--golden-vivid);
-}
-
-.best-deals-badge span, .trending-badge span, .latest-badge span {
-    color: var(--golden-vivid);
-    font-weight: 600;
-}
-
-/* Trending Icon */
-.trending-icon {
-    position: relative;
-}
-
-.trending-spark {
-    position: absolute;
-    top: -2px;
-    right: -2px;
-    width: 6px;
-    height: 6px;
-    background: var(--golden-vivid);
-    border-radius: 50%;
-    animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-    0% { transform: scale(0.8); opacity: 0.6; }
-    50% { transform: scale(1.2); opacity: 1; }
-    100% { transform: scale(0.8); opacity: 0.6; }
-}
-
-/* ========== COLLECTION HORIZONTAL SCROLL ========== */
-.collection-horizontal-scroll {
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-}
-
-.collection-horizontal-scroll::-webkit-scrollbar {
-    height: 3px;
-}
-
-.collection-horizontal-scroll::-webkit-scrollbar-track {
-    background: var(--service-border-detail);
-    border-radius: 10px;
-}
-
-.collection-horizontal-scroll::-webkit-scrollbar-thumb {
-    background: var(--service-icon);
-    border-radius: 10px;
-}
-
-.collection-horizontal-wrapper {
-    display: flex;
-    gap: 12px;
-    padding: 4px 2px 8px 2px;
-    min-width: min-content;
-}
-
-/* Collection Horizontal Card */
-.collection-horizontal-card {
-    flex-shrink: 0;
-    width: 90px;
-    background: rgba(26, 26, 26, 0.9);
-    border-radius: 10px;
-    border: 1px solid rgba(192, 178, 131, 0.2);
-    transition: all 0.3s ease;
-    overflow: hidden;
-    cursor: pointer;
-    text-decoration: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    padding: 6px 4px;
-}
-
-.collection-horizontal-card:hover {
-    border-color: var(--golden-vivid);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4), 0 0 8px rgba(192, 178, 131, 0.3);
-}
-
-.collection-horizontal-photo-square {
-    width: 60px;
-    height: 60px;
-    border-radius: 8px;
-    overflow: hidden;
-    position: relative;
-    background: var(--matte-black);
-    border: 1px solid rgba(192, 178, 131, 0.3);
-    margin-bottom: 5px;
-    transition: all 0.3s ease;
-}
-
-.collection-horizontal-card:hover .collection-horizontal-photo-square {
-    border-color: var(--golden-vivid);
-}
-
-.collection-horizontal-photo-square img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    filter: saturate(1.2) contrast(1.1);
-}
-
-.collection-horizontal-name {
-    margin: 0;
-    color: var(--creamy-white);
-    font-size: 7px;
-    font-weight: 600;
-    text-align: center;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    width: 100%;
-    font-family: var(--sans-font);
-    letter-spacing: 0.2px;
-    line-height: 1.2;
-}
-
-/* Product Card - Updated from goods-card */
-.product-card {
-    border-color: rgba(46, 125, 50, 0.3);
-}
-
-.product-card .card-hover-effect {
-    background: linear-gradient(135deg, var(--product-accent), #1e5a23);
-    color: white;
-}
-
-/* Scroll Containers for items */
-.scroll-container {
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-}
-
-.manual-scroll {
-    /* No auto-scroll */
-}
-
-.scroll-container::-webkit-scrollbar {
-    height: 2px;
-}
-
-.scroll-container::-webkit-scrollbar-track {
-    background: var(--service-border-detail);
-    border-radius: 10px;
-}
-
-.scroll-container::-webkit-scrollbar-thumb {
-    background: var(--service-icon);
-    border-radius: 10px;
-}
-
-.scroll-wrapper {
-    display: flex;
-    gap: 10px;
-    padding: 4px 2px 6px 2px;
-    min-width: min-content;
-}
-
-/* Item Card - COMPACT */
-.item-card {
-    flex-shrink: 0;
-    width: 140px;
-    background: var(--service-card-base);
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: var(--card-shadow);
-    position: relative;
-    border: 1px solid var(--service-border-detail);
-}
-
-.item-card.service-card {
-    border-color: rgba(142, 125, 77, 0.3);
-}
-
-.item-card.product-card {
-    border-color: rgba(46, 125, 50, 0.3);
-}
-
-.item-card:hover {
-    transform: translateY(-3px) scale(1.01);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4), var(--bronze-glow);
-}
-
-.item-card-photo {
-    position: relative;
-    width: 100%;
-    height: 95px;
-    overflow: hidden;
-    background: var(--matte-black);
-}
-
-.item-card-photo img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.4s ease;
-}
-
-.item-card:hover .item-card-photo img {
-    transform: scale(1.05);
-}
-
-/* Badges */
-.discount-badge {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    color: white;
-    padding: 2px 5px;
-    border-radius: 12px;
-    font-weight: 700;
-    text-align: center;
-    z-index: 2;
-}
-
-.discount-badge span {
-    font-size: 9px;
-    font-weight: 800;
-    display: block;
-    line-height: 1;
-}
-
-.discount-badge small {
-    font-size: 5px;
-    display: block;
-    margin-top: 1px;
-}
-
-.new-badge {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: linear-gradient(135deg, var(--golden-vivid), var(--golden-metallic));
-    color: #000000;
-    padding: 2px 6px;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 8px;
-    z-index: 2;
-}
-
-.trending-rank {
-    position: absolute;
-    top: 5px;
-    left: 5px;
-    background: linear-gradient(135deg, var(--golden-vivid), var(--golden-metallic));
-    color: #000000;
-    width: 20px;
-    height: 20px;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    font-size: 9px;
-    z-index: 2;
-}
-
-.discount-tag {
-    background: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
-    padding: 1px 4px;
-    border-radius: 8px;
-    font-size: 7px;
-    font-weight: 600;
-}
-
-.item-card-info {
-    padding: 6px 6px 8px 6px;
-}
-
-.item-card-name {
-    margin: 0 0 4px 0;
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--creamy-white);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.item-card-pricing {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-bottom: 4px;
-}
-
-.original-price {
-    font-size: 8px;
-    color: var(--service-title);
-    text-decoration: line-through;
-}
-
-.final-price {
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--rupee-color);
-}
-
-.item-card-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 3px;
-}
-
-/* Badge Styles */
-.item-type-badge-sm {
-    display: inline-flex;
-    align-items: center;
-    gap: 2px;
-    font-size: 6px;
-    padding: 1px 4px;
-    border-radius: 8px;
-    font-weight: 500;
-    flex-shrink: 0;
-}
-
-.service-badge-sm, .product-badge-sm {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    background: rgba(142, 125, 77, 0.15);
-    color: var(--service-icon);
-    padding: 2px 6px;
-    border-radius: 16px;
-    font-size: 8px;
-    font-weight: 500;
-    border: 1px solid rgba(142, 125, 77, 0.3);
-}
-
-.service-badge-sm i, .product-badge-sm i {
-    font-size: 7px;
-}
-
-.savings-info, .added-date {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    font-size: 7px;
-    color: #22c55e;
-}
-
-.savings-info i, .added-date i {
-    font-size: 6px;
-}
-
-.added-date {
-    color: var(--service-title);
-}
-
-.card-hover-effect {
-    position: absolute;
-    bottom: -32px;
-    left: 0;
-    right: 0;
-    background: linear-gradient(135deg, var(--service-icon), #6e5d3d);
-    color: #000000;
-    padding: 6px;
-    text-align: center;
-    font-size: 9px;
-    font-weight: 600;
-    transition: bottom 0.25s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    z-index: 10;
-}
-
-.item-card.product-card .card-hover-effect {
-    background: linear-gradient(135deg, var(--product-accent), #1e5a23);
-    color: white;
-}
-
-.item-card:hover .card-hover-effect {
-    bottom: 0;
-}
-
-.view-all-link {
-    color: var(--service-icon);
-    font-size: 11px;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 3px;
-}
-
-.view-all-link:hover {
-    color: var(--golden-vivid);
-}
-
-.no-items {
-    text-align: center;
-    padding: 20px;
-    color: var(--service-title);
-}
-
-.no-items i {
-    font-size: 28px;
-    margin-bottom: 8px;
-    opacity: 0.5;
-}
-
-.rupee-symbol {
-    font-size: 10px;
-    font-weight: 600;
-}
-
-.order-count-badge {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    background: rgba(142, 125, 77, 0.2);
-    padding: 1px 5px;
-    border-radius: 10px;
-    font-size: 8px;
-    font-weight: 600;
-    color: var(--service-icon);
-}
-
-.trending-price {
-    display: flex;
-    align-items: baseline;
-    gap: 1px;
-    font-weight: 700;
-    color: var(--rupee-color);
-    font-size: 10px;
-}
-
-.rupee-symbol-sm {
-    font-size: 8px;
-    font-weight: 600;
-}
-
-/* Responsive adjustments - Matching goods_item_details.html */
-@media (max-width: 768px) {
-    .main-content {
-        padding: 68px 10px 100px 10px;
-    }
-    
-    .quick-links-top {
-        gap: 8px;
-        padding: 12px 8px;
-    }
-    
-    .quick-link-top-btn {
-        padding: 6px 4px;
-    }
-    
-    .quick-link-icon {
-        width: 38px;
-        height: 38px;
-    }
-    
-    .quick-link-icon i {
-        font-size: 18px;
-    }
-    
-    .quick-link-top-btn span {
-        font-size: 9px;
-    }
-    
-    .section-container {
-        padding: 10px;
-        margin-bottom: 14px;
-    }
-    
-    .item-card {
-        width: 125px;
-    }
-    
-    .item-card-photo {
-        height: 85px;
-    }
-    
-    .collection-horizontal-card {
-        width: 80px;
-        padding: 4px 3px;
-    }
-    
-    .collection-horizontal-photo-square {
-        width: 52px;
-        height: 52px;
-        margin-bottom: 4px;
-    }
-    
-    .collection-horizontal-name {
-        font-size: 6.5px;
-    }
-    
-    .collection-horizontal-wrapper {
-        gap: 10px;
-    }
-}
-
-@media (max-width: 480px) {
-    .main-content {
-        padding: 63px 8px 85px 8px;
-    }
-    
-    .quick-links-top {
-        gap: 6px;
-        padding: 10px 6px;
-    }
-    
-    .quick-link-top-btn {
-        padding: 5px 3px;
-    }
-    
-    .quick-link-icon {
-        width: 34px;
-        height: 34px;
-    }
-    
-    .quick-link-icon i {
-        font-size: 16px;
-    }
-    
-    .quick-link-top-btn span {
-        font-size: 8px;
-    }
-    
-    .item-card {
-        width: 115px;
-    }
-    
-    .item-card-photo {
-        height: 78px;
-    }
-    
-    .collection-horizontal-card {
-        width: 70px;
-        padding: 3px 2px;
-    }
-    
-    .collection-horizontal-photo-square {
-        width: 48px;
-        height: 48px;
-    }
-    
-    .collection-horizontal-name {
-        font-size: 6px;
-    }
-    
-    .collection-horizontal-wrapper {
-        gap: 8px;
-    }
-    
-    .section-title-wrapper h2 {
-        font-size: 13px;
-    }
-    
-    .section-icon {
-        width: 24px;
-        height: 24px;
-    }
-    
-    .section-icon i {
-        font-size: 12px;
-    }
-    
-    .section-badge span {
-        font-size: 8px;
-    }
-    
-    .section-badge i {
-        font-size: 9px;
-    }
-}
-</style>
-
 <script>
-// Anti-flicker script
-(function() {
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                document.body.classList.add('loaded');
-            }, 10);
-        });
-    } else {
-        setTimeout(function() {
-            document.body.classList.add('loaded');
-        }, 10);
-    }
-})();
+// ========== PROGRESSIVE LOADING SYSTEM ==========
 
-// ========== AUTO-SCROLL ONLY FOR BEST DEALS SECTION ==========
-document.addEventListener('DOMContentLoaded', function() {
-    // Only Best Deals section gets auto-scroll
-    const discountContainer = document.getElementById('discountScrollContainer');
-    
-    if (discountContainer) {
-        const cards = discountContainer.querySelectorAll('.item-card');
-        const cardCount = cards.length;
-        
-        if (cardCount > 1) {
-            let interval;
-            let hovering = false;
-            
-            function autoScroll() {
-                if (!hovering && cardCount > 0) {
-                    const currentScroll = discountContainer.scrollLeft;
-                    const cardWidth = cards[0].offsetWidth + 10;
-                    const maxScroll = discountContainer.scrollWidth - discountContainer.clientWidth;
-                    let newScroll = currentScroll + cardWidth;
-                    if (newScroll >= maxScroll) newScroll = 0;
-                    discountContainer.scrollTo({ left: newScroll, behavior: 'smooth' });
-                }
-            }
-            
-            function start() {
-                if (interval) clearInterval(interval);
-                interval = setInterval(autoScroll, 3000);
-            }
-            
-            function stop() {
-                if (interval) {
-                    clearInterval(interval);
-                    interval = null;
-                }
-            }
-            
-            discountContainer.addEventListener('mouseenter', () => { hovering = true; stop(); });
-            discountContainer.addEventListener('mouseleave', () => { hovering = false; start(); });
-            
-            start();
+// Global state for pagination
+let servicesState = {
+    allItems: [],
+    currentIndex: 0,
+    pageSize: 12,
+    isLoading: false,
+    hasMore: true
+};
+
+let goodsState = {
+    allItems: [],
+    currentIndex: 0,
+    pageSize: 12,
+    isLoading: false,
+    hasMore: true
+};
+
+// Helper: Create skeleton cards
+function createSkeletonCards(count, type = 'item') {
+    let html = '';
+    for (let i = 0; i < count; i++) {
+        if (type === 'collection') {
+            html += `
+                <div class="collection-horizontal-card">
+                    <div class="collection-horizontal-photo-square">
+                        <div class="skeleton-photo" style="height: 60px;"></div>
+                    </div>
+                    <div class="skeleton-title" style="width: 50px; margin: 5px auto;"></div>
+                </div>
+            `;
+        } else {
+            html += `
+                <div class="skeleton-card">
+                    <div class="skeleton-photo"></div>
+                    <div class="skeleton-title"></div>
+                    <div class="skeleton-price"></div>
+                    <div class="skeleton-footer"></div>
+                </div>
+            `;
         }
     }
-});
+    return html;
+}
+
+// Helper: Render item card from data
+function renderItemCard(item, type) {
+    const isService = type === 'service';
+    const url = isService ? `/service/${item.id}` : `/goods/${item.id}`;
+    const discount = item.discount || 0;
+    const finalPrice = item.final_price || item.price;
+    
+    return `
+        <div class="item-card ${isService ? 'service-card' : 'product-card'}" onclick="window.location.href='${url}'">
+            <div class="item-card-photo">
+                <img src="${item.photo}" alt="${item.name}" loading="lazy" onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/sample_service.jpg'">
+                ${discount > 0 ? `
+                    <div class="discount-badge">
+                        <span>${discount}</span>
+                        <small>OFF</small>
+                    </div>
+                ` : ''}
+            </div>
+            <div class="item-card-info">
+                <h4 class="item-card-name">${item.name.substring(0, 18)}${item.name.length > 18 ? '...' : ''}</h4>
+                <div class="item-card-pricing">
+                    ${discount > 0 ? `<span class="original-price">₹${parseFloat(item.price).toFixed(2)}</span>` : ''}
+                    <span class="final-price">₹${parseFloat(finalPrice).toFixed(2)}</span>
+                </div>
+                <div class="item-card-footer">
+                    <div class="item-type-badge-sm ${isService ? 'service-badge-sm' : 'product-badge-sm'}">
+                        <i class="fas fa-${isService ? 'concierge-bell' : 'box'}"></i>
+                        <span>${isService ? 'Service' : 'Goods'}</span>
+                    </div>
+                    ${discount > 0 ? `
+                        <div class="discount-tag">
+                            <span>-${discount}%</span>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+            <div class="card-hover-effect">
+                <i class="fas fa-eye"></i>
+                <span>View Details</span>
+            </div>
+        </div>
+    `;
+}
+
+// Helper: Render collection card
+function renderCollectionCard(collection, type) {
+    const url = type === 'service' 
+        ? `/service-collection/${collection.id}` 
+        : `/goods-collection/${collection.id}`;
+    
+    return `
+        <div class="collection-horizontal-card" onclick="window.location.href='${url}'">
+            <div class="collection-horizontal-photo-square">
+                <img src="${collection.collection_photo}" alt="${collection.name}" loading="lazy" onerror="this.src='https://res.cloudinary.com/demo/image/upload/v1633427556/default_collection.jpg'">
+            </div>
+            <div class="collection-horizontal-name">${collection.name.substring(0, 15)}${collection.name.length > 15 ? '...' : ''}</div>
+        </div>
+    `;
+}
+
+// Progressive loading function for services
+function loadMoreServices(append = true) {
+    if (servicesState.isLoading || !servicesState.hasMore) return;
+    
+    servicesState.isLoading = true;
+    const loadMoreBtn = document.getElementById('servicesLoadMoreBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.innerHTML = '<div class="spinner"></div><span>Loading...</span>';
+        loadMoreBtn.disabled = true;
+    }
+    
+    const start = servicesState.currentIndex;
+    const end = Math.min(start + servicesState.pageSize, servicesState.allItems.length);
+    const itemsToShow = servicesState.allItems.slice(start, end);
+    
+    // Simulate micro delay for smooth rendering
+    setTimeout(() => {
+        const wrapper = document.getElementById('allServicesScrollWrapper');
+        if (wrapper && itemsToShow.length > 0) {
+            let html = '';
+            itemsToShow.forEach(item => {
+                html += renderItemCard(item, 'service');
+            });
+            
+            if (append) {
+                wrapper.insertAdjacentHTML('beforeend', html);
+            } else {
+                wrapper.innerHTML = html;
+            }
+        }
+        
+        servicesState.currentIndex = end;
+        servicesState.hasMore = end < servicesState.allItems.length;
+        servicesState.isLoading = false;
+        
+        // Update load more button
+        if (loadMoreBtn) {
+            if (servicesState.hasMore) {
+                loadMoreBtn.innerHTML = '<span>Load More Services</span><i class="fas fa-chevron-down"></i>';
+                loadMoreBtn.disabled = false;
+            } else {
+                loadMoreBtn.innerHTML = '<span>All Services Loaded</span><i class="fas fa-check"></i>';
+                loadMoreBtn.disabled = true;
+                document.getElementById('servicesLoadMoreContainer').style.display = 'none';
+            }
+        }
+        
+        // Show container if hidden
+        const container = document.getElementById('servicesLoadMoreContainer');
+        if (container && servicesState.hasMore) {
+            container.style.display = 'flex';
+        }
+    }, 50);
+}
+
+// Progressive loading function for goods
+function loadMoreGoods(append = true) {
+    if (goodsState.isLoading || !goodsState.hasMore) return;
+    
+    goodsState.isLoading = true;
+    const loadMoreBtn = document.getElementById('goodsLoadMoreBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.innerHTML = '<div class="spinner"></div><span>Loading...</span>';
+        loadMoreBtn.disabled = true;
+    }
+    
+    const start = goodsState.currentIndex;
+    const end = Math.min(start + goodsState.pageSize, goodsState.allItems.length);
+    const itemsToShow = goodsState.allItems.slice(start, end);
+    
+    setTimeout(() => {
+        const wrapper = document.getElementById('allGoodsScrollWrapper');
+        if (wrapper && itemsToShow.length > 0) {
+            let html = '';
+            itemsToShow.forEach(item => {
+                html += renderItemCard(item, 'goods');
+            });
+            
+            if (append) {
+                wrapper.insertAdjacentHTML('beforeend', html);
+            } else {
+                wrapper.innerHTML = html;
+            }
+        }
+        
+        goodsState.currentIndex = end;
+        goodsState.hasMore = end < goodsState.allItems.length;
+        goodsState.isLoading = false;
+        
+        if (loadMoreBtn) {
+            if (goodsState.hasMore) {
+                loadMoreBtn.innerHTML = '<span>Load More Goods</span><i class="fas fa-chevron-down"></i>';
+                loadMoreBtn.disabled = false;
+            } else {
+                loadMoreBtn.innerHTML = '<span>All Goods Loaded</span><i class="fas fa-check"></i>';
+                loadMoreBtn.disabled = true;
+                document.getElementById('goodsLoadMoreContainer').style.display = 'none';
+            }
+        }
+        
+        const container = document.getElementById('goodsLoadMoreContainer');
+        if (container && goodsState.hasMore) {
+            container.style.display = 'flex';
+        }
+    }, 50);
+}
+
+// Intersection Observer for infinite scroll
+function setupInfiniteScroll() {
+    const trigger = document.getElementById('scrollTrigger');
+    if (!trigger) return;
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // Load more when user scrolls near bottom
+                if (servicesState.hasMore) {
+                    loadMoreServices(true);
+                }
+                if (goodsState.hasMore) {
+                    loadMoreGoods(true);
+                }
+            }
+        });
+    }, { threshold: 0.1, rootMargin: '100px' });
+    
+    observer.observe(trigger);
+}
+
+// Initialize all data loading
+async function initDashboard() {
+    // Show skeletons first
+    document.getElementById('discountScrollWrapper').innerHTML = createSkeletonCards(6);
+    document.getElementById('newArrivalsScrollWrapper').innerHTML = createSkeletonCards(6);
+    document.getElementById('serviceCollectionsWrapper').innerHTML = createSkeletonCards(8, 'collection');
+    document.getElementById('goodsCollectionsWrapper').innerHTML = createSkeletonCards(8, 'collection');
+    document.getElementById('allServicesScrollWrapper').innerHTML = createSkeletonCards(12);
+    document.getElementById('allGoodsScrollWrapper').innerHTML = createSkeletonCards(12);
+    document.getElementById('trendingScrollWrapper').innerHTML = createSkeletonCards(6);
+    
+    try {
+        // Fetch all data from API endpoints
+        const [
+            topDiscountRes,
+            newArrivalsRes,
+            serviceCollectionsRes,
+            goodsCollectionsRes,
+            trendingRes,
+            allServicesRes,
+            allGoodsRes
+        ] = await Promise.all([
+            fetch('/api/dashboard/top-discounts'),
+            fetch('/api/dashboard/new-arrivals'),
+            fetch('/api/dashboard/service-collections'),
+            fetch('/api/dashboard/goods-collections'),
+            fetch('/api/dashboard/trending'),
+            fetch('/api/dashboard/all-services'),
+            fetch('/api/dashboard/all-goods')
+        ]);
+        
+        const topDiscounts = await topDiscountRes.json();
+        const newArrivals = await newArrivalsRes.json();
+        const serviceCollections = await serviceCollectionsRes.json();
+        const goodsCollections = await goodsCollectionsRes.json();
+        const trending = await trendingRes.json();
+        const allServices = await allServicesRes.json();
+        const allGoods = await allGoodsRes.json();
+        
+        // Update max discount badge
+        const maxDiscountSpan = document.getElementById('maxDiscountSpan');
+        if (maxDiscountSpan && topDiscounts.length > 0) {
+            const maxDiscount = Math.max(...topDiscounts.map(d => d.discount || 0));
+            maxDiscountSpan.textContent = `Up to ${maxDiscount}% OFF`;
+        } else if (maxDiscountSpan) {
+            maxDiscountSpan.textContent = 'Best Deals';
+        }
+        
+        // Render Best Deals
+        const discountWrapper = document.getElementById('discountScrollWrapper');
+        if (discountWrapper && topDiscounts.length > 0) {
+            discountWrapper.innerHTML = topDiscounts.map(item => renderItemCard(item, item.type)).join('');
+            // Auto-scroll for best deals
+            setupAutoScroll('discountScrollContainer');
+        } else {
+            discountWrapper.innerHTML = '<div class="no-items"><i class="fas fa-tag"></i><p>No active discounts at the moment.</p></div>';
+        }
+        
+        // Render New Arrivals
+        const newArrivalsWrapper = document.getElementById('newArrivalsScrollWrapper');
+        if (newArrivalsWrapper && newArrivals.length > 0) {
+            newArrivalsWrapper.innerHTML = newArrivals.map(item => renderItemCard(item, item.type)).join('');
+        } else {
+            newArrivalsWrapper.innerHTML = '<div class="no-items"><i class="fas fa-box-open"></i><p>No new arrivals yet.</p></div>';
+        }
+        
+        // Render Service Collections
+        const serviceCollWrapper = document.getElementById('serviceCollectionsWrapper');
+        if (serviceCollWrapper && serviceCollections.length > 0) {
+            serviceCollWrapper.innerHTML = serviceCollections.slice(0, 15).map(c => renderCollectionCard(c, 'service')).join('');
+        } else {
+            serviceCollWrapper.innerHTML = '<div class="no-items"><i class="fas fa-layer-group"></i><p>No service collections available.</p></div>';
+        }
+        
+        // Render Goods Collections
+        const goodsCollWrapper = document.getElementById('goodsCollectionsWrapper');
+        if (goodsCollWrapper && goodsCollections.length > 0) {
+            goodsCollWrapper.innerHTML = goodsCollections.slice(0, 15).map(c => renderCollectionCard(c, 'goods')).join('');
+        } else {
+            goodsCollWrapper.innerHTML = '<div class="no-items"><i class="fas fa-boxes"></i><p>No goods collections available.</p></div>';
+        }
+        
+        // Render Trending (if exists)
+        const trendingSection = document.getElementById('trendingSection');
+        const trendingWrapper = document.getElementById('trendingScrollWrapper');
+        if (trendingSection && trendingWrapper && trending.length > 0) {
+            trendingSection.style.display = 'block';
+            trendingWrapper.innerHTML = trending.map((item, idx) => {
+                const cardHtml = renderItemCard(item, item.type);
+                // Add rank badge
+                return cardHtml.replace('<!-- rank will be added -->', 
+                    `<div class="trending-rank"><span>#${idx + 1}</span></div>`);
+            });
+        } else if (trendingSection) {
+            trendingSection.style.display = 'none';
+        }
+        
+        // Setup Services progressive loading
+        if (allServices && allServices.length > 0) {
+            servicesState.allItems = allServices;
+            servicesState.currentIndex = 0;
+            servicesState.hasMore = allServices.length > servicesState.pageSize;
+            loadMoreServices(false); // Initial load
+        } else {
+            document.getElementById('allServicesScrollWrapper').innerHTML = '<div class="no-items"><i class="fas fa-concierge-bell"></i><p>No services available.</p></div>';
+        }
+        
+        // Setup Goods progressive loading
+        if (allGoods && allGoods.length > 0) {
+            goodsState.allItems = allGoods;
+            goodsState.currentIndex = 0;
+            goodsState.hasMore = allGoods.length > goodsState.pageSize;
+            loadMoreGoods(false); // Initial load
+        } else {
+            document.getElementById('allGoodsScrollWrapper').innerHTML = '<div class="no-items"><i class="fas fa-box-open"></i><p>No goods available.</p></div>';
+        }
+        
+        // Setup load more button listeners
+        const servicesBtn = document.getElementById('servicesLoadMoreBtn');
+        if (servicesBtn) {
+            servicesBtn.addEventListener('click', () => loadMoreServices(true));
+        }
+        
+        const goodsBtn = document.getElementById('goodsLoadMoreBtn');
+        if (goodsBtn) {
+            goodsBtn.addEventListener('click', () => loadMoreGoods(true));
+        }
+        
+        // Setup infinite scroll
+        setupInfiniteScroll();
+        
+    } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        // Show error states
+        const wrappers = ['discountScrollWrapper', 'newArrivalsScrollWrapper', 'allServicesScrollWrapper', 'allGoodsScrollWrapper'];
+        wrappers.forEach(id => {
+            const el = document.getElementById(id);
+            if (el && el.innerHTML.includes('skeleton')) {
+                el.innerHTML = '<div class="no-items"><i class="fas fa-exclamation-triangle"></i><p>Failed to load. Please refresh.</p></div>';
+            }
+        });
+    }
+}
+
+// Auto-scroll for best deals
+function setupAutoScroll(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    const cards = container.querySelectorAll('.item-card');
+    if (cards.length <= 1) return;
+    
+    let interval;
+    let hovering = false;
+    
+    function autoScroll() {
+        if (!hovering && cards.length > 0) {
+            const currentScroll = container.scrollLeft;
+            const cardWidth = cards[0].offsetWidth + 10;
+            const maxScroll = container.scrollWidth - container.clientWidth;
+            let newScroll = currentScroll + cardWidth;
+            if (newScroll >= maxScroll) newScroll = 0;
+            container.scrollTo({ left: newScroll, behavior: 'smooth' });
+        }
+    }
+    
+    function start() {
+        if (interval) clearInterval(interval);
+        interval = setInterval(autoScroll, 3000);
+    }
+    
+    function stop() {
+        if (interval) {
+            clearInterval(interval);
+            interval = null;
+        }
+    }
+    
+    container.addEventListener('mouseenter', () => { hovering = true; stop(); });
+    container.addEventListener('mouseleave', () => { hovering = false; start(); });
+    
+    start();
+}
+
+// Anti-flicker
+(function() {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => document.body.classList.add('loaded'), 10);
+            initDashboard();
+        });
+    } else {
+        setTimeout(() => document.body.classList.add('loaded'), 10);
+        initDashboard();
+    }
+})();
 </script>
 {% endblock %}
