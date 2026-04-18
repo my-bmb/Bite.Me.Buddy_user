@@ -1,0 +1,1706 @@
+{% extends "base.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<!-- ANTI-FLICKER: Body-level fade - loads instantly, no FOUC -->
+<style>
+    /* Critical CSS - loads immediately */
+    body {
+        opacity: 0;
+        transition: opacity 0.2s ease-in;
+        background: #0D0D0D;
+    }
+    
+    body.loaded {
+        opacity: 1;
+    }
+</style>
+
+<div class="dashboard">
+    <!-- TOP HEADER -->
+    <header class="dashboard-header">
+        <div class="header-left">
+            <h1>Profile</h1>
+            <p class="welcome-text">Manage your account</p>
+        </div>
+        <div class="header-right">
+            <img src="{{ session.profile_pic }}" 
+                 alt="Profile" class="profile-pic"
+                 onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <!-- PROFILE HEADER - 2-COLUMN LAYOUT -->
+        <div class="profile-header-instagram">
+            <div class="profile-photo-col">
+                <div class="profile-avatar-instagram">
+                    <img src="{{ session.profile_pic }}" 
+                         alt="Profile" class="profile-img-instagram"
+                         onerror="this.src='{{ url_for('static', filename='default-avatar.jpg') }}'">
+                    <label for="profile_pic" class="avatar-edit-instagram">
+                        <i class="fas fa-camera"></i>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="profile-details-col">
+                <h2 class="profile-name-instagram">{{ session.full_name }}</h2>
+                
+                <div class="profile-email-instagram">
+                    <i class="fas fa-envelope"></i>
+                    <span class="profile-text">{{ session.email }}</span>
+                </div>
+                
+                <div class="profile-phone-instagram">
+                    <i class="fas fa-phone"></i>
+                    <span class="profile-text">{{ session.phone or 'Not set' }}</span>
+                </div>
+                
+                <div class="profile-member-instagram">
+                    <i class="fas fa-calendar"></i>
+                    <span class="profile-text">
+                        Joined {{ session.created_at or 'N/A' }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- EDIT PROFILE BUTTON -->
+        <div class="profile-edit-section">
+            <button type="button" class="profile-edit-btn-instagram" onclick="showEditForm()">
+                <i class="fas fa-user-edit"></i> Edit Profile
+            </button>
+        </div>
+
+        <!-- EDIT FORM (HIDDEN BY DEFAULT) -->
+        <form method="POST" enctype="multipart/form-data" class="profile-edit-form-premium" id="editForm">
+            <input type="file" id="profile_pic" name="profile_pic" accept="image/*" hidden>
+            
+            <div class="form-section">
+                <h4 class="form-section-title">
+                    <i class="fas fa-user-circle"></i> Personal Information
+                </h4>
+                
+                <div class="form-row">
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="full_name" 
+                               value="{{ session.full_name }}" 
+                               class="form-input"
+                               placeholder="Full Name"
+                               required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="input-group">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" name="email" 
+                               value="{{ session.email }}" 
+                               class="form-input"
+                               placeholder="Email Address"
+                               required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="input-group">
+                        <i class="fas fa-phone"></i>
+                        <input type="text" name="phone" 
+                               value="{{ session.phone }}" 
+                               class="form-input"
+                               placeholder="Phone Number">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="input-group location-group">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <input type="text" name="location" 
+                               value="{{ session.location }}" 
+                               class="form-input location-input"
+                               placeholder="Your Location">
+                        <button type="button" class="location-btn" onclick="getLocation()" title="Use current location">
+                            <i class="fas fa-location-crosshairs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h4 class="form-section-title">
+                    <i class="fas fa-lock"></i> Change Password
+                </h4>
+                
+                <div class="form-row">
+                    <div class="input-group">
+                        <i class="fas fa-key"></i>
+                        <input type="password" name="new_password" 
+                               id="new_password"
+                               class="form-input"
+                               placeholder="New Password (optional)"
+                               minlength="6">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="input-group">
+                        <i class="fas fa-key"></i>
+                        <input type="password" name="confirm_password" 
+                               id="confirm_password"
+                               class="form-input"
+                               placeholder="Confirm Password"
+                               minlength="6">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="cancel-btn" onclick="hideEditForm()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="submit" class="save-btn">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
+        </form>
+
+        <!-- ===== STATS GRID (WALLET + REFERRAL) ===== -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-wallet"></i></div>
+                <div class="stat-value" id="walletBalance">₹{{ "%.2f"|format(wallet_balance|float) }}</div>
+                <div class="stat-label">Wallet Balance</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-users"></i></div>
+                <div class="stat-value">{{ referral_count }}</div>
+                <div class="stat-label">Referrals</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-rupee-sign"></i></div>
+                <div class="stat-value">₹{{ "%.2f"|format(total_spent|float) }}</div>
+                <div class="stat-label">Total Spent</div>
+            </div>
+        </div>
+
+        <!-- ===== REFERRAL SECTION ===== -->
+        <div class="referral-section">
+            <div class="section-header">
+                <i class="fas fa-gift"></i>
+                <h3>Refer & Earn ₹30</h3>
+            </div>
+            
+            <div class="referral-link-box">
+                <div class="link-display">
+                    <code id="referralLink">{{ referral_link }}</code>
+                    <button class="copy-btn" onclick="copyReferralLink()">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                </div>
+                <div class="referral-info">
+                    <i class="fas fa-info-circle"></i> 
+                    Get ₹30 wallet credit when your friend spends ₹1000+
+                </div>
+            </div>
+
+            {% if referred_users %}
+            <div class="referred-users-list">
+                <div class="referred-label">
+                    <i class="fas fa-user-friends"></i> People you've referred:
+                </div>
+                <div class="referred-badges">
+                    {% for user in referred_users[:5] %}
+                    <span class="referred-badge">
+                        {{ user.full_name[:15] }}
+                        {% if user.reward_given %}
+                        <i class="fas fa-check-circle"></i>
+                        {% endif %}
+                    </span>
+                    {% endfor %}
+                    {% if referred_users|length > 5 %}
+                    <span class="referred-badge">+{{ referred_users|length - 5 }} more</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ===== WALLET SECTION ===== -->
+        <div class="referral-section">
+            <div class="section-header">
+                <i class="fas fa-coins"></i>
+                <h3>Wallet & Withdrawals</h3>
+            </div>
+            
+            <div class="wallet-summary">
+                <div class="summary-item">
+                    <span>Total Earned:</span>
+                    <strong>₹{{ "%.2f"|format(total_earned|float) }}</strong>
+                </div>
+                <div class="summary-item">
+                    <span>Total Withdrawn:</span>
+                    <strong>₹{{ "%.2f"|format(total_withdrawn|float) }}</strong>
+                </div>
+                {% if pending_withdrawal > 0 %}
+                <div class="summary-item">
+                    <span>Pending Withdrawal:</span>
+                    <strong style="color: #f59e0b;">₹{{ "%.2f"|format(pending_withdrawal|float) }}</strong>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="wallet-actions">
+                <button class="wallet-btn" onclick="showTransactionsModal()">
+                    <i class="fas fa-history"></i> History
+                </button>
+                <button class="wallet-btn withdraw-btn" onclick="showWithdrawModal()">
+                    <i class="fas fa-hand-holding-usd"></i> Withdraw
+                </button>
+            </div>
+        </div>
+
+        <!-- ===== RECENT REWARDS ===== -->
+        {% if reward_transactions %}
+        <div class="referral-section recent-rewards">
+            <div class="section-header">
+                <i class="fas fa-trophy"></i>
+                <h3>Recent Rewards</h3>
+            </div>
+            {% for tx in reward_transactions[:4] %}
+            <div class="reward-item">
+                <div class="reward-left">
+                    <div class="reward-icon"><i class="fas fa-gift"></i></div>
+                    <div>
+                        <div class="reward-title">Referral Reward</div>
+                        <div class="reward-date">{{ tx.created_at[:10] if tx.created_at else 'Recently' }}</div>
+                    </div>
+                </div>
+                <div class="reward-amount positive">+₹{{ "%.2f"|format(tx.amount|float) }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- QUICK ACTIONS -->
+        <div class="quick-actions-grid">
+            <a href="{{ url_for('dashboard') }}" class="action-card">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('goods') }}" class="action-card">
+                <i class="fas fa-box"></i>
+                <span>Goods</span>
+            </a>
+            <a href="{{ url_for('cart') }}" class="action-card">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Cart</span>
+            </a>
+            <a href="{{ url_for('logout') }}" class="action-card logout-card">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </main>
+
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('services') }}" class="nav-item">
+            <i class="fas fa-concierge-bell"></i>
+            <span>Services</span>
+        </a>
+        <a href="{{ url_for('goods') }}" class="nav-item">
+            <i class="fas fa-box"></i>
+            <span>Goods</span>
+        </a>
+        <a href="{{ url_for('cart') }}" class="nav-item">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Cart</span>
+        </a>
+        <a href="{{ url_for('order_history') }}" class="nav-item">
+            <i class="fas fa-history"></i>
+            <span>Orders</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item active">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+</div>
+
+<!-- ===== TRANSACTIONS MODAL ===== -->
+<div id="transactionsModal" class="modal-overlay">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h4><i class="fas fa-history"></i> Transaction History</h4>
+            <button class="modal-close-btn" onclick="closeModal('transactionsModal')">&times;</button>
+        </div>
+        <div class="modal-body" id="transactionsList">
+            <div class="empty-transactions">
+                <i class="fas fa-spinner fa-pulse"></i>
+                <p>Loading transactions...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== WITHDRAW MODAL ===== -->
+<div id="withdrawModal" class="modal-overlay">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h4><i class="fas fa-hand-holding-usd"></i> Withdraw Funds</h4>
+            <button class="modal-close-btn" onclick="closeModal('withdrawModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="available-balance">
+                Available: <strong id="availBalance" style="color: var(--service-icon);">₹{{ "%.2f"|format(wallet_balance|float) }}</strong>
+            </p>
+            <input type="number" id="withdrawAmount" class="modal-input" placeholder="Amount (Min ₹100)" min="100">
+            <select id="withdrawMethod" class="modal-select" onchange="toggleBankFields()">
+                <option value="bank">Bank Transfer</option>
+                <option value="upi">UPI Transfer</option>
+            </select>
+            <div id="bankFields" class="bank-fields">
+                <input type="text" id="bankName" class="modal-input" placeholder="Bank Name">
+                <input type="text" id="accountNumber" class="modal-input" placeholder="Account Number">
+                <input type="text" id="ifscCode" class="modal-input" placeholder="IFSC Code">
+            </div>
+            <div id="upiFields" class="bank-fields">
+                <input type="text" id="upiId" class="modal-input" placeholder="UPI ID (e.g., name@okhdfcbank)">
+            </div>
+            <div id="withdrawError" class="error-msg"></div>
+            <button class="modal-btn" onclick="submitWithdraw()">Request Withdrawal</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Anti-flicker script
+(function() {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() { document.body.classList.add('loaded'); }, 10);
+        });
+    } else {
+        setTimeout(function() { document.body.classList.add('loaded'); }, 10);
+    }
+})();
+
+// Show/hide edit form
+function showEditForm() {
+    document.getElementById('editForm').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function hideEditForm() {
+    document.getElementById('editForm').style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Preview image
+function previewImage(event) {
+    const reader = new FileReader();
+    reader.onload = function() {
+        document.querySelector('.profile-img-instagram').src = reader.result;
+        document.querySelector('.profile-pic').src = reader.result;
+    }
+    reader.readAsDataURL(event.target.files[0]);
+}
+
+// Get location
+function getLocation() {
+    if (!navigator.geolocation) {
+        alert('Geolocation not supported');
+        return;
+    }
+    
+    const locationInput = document.querySelector('input[name="location"]');
+    const originalPlaceholder = locationInput.placeholder;
+    locationInput.placeholder = 'Getting location...';
+    
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            
+            fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
+                .then(response => response.json())
+                .then(data => {
+                    locationInput.value = data.display_name || `${lat}, ${lon}`;
+                    locationInput.placeholder = originalPlaceholder;
+                })
+                .catch(() => {
+                    locationInput.value = `${lat}, ${lon}`;
+                    locationInput.placeholder = originalPlaceholder;
+                });
+        },
+        function(error) {
+            alert('Unable to get location');
+            locationInput.placeholder = originalPlaceholder;
+        }
+    );
+}
+
+// Copy referral link
+function copyReferralLink() {
+    const link = document.getElementById('referralLink').innerText;
+    navigator.clipboard.writeText(link).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        const original = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        setTimeout(() => { btn.innerHTML = original; }, 2000);
+    });
+}
+
+// ============ TRANSACTIONS MODAL ============
+function showTransactionsModal() {
+    const modal = document.getElementById('transactionsModal');
+    modal.classList.add('active');
+    
+    const withdrawals = {{ withdrawals|tojson }};
+    const rewardTransactions = {{ reward_transactions|tojson }};
+    
+    let html = '<div class="transaction-list">';
+    
+    if (withdrawals && withdrawals.length > 0) {
+        html += '<div class="section-divider"><i class="fas fa-arrow-up"></i> Withdrawals</div>';
+        for (let w of withdrawals) {
+            const amount = parseFloat(w.amount).toFixed(2);
+            const date = w.requested_at ? w.requested_at.substring(0, 10) : 'Recently';
+            const method = w.withdrawal_method ? w.withdrawal_method.toUpperCase() : 'BANK';
+            html += `
+                <div class="transaction-item">
+                    <div class="transaction-left">
+                        <div class="transaction-icon"><i class="fas fa-arrow-up"></i></div>
+                        <div>
+                            <div class="transaction-title">Withdrawal (${method})</div>
+                            <div class="transaction-date">${date}</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="amount-negative">-₹${amount}</div>
+                        <div class="status-pending">${w.status || 'pending'}</div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+    
+    if (rewardTransactions && rewardTransactions.length > 0) {
+        if (withdrawals && withdrawals.length > 0) {
+            html += '<div class="section-divider" style="margin-top: 20px;"><i class="fas fa-gift"></i> Rewards Earned</div>';
+        } else {
+            html += '<div class="section-divider"><i class="fas fa-gift"></i> Rewards Earned</div>';
+        }
+        for (let tx of rewardTransactions) {
+            const amount = parseFloat(tx.amount).toFixed(2);
+            const date = tx.created_at ? tx.created_at.substring(0, 10) : 'Recently';
+            html += `
+                <div class="transaction-item">
+                    <div class="transaction-left">
+                        <div class="transaction-icon"><i class="fas fa-gift"></i></div>
+                        <div>
+                            <div class="transaction-title">Referral Reward</div>
+                            <div class="transaction-date">${date}</div>
+                        </div>
+                    </div>
+                    <div class="amount-positive">+₹${amount}</div>
+                </div>
+            `;
+        }
+    }
+    
+    if ((!withdrawals || withdrawals.length === 0) && (!rewardTransactions || rewardTransactions.length === 0)) {
+        html = `
+            <div class="empty-transactions">
+                <i class="fas fa-inbox"></i>
+                <p>No transactions yet</p>
+                <small>Refer friends or make purchases to see transactions</small>
+            </div>
+        `;
+    } else {
+        html += '</div>';
+    }
+    
+    document.getElementById('transactionsList').innerHTML = html;
+}
+
+// ============ WITHDRAW MODAL ============
+function showWithdrawModal() {
+    const modal = document.getElementById('withdrawModal');
+    const walletBalance = {{ wallet_balance|float }};
+    document.getElementById('availBalance').innerHTML = `₹${walletBalance.toFixed(2)}`;
+    document.getElementById('withdrawAmount').value = '';
+    document.getElementById('withdrawError').style.display = 'none';
+    modal.classList.add('active');
+    toggleBankFields();
+}
+
+function toggleBankFields() {
+    const method = document.getElementById('withdrawMethod').value;
+    document.getElementById('bankFields').style.display = method === 'bank' ? 'block' : 'none';
+    document.getElementById('upiFields').style.display = method === 'upi' ? 'block' : 'none';
+}
+
+async function submitWithdraw() {
+    const amount = parseFloat(document.getElementById('withdrawAmount').value);
+    const method = document.getElementById('withdrawMethod').value;
+    const walletBalance = {{ wallet_balance|float }};
+    const errorDiv = document.getElementById('withdrawError');
+    
+    if (isNaN(amount) || amount < 100) {
+        errorDiv.innerText = 'Minimum withdrawal amount is ₹100';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    if (amount > walletBalance) {
+        errorDiv.innerText = `Insufficient balance. Available: ₹${walletBalance.toFixed(2)}`;
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    let payload = { amount: amount, withdrawal_method: method };
+    if (method === 'bank') {
+        const bankName = document.getElementById('bankName').value.trim();
+        const accountNumber = document.getElementById('accountNumber').value.trim();
+        const ifscCode = document.getElementById('ifscCode').value.trim();
+        if (!bankName || !accountNumber || !ifscCode) {
+            errorDiv.innerText = 'Please fill all bank details';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        payload.bank_name = bankName;
+        payload.account_number = accountNumber;
+        payload.ifsc_code = ifscCode;
+    } else {
+        const upiId = document.getElementById('upiId').value.trim();
+        if (!upiId || !upiId.includes('@')) {
+            errorDiv.innerText = 'Please enter a valid UPI ID (e.g., name@okhdfcbank)';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        payload.upi_id = upiId;
+    }
+    
+    errorDiv.style.display = 'none';
+    const btn = document.querySelector('#withdrawModal .modal-btn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Processing...';
+    btn.disabled = true;
+    
+    try {
+        const response = await fetch('/api/withdraw/request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            const newBalance = walletBalance - amount;
+            document.getElementById('walletBalance').innerHTML = `₹${newBalance.toFixed(2)}`;
+            alert('✅ Withdrawal request submitted successfully!');
+            closeModal('withdrawModal');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            errorDiv.innerText = data.message || 'Withdrawal failed';
+            errorDiv.style.display = 'block';
+        }
+    } catch (error) {
+        errorDiv.innerText = 'Network error. Please try again.';
+        errorDiv.style.display = 'block';
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.classList.remove('active');
+}
+
+// Close modal on outside click
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal-overlay')) {
+        event.target.classList.remove('active');
+    }
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+            modal.classList.remove('active');
+        });
+    }
+});
+
+// DOM Ready
+document.addEventListener('DOMContentLoaded', function() {
+    const avatarEditBtn = document.querySelector('.avatar-edit-instagram');
+    if (avatarEditBtn) {
+        avatarEditBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('profile_pic').click();
+        });
+    }
+    
+    const profilePicInput = document.getElementById('profile_pic');
+    if (profilePicInput) {
+        profilePicInput.addEventListener('change', previewImage);
+    }
+});
+</script>
+
+<style>
+/* ===== MAIN CONTENT STYLES ===== */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --service-card-base: #0D0D0D;
+    --service-title: #A0A0A0;
+    --service-icon: #8e7d4d;
+    --service-border-detail: #333333;
+    --golden-vivid: #D4AF37;
+    --golden-metallic: #C0B283;
+    --golden-glow: rgba(212, 175, 55, 0.4);
+    --creamy-white: #F4F1E1;
+    --silver-mist: #A0A0A0;
+    --matte-black: #0D0D0D;
+    --bronze-glow: 0 0 15px rgba(142, 125, 77, 0.3);
+    --serif-font: 'Playfair Display', Georgia, serif;
+    --sans-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.dashboard {
+    background: var(--service-card-base);
+    max-width: 500px;
+    margin: 0 auto;
+    padding-bottom: 80px;
+    min-height: 100vh;
+}
+
+/* Header */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: var(--service-card-base);
+    border-bottom: 0.2px solid var(--service-border-detail);
+}
+
+.header-left h1 {
+    font-family: var(--serif-font);
+    font-size: 24px;
+    color: var(--creamy-white);
+    margin: 0 0 4px 0;
+}
+
+.welcome-text {
+    font-family: var(--sans-font);
+    font-size: 12px;
+    color: var(--service-title);
+    margin: 0;
+}
+
+.profile-pic {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--service-icon);
+}
+
+/* Profile Header Instagram */
+.profile-header-instagram {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px 20px;
+    background: var(--service-card-base);
+    border-bottom: 0.2px solid var(--service-border-detail);
+}
+
+.profile-photo-col {
+    flex: 0 0 90px;
+}
+
+.profile-avatar-instagram {
+    position: relative;
+    width: 90px;
+    height: 90px;
+}
+
+.profile-img-instagram {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--service-icon);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+}
+
+.profile-img-instagram:hover {
+    border-color: var(--golden-vivid);
+    box-shadow: var(--bronze-glow);
+}
+
+.avatar-edit-instagram {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: var(--service-icon);
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000000;
+    cursor: pointer;
+    border: 2px solid var(--service-card-base);
+    font-size: 11px;
+    transition: all 0.2s ease;
+}
+
+.avatar-edit-instagram:hover {
+    transform: scale(1.1);
+    background: var(--golden-vivid);
+    box-shadow: var(--bronze-glow);
+}
+
+.profile-details-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow: hidden;
+}
+
+.profile-name-instagram {
+    font-family: var(--serif-font);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--creamy-white);
+    margin: 0 0 2px 0;
+    line-height: 1.2;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.profile-email-instagram,
+.profile-phone-instagram,
+.profile-member-instagram {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--sans-font);
+    font-size: 13px;
+    color: var(--service-title);
+    width: 100%;
+}
+
+.profile-text {
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.4;
+}
+
+.profile-email-instagram i,
+.profile-phone-instagram i,
+.profile-member-instagram i {
+    color: var(--service-icon);
+    font-size: 12px;
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+/* Edit Profile Button */
+.profile-edit-section {
+    padding: 16px 20px;
+    background: var(--service-card-base);
+    border-bottom: 0.2px solid var(--service-border-detail);
+}
+
+.profile-edit-btn-instagram {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    border: 1px solid var(--service-border-detail);
+    border-radius: 8px;
+    font-family: var(--sans-font);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--creamy-white);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.profile-edit-btn-instagram i {
+    color: var(--service-icon);
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.profile-edit-btn-instagram:hover {
+    background: rgba(142, 125, 77, 0.1);
+    border-color: var(--service-icon);
+    transform: translateY(-1px);
+}
+
+.profile-edit-btn-instagram:hover i {
+    color: var(--golden-vivid);
+}
+
+/* Edit Form */
+.profile-edit-form-premium {
+    background: var(--service-card-base);
+    padding: 20px;
+    display: none;
+    border-bottom: 0.2px solid var(--service-border-detail);
+}
+
+.form-section {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 0.2px solid var(--service-border-detail);
+}
+
+.form-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.form-section-title {
+    font-family: var(--sans-font);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--creamy-white);
+    margin: 0 0 16px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-section-title i {
+    color: var(--service-icon);
+    font-size: 16px;
+}
+
+.form-row {
+    margin-bottom: 12px;
+}
+
+.input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-group i {
+    position: absolute;
+    left: 14px;
+    color: var(--service-title);
+    font-size: 14px;
+    z-index: 2;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px 16px 12px 42px;
+    border: 0.2px solid var(--service-border-detail);
+    border-radius: 8px;
+    font-family: var(--sans-font);
+    font-size: 14px;
+    color: var(--creamy-white);
+    background: rgba(20, 20, 20, 0.8);
+    outline: none;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    backdrop-filter: blur(5px);
+}
+
+.form-input:focus {
+    border-color: var(--service-icon);
+    background: rgba(30, 30, 30, 0.9);
+    box-shadow: 0 0 0 2px rgba(142, 125, 77, 0.1);
+}
+
+.location-group {
+    position: relative;
+}
+
+.location-input {
+    padding-right: 80px !important;
+}
+
+.location-btn {
+    position: absolute;
+    right: 8px;
+    background: transparent;
+    border: 0.2px solid var(--service-border-detail);
+    color: var(--service-icon);
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    z-index: 3;
+    border-radius: 6px;
+}
+
+.location-btn:hover {
+    color: var(--golden-vivid);
+    background: rgba(142, 125, 77, 0.15);
+    border-color: var(--service-icon);
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.cancel-btn {
+    flex: 1;
+    padding: 12px;
+    background: transparent;
+    border: 0.2px solid var(--service-border-detail);
+    border-radius: 8px;
+    font-family: var(--sans-font);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--service-title);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.cancel-btn:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+.save-btn {
+    flex: 1;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--golden-vivid), var(--golden-metallic));
+    border: none;
+    border-radius: 8px;
+    font-family: var(--sans-font);
+    font-size: 14px;
+    font-weight: 700;
+    color: #000000;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    position: relative;
+    overflow: hidden;
+}
+
+.save-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.7s ease;
+    z-index: 1;
+}
+
+.save-btn:hover::before {
+    left: 100%;
+}
+
+.save-btn:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #E4C158, #D0C08D);
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.25);
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 20px;
+    background: var(--service-card-base);
+    border-bottom: 0.2px solid var(--service-border-detail);
+}
+
+.stat-card {
+    background: rgba(20, 20, 20, 0.8);
+    border: 0.2px solid var(--service-border-detail);
+    border-radius: 12px;
+    padding: 14px 8px;
+    text-align: center;
+    backdrop-filter: blur(5px);
+    transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--service-icon);
+    box-shadow: var(--bronze-glow);
+}
+
+.stat-icon {
+    font-size: 24px;
+    color: var(--service-icon);
+    margin-bottom: 6px;
+}
+
+.stat-value {
+    font-family: var(--serif-font);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--creamy-white);
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-family: var(--sans-font);
+    font-size: 11px;
+    color: var(--service-title);
+    letter-spacing: 0.5px;
+}
+
+/* Referral Section */
+.referral-section {
+    background: var(--service-card-base);
+    border-bottom: 0.2px solid var(--service-border-detail);
+    padding: 18px 20px;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.section-header i {
+    font-size: 18px;
+    color: var(--service-icon);
+}
+
+.section-header h3 {
+    font-family: var(--serif-font);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--creamy-white);
+    margin: 0;
+}
+
+.referral-link-box {
+    background: rgba(20, 20, 20, 0.6);
+    border: 0.2px solid var(--service-border-detail);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.link-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(30, 30, 30, 0.9);
+    border-radius: 8px;
+    padding: 8px 12px;
+}
+
+.link-display code {
+    flex: 1;
+    font-family: monospace;
+    font-size: 11px;
+    color: var(--service-icon);
+    word-break: break-all;
+    background: transparent;
+}
+
+.copy-btn {
+    background: transparent;
+    border: 0.2px solid var(--service-border-detail);
+    border-radius: 6px;
+    padding: 6px 12px;
+    color: var(--creamy-white);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.copy-btn:hover {
+    background: var(--service-icon);
+    color: #000;
+    border-color: var(--service-icon);
+}
+
+.referral-info {
+    font-size: 11px;
+    color: var(--service-title);
+    text-align: center;
+    margin-top: 8px;
+}
+
+.referral-info i {
+    color: var(--golden-vivid);
+    margin-right: 4px;
+}
+
+.referred-users-list {
+    margin-top: 12px;
+}
+
+.referred-label {
+    font-size: 11px;
+    color: var(--service-title);
+    margin-bottom: 8px;
+}
+
+.referred-label i {
+    margin-right: 4px;
+}
+
+.referred-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.referred-badge {
+    background: rgba(20, 20, 20, 0.8);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    color: var(--creamy-white);
+    border: 0.2px solid var(--service-border-detail);
+}
+
+.referred-badge i {
+    color: #22c55e;
+    margin-left: 4px;
+    font-size: 10px;
+}
+
+/* Wallet Summary */
+.wallet-summary {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.summary-item {
+    font-size: 13px;
+    color: var(--service-title);
+}
+
+.summary-item strong {
+    color: var(--service-icon);
+    margin-left: 6px;
+}
+
+.wallet-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.wallet-btn {
+    flex: 1;
+    background: transparent;
+    border: 0.2px solid var(--service-border-detail);
+    border-radius: 8px;
+    padding: 10px;
+    font-family: var(--sans-font);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--creamy-white);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.wallet-btn i {
+    color: var(--service-icon);
+    font-size: 14px;
+}
+
+.wallet-btn:hover {
+    background: rgba(142, 125, 77, 0.15);
+    border-color: var(--service-icon);
+}
+
+.withdraw-btn {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(192, 178, 131, 0.05));
+}
+
+.withdraw-btn i {
+    color: var(--golden-vivid);
+}
+
+/* Recent Rewards */
+.recent-rewards {
+    border-bottom: none;
+}
+
+.reward-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 0.2px solid var(--service-border-detail);
+}
+
+.reward-item:last-child {
+    border-bottom: none;
+}
+
+.reward-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.reward-icon {
+    width: 36px;
+    height: 36px;
+    background: rgba(142, 125, 77, 0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reward-icon i {
+    font-size: 16px;
+    color: var(--service-icon);
+}
+
+.reward-title {
+    font-family: var(--sans-font);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--creamy-white);
+    margin-bottom: 2px;
+}
+
+.reward-date {
+    font-size: 10px;
+    color: var(--service-title);
+}
+
+.reward-amount {
+    font-family: var(--serif-font);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.reward-amount.positive {
+    color: #22c55e;
+}
+
+/* Quick Actions */
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    padding: 20px;
+    background: var(--service-card-base);
+    border-top: 0.2px solid var(--service-border-detail);
+}
+
+.action-card {
+    padding: 12px 6px;
+    background: rgba(20, 20, 20, 0.8);
+    border: 0.2px solid var(--service-border-detail);
+    border-radius: 8px;
+    font-family: var(--sans-font);
+    font-size: 12px;
+    color: var(--creamy-white);
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    text-align: center;
+    backdrop-filter: blur(5px);
+}
+
+.action-card i {
+    font-size: 18px;
+    color: var(--service-icon);
+    transition: all 0.2s ease;
+}
+
+.action-card:hover {
+    background: rgba(40, 40, 40, 0.9);
+    transform: translateY(-2px);
+    border-color: var(--service-icon);
+    box-shadow: var(--bronze-glow);
+}
+
+.action-card:hover i {
+    color: var(--golden-vivid);
+}
+
+.action-card.logout-card i {
+    color: #ef4444;
+}
+
+.action-card.logout-card:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+}
+
+/* Bottom Navigation */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-width: 500px;
+    margin: 0 auto;
+    background: var(--service-card-base);
+    backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 16px;
+    border-top: 0.2px solid var(--service-border-detail);
+    z-index: 100;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+    color: var(--service-title);
+    font-size: 10px;
+    transition: all 0.2s ease;
+}
+
+.nav-item i {
+    font-size: 20px;
+}
+
+.nav-item.active {
+    color: var(--service-icon);
+}
+
+.nav-item:hover {
+    color: var(--golden-vivid);
+}
+
+/* Modal Styles */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-container {
+    background: #1a1a1a;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 380px;
+    max-height: 80vh;
+    overflow-y: auto;
+    border: 0.2px solid var(--service-border-detail);
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 20px;
+    border-bottom: 0.2px solid var(--service-border-detail);
+    position: sticky;
+    top: 0;
+    background: #1a1a1a;
+    z-index: 10;
+}
+
+.modal-header h4 {
+    color: var(--creamy-white);
+    font-size: 18px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-header h4 i {
+    color: var(--service-icon);
+}
+
+.modal-close-btn {
+    background: none;
+    border: none;
+    color: var(--service-title);
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.modal-close-btn:hover {
+    color: #ef4444;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.transaction-list {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.transaction-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 0.2px solid var(--service-border-detail);
+}
+
+.transaction-item:last-child {
+    border-bottom: none;
+}
+
+.transaction-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.transaction-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(20, 20, 20, 0.8);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.transaction-icon i {
+    color: var(--service-icon);
+    font-size: 18px;
+}
+
+.transaction-title {
+    color: var(--creamy-white);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.transaction-date {
+    color: var(--service-title);
+    font-size: 11px;
+    margin-top: 2px;
+}
+
+.amount-positive {
+    color: #22c55e;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.amount-negative {
+    color: #ef4444;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.status-pending {
+    font-size: 10px;
+    color: #f59e0b;
+    margin-top: 2px;
+    text-align: right;
+}
+
+.section-divider {
+    margin: 15px 0 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--service-icon);
+    border-left: 3px solid var(--service-icon);
+    padding-left: 10px;
+}
+
+.empty-transactions {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--service-title);
+}
+
+.empty-transactions i {
+    font-size: 50px;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.empty-transactions small {
+    display: block;
+    margin-top: 8px;
+    font-size: 11px;
+}
+
+.available-balance {
+    color: var(--service-title);
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+.modal-input, .modal-select {
+    width: 100%;
+    padding: 10px 12px;
+    background: rgba(20, 20, 20, 0.8);
+    border: 0.2px solid var(--service-border-detail);
+    border-radius: 8px;
+    color: var(--creamy-white);
+    margin-bottom: 12px;
+    font-size: 13px;
+}
+
+.modal-input:focus, .modal-select:focus {
+    outline: none;
+    border-color: var(--service-icon);
+}
+
+.bank-fields {
+    display: none;
+}
+
+.error-msg {
+    color: #ef4444;
+    font-size: 11px;
+    margin-bottom: 10px;
+    display: none;
+}
+
+.modal-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--golden-vivid), var(--golden-metallic));
+    border: none;
+    border-radius: 8px;
+    color: #000;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.modal-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .profile-header-instagram {
+        padding: 20px 16px;
+        gap: 16px;
+    }
+    
+    .profile-photo-col {
+        flex: 0 0 80px;
+    }
+    
+    .profile-avatar-instagram {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .profile-name-instagram {
+        font-size: 18px;
+    }
+    
+    .stats-grid {
+        padding: 16px;
+        gap: 8px;
+    }
+    
+    .quick-actions-grid {
+        padding: 16px;
+        gap: 8px;
+    }
+}
+
+@media (max-width: 360px) {
+    .profile-header-instagram {
+        gap: 12px;
+    }
+    
+    .profile-photo-col {
+        flex: 0 0 70px;
+    }
+    
+    .profile-avatar-instagram {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .quick-actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+}
+</style>
+{% endblock %}
