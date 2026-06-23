@@ -5,49 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Flask App{% endblock %}</title>
     
-    <!-- BROWSER & MOBILE UI COLORS - DARK GRAY FOR BOTH MODES -->
     <meta name="theme-color" content="#87794e" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#87794e" media="(prefers-color-scheme: dark)">
     
-    <!-- iOS specific - top status bar -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="Flask App">
     
-    <!-- Windows Phone / Microsoft -->
     <meta name="msapplication-TileColor" content="#87794e">
     <meta name="msapplication-navbutton-color" content="#87794e">
     
-    <!-- Android / Chrome specific -->
     <meta name="mobile-web-app-capable" content="yes">
     
-    <!-- Force dark color scheme for bottom navigation bar -->
     <meta name="color-scheme" content="dark">
     
-    <!-- Google AdSense Script -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4439243299693256"
      crossorigin="anonymous"></script>
     
-    <!-- Minimal CSS - only for browser UI, NO font/text styling -->
     <style>
-        /* Force dark theme UI elements - ONLY for browser, NOT for content */
         :root {
             color-scheme: dark !important;
         }
         
-        /* Bottom navigation - ensure black background with dark gray border */
         .bottom-nav {
             background: rgba(15, 15, 15, 0.98) !important;
             border-top: 1px solid #444444 !important;
         }
         
-        /* Safe area insets only */
         .dashboard {
             padding-top: env(safe-area-inset-top, 0);
             padding-bottom: env(safe-area-inset-bottom, 0);
         }
         
-        /* Light mode override - ONLY for browser UI */
         @media (prefers-color-scheme: light) {
             :root {
                 color-scheme: dark !important;
@@ -73,9 +62,10 @@
             text-decoration: none;
             cursor: grab;
             transition: transform 0.2s, box-shadow 0.2s;
-            touch-action: none;  /* Prevents scrolling while dragging */
+            touch-action: none;
             user-select: none;
             -webkit-user-select: none;
+            will-change: transform, left, top;
         }
         #draggable-chat-btn:hover {
             transform: scale(1.05);
@@ -85,9 +75,8 @@
             cursor: grabbing;
         }
         #draggable-chat-btn i {
-            pointer-events: none; /* Allow drag on icon too */
+            pointer-events: none;
         }
-        /* Small screen adjustment */
         @media (max-width: 480px) {
             #draggable-chat-btn {
                 width: 50px;
@@ -101,7 +90,6 @@
     
     {% block head_meta %}{% endblock %}
     
-    <!-- Fonts and Icons - Let style.css handle all fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -125,23 +113,22 @@
         {% endif %}
     {% endwith %}
     
-    <!-- Main Content Block -->
+    <!-- Main Content -->
     {% block content %}{% endblock %}
 
     <!-- ===== DRAGGABLE CHAT BUTTON (only for logged-in users) ===== -->
     {% if session.get('user_id') %}
-    <a href="{{ url_for('users_chat') }}" id="draggable-chat-btn" title="Go to Chat Users">
+    <a href="/users-chat" id="draggable-chat-btn" title="Go to Chat Users">
         <i class="fas fa-users"></i>
     </a>
     {% endif %}
     
-    <!-- JavaScript -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     {% block scripts %}{% endblock %}
     
     <script>
         (function() {
-            // Apply dark theme to browser UI
+            // Force dark scheme
             if (window.matchMedia) {
                 const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
                 if (prefersLight) {
@@ -150,7 +137,7 @@
             }
         })();
 
-        // ===== DRAGGABLE BUTTON LOGIC =====
+        // ===== DRAGGABLE BUTTON LOGIC (FIXED) =====
         (function() {
             const btn = document.getElementById('draggable-chat-btn');
             if (!btn) return;
@@ -159,37 +146,32 @@
             let startX, startY, origX, origY;
             let hasMoved = false;
 
-            // Store initial position (or use current computed position)
-            function getPosition() {
-                const rect = btn.getBoundingClientRect();
-                return { x: rect.left, y: rect.top };
-            }
+            // Use pointer events for better cross-device support
+            function onPointerDown(e) {
+                // Only allow left-click / touch
+                if (e.pointerType === 'mouse' && e.button !== 0) return;
 
-            // On mousedown / touchstart
-            function onStart(e) {
-                const ev = e.touches ? e.touches[0] : e;
-                startX = ev.clientX;
-                startY = ev.clientY;
-                const pos = getPosition();
-                origX = pos.x;
-                origY = pos.y;
                 isDragging = true;
                 hasMoved = false;
+                const rect = btn.getBoundingClientRect();
+                origX = rect.left;
+                origY = rect.top;
+                startX = e.clientX;
+                startY = e.clientY;
+                btn.setPointerCapture(e.pointerId);
                 btn.style.cursor = 'grabbing';
                 btn.style.transition = 'none';
-                e.preventDefault(); // Prevent text selection or scrolling
+                e.preventDefault(); // Prevent text selection / scrolling
             }
 
-            // On mousemove / touchmove
-            function onMove(e) {
+            function onPointerMove(e) {
                 if (!isDragging) return;
-                const ev = e.touches ? e.touches[0] : e;
-                const dx = ev.clientX - startX;
-                const dy = ev.clientY - startY;
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
                 if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
                     hasMoved = true;
                 }
-                // Move the button
+                // Move button
                 btn.style.left = (origX + dx) + 'px';
                 btn.style.top = (origY + dy) + 'px';
                 btn.style.right = 'auto';
@@ -197,44 +179,37 @@
                 e.preventDefault();
             }
 
-            // On mouseup / touchend
-            function onEnd(e) {
-                if (isDragging) {
-                    isDragging = false;
-                    btn.style.cursor = 'grab';
-                    btn.style.transition = 'transform 0.2s, box-shadow 0.2s';
-                    // If user didn't move, treat as click (allow navigation)
-                    if (!hasMoved) {
-                        // Let the default click happen
-                        // But we need to prevent the drag from triggering click?
-                        // We'll allow the anchor's default behavior.
-                    } else {
-                        // Prevent click if dragged
-                        e.preventDefault();
-                    }
+            function onPointerUp(e) {
+                if (!isDragging) return;
+                isDragging = false;
+                btn.style.cursor = 'grab';
+                btn.style.transition = 'transform 0.2s, box-shadow 0.2s';
+                // If not moved, let the click happen (default anchor behavior)
+                // If moved, prevent the click from navigating
+                if (hasMoved) {
+                    // We'll set a flag to block the click event
+                    btn.dataset.dragged = 'true';
+                } else {
+                    btn.dataset.dragged = 'false';
                 }
+                // Release pointer capture
+                btn.releasePointerCapture(e.pointerId);
             }
 
-            // Prevent default click if dragged
+            // Click handler: prevent navigation if dragged
             btn.addEventListener('click', function(e) {
-                if (hasMoved) {
+                if (this.dataset.dragged === 'true') {
                     e.preventDefault();
-                    hasMoved = false; // reset for next time
+                    this.dataset.dragged = 'false'; // reset
                 }
             });
 
-            // Mouse events
-            btn.addEventListener('mousedown', onStart);
-            document.addEventListener('mousemove', onMove);
-            document.addEventListener('mouseup', onEnd);
+            // Register pointer events
+            btn.addEventListener('pointerdown', onPointerDown);
+            document.addEventListener('pointermove', onPointerMove);
+            document.addEventListener('pointerup', onPointerUp);
 
-            // Touch events
-            btn.addEventListener('touchstart', onStart, { passive: false });
-            document.addEventListener('touchmove', onMove, { passive: false });
-            document.addEventListener('touchend', onEnd, { passive: false });
-
-            // Ensure button doesn't go off-screen (optional)
-            // We'll leave it as is; user can drag anywhere.
+            // Ensure button stays in viewport? Not necessary, but optional.
         })();
     </script>
 </body>
