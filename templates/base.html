@@ -53,6 +53,50 @@
                 color-scheme: dark !important;
             }
         }
+
+        /* ===== DRAGGABLE CHAT BUTTON ===== */
+        #draggable-chat-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 9999;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #87794e;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            text-decoration: none;
+            cursor: grab;
+            transition: transform 0.2s, box-shadow 0.2s;
+            touch-action: none;  /* Prevents scrolling while dragging */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        #draggable-chat-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.7);
+        }
+        #draggable-chat-btn:active {
+            cursor: grabbing;
+        }
+        #draggable-chat-btn i {
+            pointer-events: none; /* Allow drag on icon too */
+        }
+        /* Small screen adjustment */
+        @media (max-width: 480px) {
+            #draggable-chat-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 22px;
+                bottom: 20px;
+                right: 20px;
+            }
+        }
     </style>
     
     {% block head_meta %}{% endblock %}
@@ -83,6 +127,13 @@
     
     <!-- Main Content Block -->
     {% block content %}{% endblock %}
+
+    <!-- ===== DRAGGABLE CHAT BUTTON (only for logged-in users) ===== -->
+    {% if session.get('user_id') %}
+    <a href="{{ url_for('users_chat') }}" id="draggable-chat-btn" title="Go to Chat Users">
+        <i class="fas fa-users"></i>
+    </a>
+    {% endif %}
     
     <!-- JavaScript -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
@@ -97,6 +148,93 @@
                     document.documentElement.style.colorScheme = 'dark';
                 }
             }
+        })();
+
+        // ===== DRAGGABLE BUTTON LOGIC =====
+        (function() {
+            const btn = document.getElementById('draggable-chat-btn');
+            if (!btn) return;
+
+            let isDragging = false;
+            let startX, startY, origX, origY;
+            let hasMoved = false;
+
+            // Store initial position (or use current computed position)
+            function getPosition() {
+                const rect = btn.getBoundingClientRect();
+                return { x: rect.left, y: rect.top };
+            }
+
+            // On mousedown / touchstart
+            function onStart(e) {
+                const ev = e.touches ? e.touches[0] : e;
+                startX = ev.clientX;
+                startY = ev.clientY;
+                const pos = getPosition();
+                origX = pos.x;
+                origY = pos.y;
+                isDragging = true;
+                hasMoved = false;
+                btn.style.cursor = 'grabbing';
+                btn.style.transition = 'none';
+                e.preventDefault(); // Prevent text selection or scrolling
+            }
+
+            // On mousemove / touchmove
+            function onMove(e) {
+                if (!isDragging) return;
+                const ev = e.touches ? e.touches[0] : e;
+                const dx = ev.clientX - startX;
+                const dy = ev.clientY - startY;
+                if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+                    hasMoved = true;
+                }
+                // Move the button
+                btn.style.left = (origX + dx) + 'px';
+                btn.style.top = (origY + dy) + 'px';
+                btn.style.right = 'auto';
+                btn.style.bottom = 'auto';
+                e.preventDefault();
+            }
+
+            // On mouseup / touchend
+            function onEnd(e) {
+                if (isDragging) {
+                    isDragging = false;
+                    btn.style.cursor = 'grab';
+                    btn.style.transition = 'transform 0.2s, box-shadow 0.2s';
+                    // If user didn't move, treat as click (allow navigation)
+                    if (!hasMoved) {
+                        // Let the default click happen
+                        // But we need to prevent the drag from triggering click?
+                        // We'll allow the anchor's default behavior.
+                    } else {
+                        // Prevent click if dragged
+                        e.preventDefault();
+                    }
+                }
+            }
+
+            // Prevent default click if dragged
+            btn.addEventListener('click', function(e) {
+                if (hasMoved) {
+                    e.preventDefault();
+                    hasMoved = false; // reset for next time
+                }
+            });
+
+            // Mouse events
+            btn.addEventListener('mousedown', onStart);
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onEnd);
+
+            // Touch events
+            btn.addEventListener('touchstart', onStart, { passive: false });
+            document.addEventListener('touchmove', onMove, { passive: false });
+            document.addEventListener('touchend', onEnd, { passive: false });
+
+            // Ensure button doesn't go off-screen (optional)
+            // We'll leave it as is; user can drag anywhere.
         })();
     </script>
 </body>
