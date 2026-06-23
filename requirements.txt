@@ -12,4 +12,3 @@ pytz
 razorpay
 flask-socketio
 flask-login
-dateutil
