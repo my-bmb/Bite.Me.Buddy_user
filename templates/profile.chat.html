@@ -3,24 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>{{ profile_user.username }} - Profile | FlirtyBee</title>
+    <title>{{ user.username }} - Profile | FlirtyBee</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: #000;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            min-height: 100vh;
-            position: relative;
+            padding-bottom: 70px;
         }
-        .main-wrapper {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        .profile-container { max-width: 1200px; margin: 0 auto; }
+        .profile-card {
+            background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        .scrollable-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 0; }
         .photo-container {
             position: relative;
             width: 100%;
@@ -62,37 +62,6 @@
         .toggle-btn i { font-size: 0.8rem; }
         .toggle-btn.active { background: linear-gradient(135deg, #667eea, #764ba2); border-color: transparent; }
         .toggle-btn:active { transform: scale(0.96); }
-        .name-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.4), transparent);
-            padding: 20px 16px 16px;
-        }
-        .distance-name-container {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 8px;
-            margin-bottom: 40px;
-        }
-        .distance-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            background: #4CAF50;
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: white;
-            animation: simpleBlink 1s ease-in-out infinite;
-            order: 1;
-        }
-        @keyframes simpleBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-        .distance-badge i { font-size: 0.65rem; }
-        .profile-username { font-size: 1.8rem; font-weight: 700; color: white; margin: 0; order: 2; text-shadow: 1px 1px 3px rgba(0,0,0,0.3); }
         .gallery-grid {
             position: absolute;
             top: 0;
@@ -111,95 +80,108 @@
         .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
         .gallery-grid.hidden { display: none; }
         .profile-image-container.hidden { display: none; }
-        .info-section {
-            background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%);
-            padding: 20px;
-            border-radius: 25px 25px 0 0;
-            margin-top: -10px;
-            position: relative;
-            z-index: 10;
-        }
-        .stats-row { display: flex; gap: 12px; margin-bottom: 15px; flex-wrap: wrap; }
-        .stat-card { background: rgba(255,255,255,0.08); backdrop-filter: blur(8px); padding: 8px 16px; border-radius: 30px; display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center; min-width: 90px; }
-        .stat-card i { font-size: 0.9rem; color: #667eea; }
-        .stat-card span { color: white; font-size: 0.8rem; font-weight: 500; }
-        .status-card { background: rgba(255,255,255,0.08); backdrop-filter: blur(8px); padding: 8px 16px; border-radius: 30px; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 15px; width: 100%; justify-content: center; }
-        .status-card.online { background: rgba(76, 175, 80, 0.2); color: #4CAF50; }
-        .status-card.offline { background: rgba(158, 158, 158, 0.2); color: #ddd; }
-        .status-card i, .status-card span { font-size: 0.8rem; }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-        .profile-section { text-align: left; margin-bottom: 15px; padding: 12px; background: rgba(255,255,255,0.04); border-radius: 16px; }
-        .profile-section h3 { color: #fff; font-size: 0.85rem; margin-bottom: 8px; font-weight: 600; }
-        .profile-section h3 i { color: #667eea; margin-right: 6px; font-size: 0.8rem; }
-        .bio-content p { color: #ccc; line-height: 1.5; font-size: 0.8rem; margin: 0; }
-        .interests-container { display: flex; flex-wrap: wrap; gap: 8px; }
-        .interest-tag { background: linear-gradient(135deg, #667eea, #764ba2); padding: 0.3rem 1rem; border-radius: 25px; font-size: 0.7rem; color: white; font-weight: 500; }
-        .action-buttons { display: flex; gap: 12px; justify-content: center; margin: 15px 0 10px; flex-wrap: wrap; }
-        .btn-call, .btn-audio { padding: 10px 20px; border-radius: 50px; text-decoration: none; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; flex: 1; justify-content: center; min-width: 100px; }
-        .btn-call i, .btn-audio i { font-size: 0.85rem; }
-        .btn-call { background: linear-gradient(135deg, #f093fb, #f5576c); color: white; }
-        .btn-audio { background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; }
-        .btn-call:active, .btn-audio:active { transform: scale(0.97); }
-        .text-muted { color: #888; font-size: 0.75rem; }
-        .text-muted i { margin-right: 4px; font-size: 0.7rem; }
-        .bottom-nav-fixed {
-            position: fixed;
+        .name-overlay {
+            position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(30, 30, 46, 0.98);
-            backdrop-filter: blur(20px);
-            padding: 8px 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            z-index: 1000;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
-            padding-bottom: max(8px, env(safe-area-inset-bottom));
+            background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.4), transparent);
+            padding: 20px 16px 16px;
         }
-        .bottom-back-btn {
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(8px);
+        .distance-name-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+            margin-bottom: 40px;
+        }
+        .distance-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: #4CAF50;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
             color: white;
-            text-decoration: none;
-            width: 42px;
-            height: 42px;
+            animation: simpleBlink 1s ease-in-out infinite;
+        }
+        @keyframes simpleBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .distance-badge i { font-size: 0.65rem; }
+        .profile-username { font-size: 1.6rem; font-weight: 700; color: white; margin: 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+        .edit-photo-icon {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
             border-radius: 50%;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.1rem;
-            transition: all 0.2s;
-            border: 1px solid rgba(255,255,255,0.2);
-            flex-shrink: 0;
-        }
-        .bottom-back-btn:active { transform: scale(0.95); background: rgba(255,255,255,0.25); }
-        .bottom-message-card {
-            flex: 1;
-            background: white;
-            border-radius: 50px;
-            padding: 6px 14px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            color: white;
+            font-size: 1rem;
             cursor: pointer;
             transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            text-decoration: none;
+            z-index: 15;
+            border: 1px solid rgba(255,255,255,0.2);
         }
-        .bottom-message-card:active { transform: scale(0.98); }
-        .bottom-message-left { display: flex; align-items: center; gap: 8px; }
-        .bottom-message-icon { width: 32px; height: 32px; background: linear-gradient(135deg, #11998e, #38ef7d); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .bottom-message-icon i { font-size: 0.9rem; color: white; }
-        .bottom-message-text h4 { font-size: 0.75rem; font-weight: 700; margin: 0; color: #1a1a2e; line-height: 1.2; }
-        .bottom-message-text p { font-size: 0.55rem; margin: 1px 0 0 0; opacity: 0.6; color: #666; line-height: 1.2; }
-        .bottom-message-arrow { background: rgba(0,0,0,0.05); width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .bottom-message-arrow i { color: #11998e; font-size: 0.75rem; }
-        .main-wrapper { padding-bottom: 70px; }
+        .edit-photo-icon:active { transform: scale(0.95); }
+        .verification-badge {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: #4CAF50;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            border: 2px solid rgba(255,255,255,0.9);
+            z-index: 15;
+        }
+        .profile-info {
+            padding: 20px;
+            background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%);
+        }
+        .profile-stats { display: flex; justify-content: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .stat-item { display: flex; align-items: center; gap: 0.4rem; color: #aaa; font-size: 0.75rem; background: rgba(255,255,255,0.08); padding: 5px 12px; border-radius: 30px; }
+        .stat-item i { color: #667eea; font-size: 0.8rem; }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.3rem 1rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            margin-bottom: 1.2rem;
+            background: rgba(255,255,255,0.1);
+            width: 100%;
+            justify-content: center;
+        }
+        .status-badge.online { background: rgba(76, 175, 80, 0.2); color: #4CAF50; }
+        .status-badge.offline { background: rgba(158, 158, 158, 0.2); color: #999; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+        .profile-section { text-align: left; margin-bottom: 1rem; padding: 0.8rem; background: rgba(255,255,255,0.05); border-radius: 12px; }
+        .profile-section h3 { color: #fff; font-size: 1rem; margin-bottom: 0.7rem; }
+        .profile-section h3 i { color: #667eea; margin-right: 0.4rem; font-size: 0.9rem; }
+        .bio-content p { color: #ccc; line-height: 1.5; font-size: 0.85rem; }
+        .interests-container { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .interest-tag { background: linear-gradient(135deg, #667eea, #764ba2); padding: 0.3rem 0.9rem; border-radius: 25px; font-size: 0.7rem; color: white; font-weight: 500; }
+        .voice-intro-placeholder { text-align: center; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 10px; color: #666; }
+        .voice-intro-placeholder i { font-size: 2rem; margin-bottom: 0.3rem; }
+        .voice-intro-placeholder p { font-size: 0.7rem; }
         .lightbox {
             display: none;
             position: fixed;
-            z-index: 1001;
+            z-index: 1000;
             left: 0;
             top: 0;
             width: 100%;
@@ -207,26 +189,102 @@
             background-color: rgba(0,0,0,0.95);
         }
         .lightbox-content { margin: auto; display: block; max-width: 90%; max-height: 90%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 8px; }
-        .close-lightbox { position: absolute; top: 15px; right: 25px; color: #fff; font-size: 35px; cursor: pointer; z-index: 1002; }
+        .close-lightbox { position: absolute; top: 15px; right: 20px; color: #fff; font-size: 35px; cursor: pointer; }
+        .text-muted { color: #888; font-size: 0.8rem; }
+        .text-muted a { color: #667eea; text-decoration: none; }
+        .bottom-nav-fixed {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(30, 30, 46, 0.98);
+            backdrop-filter: blur(20px);
+            padding: 6px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            z-index: 1000;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.3);
+            padding-bottom: max(6px, env(safe-area-inset-bottom));
+        }
+        .bottom-back-btn {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px);
+            color: white;
+            text-decoration: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.2);
+            flex-shrink: 0;
+        }
+        .bottom-back-btn:active { transform: scale(0.95); background: rgba(255,255,255,0.25); }
+        .bottom-edit-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .bottom-edit-btn:active { transform: scale(0.95); }
+        .bottom-message-card {
+            flex: 1;
+            background: white;
+            border-radius: 50px;
+            padding: 5px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        .bottom-message-card:active { transform: scale(0.98); }
+        .bottom-message-left { display: flex; align-items: center; gap: 8px; }
+        .bottom-message-icon { width: 32px; height: 32px; background: linear-gradient(135deg, #11998e, #38ef7d); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .bottom-message-icon i { font-size: 0.85rem; color: white; }
+        .bottom-message-text h4 { font-size: 0.7rem; font-weight: 700; margin: 0; color: #1a1a2e; }
+        .bottom-message-text p { font-size: 0.5rem; margin: 1px 0 0 0; opacity: 0.6; color: #666; }
+        .bottom-message-arrow { background: rgba(0,0,0,0.05); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .bottom-message-arrow i { color: #11998e; font-size: 0.7rem; }
         @media (min-width: 600px) {
+            body { padding-bottom: 65px; }
             .photo-container { max-width: 450px; margin: 0 auto; }
-            .info-section { max-width: 450px; margin: -10px auto 0; }
-            .main-wrapper { align-items: center; }
-            .bottom-nav-fixed { max-width: 550px; left: 50%; right: auto; transform: translateX(-50%); border-radius: 30px 30px 0 0; }
-            .toggle-btn { padding: 9px 22px; font-size: 0.85rem; }
-            .profile-username { font-size: 2rem; }
+            .profile-info { max-width: 450px; margin: 0 auto; }
+            .bottom-nav-fixed { max-width: 550px; left: 50%; right: auto; transform: translateX(-50%); border-radius: 30px 30px 0 0; padding: 7px 14px; }
+            .bottom-back-btn, .bottom-edit-btn { width: 42px; height: 42px; font-size: 1.1rem; }
+            .bottom-message-card { padding: 6px 14px; }
+            .bottom-message-icon { width: 34px; height: 34px; }
+            .bottom-message-text h4 { font-size: 0.75rem; }
+            .bottom-message-text p { font-size: 0.55rem; }
+            .profile-username { font-size: 1.8rem; }
             .distance-badge { font-size: 0.75rem; padding: 0.35rem 0.9rem; }
+            .toggle-btn { padding: 9px 22px; font-size: 0.85rem; }
         }
         @media (min-width: 900px) {
             .photo-container { max-width: 500px; }
-            .info-section { max-width: 500px; }
+            .profile-info { max-width: 500px; }
             .bottom-nav-fixed { max-width: 600px; }
         }
     </style>
 </head>
 <body>
-    <div class="main-wrapper">
-        <div class="scrollable-content">
+    <div class="profile-container">
+        <div class="profile-card">
             <div class="photo-container">
                 <div class="toggle-section">
                     <div class="toggle-btn active" id="toggleProfileBtn" onclick="showProfilePhoto()">
@@ -234,13 +292,13 @@
                     </div>
                     <div class="toggle-btn" id="toggleGalleryBtn" onclick="showGallery()">
                         <i class="fas fa-images"></i> Gallery
-                        {% if profile_user.photos_list %}<span style="font-size: 0.65rem;">({{ profile_user.photos_list|length }})</span>{% endif %}
+                        {% if user.photos_list %}<span style="font-size: 0.65rem;">({{ user.photos_list|length }})</span>{% endif %}
                     </div>
                 </div>
                 
                 <div id="profileImageContainer" class="profile-image-container">
-                    {% if profile_user.profile_pic %}
-                    <img src="{{ profile_user.profile_pic }}" class="profile-photo" alt="{{ profile_user.username }}">
+                    {% if user.profile_pic %}
+                    <img src="{{ user.profile_pic }}" class="profile-photo" alt="{{ user.username }}">
                     {% else %}
                     <div class="photo-placeholder">
                         <i class="fas fa-user-circle"></i>
@@ -248,22 +306,29 @@
                     </div>
                     {% endif %}
                     
+                    <a href="{{ url_for('edit_profile') }}" class="edit-photo-icon">
+                        <i class="fas fa-camera"></i>
+                    </a>
+                    {% if user.is_verified %}
+                    <span class="verification-badge"><i class="fas fa-check-circle"></i></span>
+                    {% endif %}
+                    
                     <div class="name-overlay">
                         <div class="distance-name-container">
-                            {% if distance %}
+                            {% if user.distance_display %}
                             <span class="distance-badge">
                                 <i class="fas fa-map-marker-alt"></i> 
-                                {{ distance }}
+                                {{ user.distance_display }}
                             </span>
                             {% endif %}
-                            <h1 class="profile-username">{{ profile_user.username }}</h1>
+                            <h1 class="profile-username">{{ user.username }}</h1>
                         </div>
                     </div>
                 </div>
                 
                 <div id="galleryContainer" class="gallery-grid hidden">
-                    {% if profile_user.photos_list %}
-                        {% for photo in profile_user.photos_list %}
+                    {% if user.photos_list %}
+                        {% for photo in user.photos_list %}
                         <div class="gallery-item">
                             <img src="{{ photo }}" alt="Gallery photo" onclick="openLightbox(this.src)">
                         </div>
@@ -272,78 +337,64 @@
                         <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; width: 100%;">
                             <i class="fas fa-images" style="font-size: 2.5rem; opacity: 0.5;"></i>
                             <p style="margin-top: 10px; font-size: 0.8rem;">No photos in gallery</p>
+                            <a href="{{ url_for('edit_profile') }}" style="color: #667eea; text-decoration: none; font-size: 0.7rem;">Add photos</a>
                         </div>
                     {% endif %}
                 </div>
             </div>
             
-            <div class="info-section">
-                <div class="stats-row">
-                    <div class="stat-card">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>{% if profile_user.age %}{{ profile_user.age }} years{% else %}Age not set{% endif %}</span>
-                    </div>
-                    <div class="stat-card">
-                        <i class="fas fa-venus-mars"></i>
-                        <span>{{ profile_user.gender|capitalize if profile_user.gender else 'Not specified' }}</span>
-                    </div>
+            <div class="profile-info">
+                <div class="profile-stats">
+                    <div class="stat-item"><i class="fas fa-calendar-alt"></i> <span>{% if user.age %}{{ user.age }}y{% else %}?{% endif %}</span></div>
+                    <div class="stat-item"><i class="fas fa-venus-mars"></i> <span>{{ user.gender|capitalize if user.gender else '?' }}</span></div>
                 </div>
                 
-                <div class="status-card {% if profile_user.is_online %}online{% else %}offline{% endif %}">
+                <div class="status-badge {% if user.is_online %}online{% else %}offline{% endif %}">
                     <span class="status-dot"></span>
-                    {% if profile_user.is_online %}
-                    <i class="fas fa-circle" style="font-size: 0.5rem;"></i> Online now
-                    {% else %}
-                    <i class="fas fa-clock"></i> Last seen {{ profile_user.last_seen_formatted }}
-                    {% endif %}
+                    {% if user.is_online %}Online{% else %}Last seen {{ user.last_seen_formatted }}{% endif %}
                 </div>
                 
                 <div class="profile-section">
                     <h3><i class="fas fa-edit"></i> About</h3>
                     <div class="bio-content">
-                        {% if profile_user.bio %}
-                        <p>{{ profile_user.bio }}</p>
-                        {% else %}
-                        <p class="text-muted"><i class="fas fa-quote-left"></i> No bio yet</p>
-                        {% endif %}
+                        {% if user.bio %}<p>{{ user.bio }}</p>{% else %}<p class="text-muted">No bio yet. <a href="{{ url_for('edit_profile') }}">Add</a></p>{% endif %}
                     </div>
                 </div>
                 
                 <div class="profile-section">
                     <h3><i class="fas fa-tags"></i> Interests</h3>
                     <div class="interests-container">
-                        {% if profile_user.interests_list %}
-                            {% for interest in profile_user.interests_list %}
-                            <span class="interest-tag">{{ interest }}</span>
-                            {% endfor %}
-                        {% else %}
-                        <p class="text-muted"><i class="fas fa-heart-broken"></i> No interests listed</p>
-                        {% endif %}
+                        {% if user.interests_list %}
+                            {% for interest in user.interests_list %}<span class="interest-tag">{{ interest }}</span>{% endfor %}
+                        {% else %}<p class="text-muted">No interests. <a href="{{ url_for('edit_profile') }}">Add</a></p>{% endif %}
                     </div>
                 </div>
                 
-                <div class="action-buttons">
-                    <a href="{{ url_for('audio_call', user_id=profile_user.id) }}" class="btn-audio"><i class="fas fa-phone"></i> Audio Call</a>
-                    <a href="{{ url_for('video_call', user_id=profile_user.id) }}" class="btn-call"><i class="fas fa-video"></i> Video Call</a>
+                <div class="profile-section">
+                    <h3><i class="fas fa-microphone-alt"></i> Voice</h3>
+                    <div class="voice-intro-placeholder"><i class="fas fa-headphones"></i><p>Coming soon</p></div>
                 </div>
             </div>
         </div>
     </div>
     
     <div class="bottom-nav-fixed">
-        <!-- ✅ FIXED: Back button points to chat users list -->
         <a href="{{ url_for('users_chat') }}" class="bottom-back-btn">
             <i class="fas fa-arrow-left"></i>
         </a>
         
-        <div class="bottom-message-card" onclick="window.location.href='{{ url_for('chat', user_id=profile_user.id) }}'">
+        <a href="{{ url_for('edit_profile') }}" class="bottom-edit-btn">
+            <i class="fas fa-pen"></i>
+        </a>
+        
+        <div class="bottom-message-card" onclick="window.location.href='{{ url_for('users_chat') }}'">
             <div class="bottom-message-left">
                 <div class="bottom-message-icon">
-                    <i class="fas fa-comment-dots"></i>
+                    <i class="fas fa-users"></i>
                 </div>
                 <div class="bottom-message-text">
-                    <h4>Send a message</h4>
-                    <p>Say hello to {{ profile_user.username }}</p>
+                    <h4>View All Users</h4>
+                    <p>Discover new people</p>
                 </div>
             </div>
             <div class="bottom-message-arrow">
