@@ -607,8 +607,234 @@
     const currentUserId = "{{ current_user.id }}";
     const otherUserId = "{{ other_user.id }}";
     const otherUserName = "{{ other_user.username }}";
-    const socket = io();
     
+    // =============================================
+    // FIXED: Socket with credentials, singleton, cleanup
+    // =============================================
+    let socket = null;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        if (!socket) {
+            socket = io({
+                transports: ['websocket', 'polling'],
+                withCredentials: true,
+                reconnection: true,
+                reconnectionAttempts: 10,
+                reconnectionDelay: 1000,
+                timeout: 20000
+            });
+
+            // ---- Socket event listeners ----
+            socket.on('connect', function() {
+                console.log('Socket connected for private chat');
+                // join room is done on server via session
+            });
+
+            socket.on('disconnect', function() {
+                console.log('Socket disconnected');
+            });
+
+            socket.on('user_typing', function(data) {
+                if (data.user_id === otherUserId && data.is_typing) {
+                    typingUserName.textContent = otherUserName;
+                    typingIndicator.style.display = 'flex';
+                    clearTimeout(window.typingHideTimeout);
+                    window.typingHideTimeout = setTimeout(() => typingIndicator.style.display = 'none', 3000);
+                } else {
+                    typingIndicator.style.display = 'none';
+                }
+            });
+
+            socket.on('new_message', function(msg) {
+                if (msg.sender_id === otherUserId || msg.receiver_id === otherUserId) {
+                    const isMe = msg.sender_id === currentUserId;
+                    if (isMe && window.pendingMessages) {
+                        for (let tempId in window.pendingMessages) {
+                            const pending = window.pendingMessages[tempId];
+                            if (pending.type === 'text' && pending.content === msg.content) {
+                                document.querySelector(`.message[data-message-id="${tempId}"]`)?.remove();
+                                delete window.pendingMessages[tempId];
+                                break;
+                            }
+                        }
+                    }
+                    appendMessage(msg, isMe);
+                    if (msg.sender_id === otherUserId) {
+                        socket.emit('mark_read', { sender_id: otherUserId });
+                        if (Notification.permission === 'granted' && document.hidden) {
+                            new Notification(`New message from ${otherUserName}`);
+                        }
+                    }
+                }
+            });
+
+            socket.on('message_edited', function(data) {
+                const msgDiv = document.querySelector(`.message[data-message-id="${data.message_id}"] .message-text`);
+                if (msgDiv) msgDiv.innerHTML = escapeHtml(data.new_content) + '<span class="edited-badge">(edited)</span>';
+            });
+
+            socket.on('reaction_updated', function(data) {
+                updateReactionsUI(data.message_id, data.reactions);
+            });
+
+            socket.on('user_status', function(data) {
+                if (data.user_id === otherUserId) {
+                    updateOnlineStatus(data.is_online, data.last_seen);
+                }
+            });
+
+            socket.on('messages_read', function(data) {
+                if (data.sender_id === otherUserId) {
+                    document.querySelectorAll('.message.my-message').forEach(msg => {
+                        const timeSpan = msg.querySelector('.message-time');
+                        if (timeSpan && timeSpan.innerHTML.includes('fa-check')) {
+                            timeSpan.innerHTML = timeSpan.innerHTML.replace('<i class="fas fa-check"></i>', '<i class="fas fa-check-double" style="color:#34b7f1;"></i>');
+                        }
+                    });
+                }
+            });
+
+            socket.on('message_deleted', function(data) {
+                if (data.for_everyone) {
+                    const msgDiv = document.querySelector(`.message[data-message-id="${data.message_id}"] .message-bubble`);
+                    if (msgDiv) msgDiv.innerHTML = '<div class="message-text">⚠️ Deleted</div><div class="message-time"></div>';
+                } else {
+                    document.querySelector(`.message[data-message-id="${data.message_id}"]`)?.remove();
+                }
+            });
+
+            // ---- Load initial messages and start ----
+            loadInitialMessages();
+        } // end if (!socket)
+    }); // end DOMContentLoaded
+
+    // ---- Cleanup on page leave ----
+    window.addEventListener('beforeunload', function() {
+        if (socket) {
+            socket.disconnect();
+            socket = null;
+        }
+    });
+
+    // ---- All other functions (sendTextMessage, appendMessage, etc.) remain exactly as before ----
+    // They use the global `socket` variable which is now correctly initialised.
+
+    // Important: ensure sendTextMessage uses the correct receiver_id
+    function sendTextMessage() {
+        const content = messageInput.value.trim();
+        if (!content) return;
+
+        // Ensure receiver_id is a non-empty string
+        if (!otherUserId) {
+            console.error('No receiver ID!');
+            return;
+        }
+
+        const tempId = 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        const pendingMsg = {
+            id: tempId,
+            sender_id: currentUserId,
+            message_type: 'text',
+            content: content,
+            reply_to_id: replyToId,
+            reply_to_content: replyToContent,
+            created_at: new Date().toISOString(),
+            is_read: false,
+            reactions: []
+        };
+
+        const pendingDiv = createMessageElement(pendingMsg, true, true, tempId);
+        chatBox.appendChild(pendingDiv);
+        scrollToBottom('smooth');
+
+        socket.emit('send_message', {
+            receiver_id: otherUserId,
+            content: content,
+            message_type: 'text',
+            reply_to_id: replyToId
+        });
+
+        messageInput.value = '';
+        cancelReply();
+
+        window.pendingMessages = window.pendingMessages || {};
+        window.pendingMessages[tempId] = { content, type: 'text' };
+
+        setTimeout(() => {
+            const tempElement = document.querySelector(`.message[data-message-id="${tempId}"]`);
+            if (tempElement && tempElement.classList.contains('sending')) {
+                tempElement.remove();
+            }
+        }, 5000);
+    }
+
+    async function sendAudio() {
+        if (!pendingAudioBlob) return;
+        const tempId = 'temp_audio_' + Date.now();
+        const audioURL = URL.createObjectURL(pendingAudioBlob);
+        const pendingMsg = {
+            id: tempId,
+            sender_id: currentUserId,
+            message_type: 'audio',
+            content: audioURL,
+            created_at: new Date().toISOString(),
+            is_read: false,
+            reactions: []
+        };
+        const pendingDiv = createMessageElement(pendingMsg, true, true, tempId);
+        chatBox.appendChild(pendingDiv);
+        scrollToBottom('smooth');
+        const formData = new FormData();
+        formData.append('audio', pendingAudioBlob, 'voice.wav');
+        formData.append('receiver_id', otherUserId);
+        try {
+            await fetch('/upload_audio', { method: 'POST', body: formData });
+            document.querySelector(`.message[data-message-id="${tempId}"]`)?.remove();
+        } catch (error) {
+            alert('Upload failed');
+            document.querySelector(`.message[data-message-id="${tempId}"]`)?.remove();
+        }
+        URL.revokeObjectURL(audioURL);
+        pendingAudioBlob = null;
+        audioPreviewContainer.style.display = 'none';
+        previewAudio.src = '';
+    }
+
+    async function sendFile() {
+        if (!pendingFile) return;
+        const tempId = 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        const fileURL = URL.createObjectURL(pendingFile);
+        const fileType = pendingFile.type.startsWith('image/') ? 'image' : (pendingFile.type.startsWith('video/') ? 'video' : 'file');
+        const pendingMsg = {
+            id: tempId,
+            sender_id: currentUserId,
+            message_type: fileType,
+            content: fileURL,
+            created_at: new Date().toISOString(),
+            is_read: false,
+            reactions: []
+        };
+        const pendingDiv = createMessageElement(pendingMsg, true, true, tempId);
+        chatBox.appendChild(pendingDiv);
+        scrollToBottom('smooth');
+        const formData = new FormData();
+        formData.append('file', pendingFile);
+        formData.append('receiver_id', otherUserId);
+        try {
+            const res = await fetch('/upload', { method: 'POST', body: formData });
+            const result = await res.json();
+            document.querySelector(`.message[data-message-id="${tempId}"]`)?.remove();
+            if (!result.success) alert('Upload failed');
+        } catch (error) {
+            alert('Upload failed');
+            document.querySelector(`.message[data-message-id="${tempId}"]`)?.remove();
+        }
+        URL.revokeObjectURL(fileURL);
+        pendingFile = null;
+        filePreviewContainer.style.display = 'none';
+        fileInput.value = '';
+    }
+
     let replyToId = null;
     let replyToContent = null;
     let isLoadingMore = false;
@@ -620,7 +846,7 @@
     let pendingFile = null;
     let pendingAudioBlob = null;
     let mediaStream = null;
-    
+
     // Set initial status from server
     {% if other_user.is_online %}
         updateOnlineStatus(true, null);
@@ -802,115 +1028,6 @@
             showReactionModal(msg.id, e);
             clearMessageSelection();
         });
-    }
-    
-    function sendTextMessage() {
-        const content = messageInput.value.trim();
-        if (!content) return;
-        
-        const tempId = 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-        const pendingMsg = {
-            id: tempId,
-            sender_id: currentUserId,
-            message_type: 'text',
-            content: content,
-            reply_to_id: replyToId,
-            reply_to_content: replyToContent,
-            created_at: new Date().toISOString(),
-            is_read: false,
-            reactions: []
-        };
-        
-        const pendingDiv = createMessageElement(pendingMsg, true, true, tempId);
-        chatBox.appendChild(pendingDiv);
-        scrollToBottom('smooth');
-        
-        socket.emit('send_message', { 
-            receiver_id: otherUserId, 
-            content: content, 
-            message_type: 'text', 
-            reply_to_id: replyToId 
-        });
-        
-        messageInput.value = '';
-        cancelReply();
-        
-        window.pendingMessages = window.pendingMessages || {};
-        window.pendingMessages[tempId] = { content, type: 'text' };
-        
-        setTimeout(() => {
-            const tempElement = document.querySelector(`.message[data-message-id="${tempId}"]`);
-            if (tempElement && tempElement.classList.contains('sending')) {
-                tempElement.remove();
-            }
-        }, 5000);
-    }
-    
-    async function sendAudio() {
-        if (!pendingAudioBlob) return;
-        const tempId = 'temp_audio_' + Date.now();
-        const audioURL = URL.createObjectURL(pendingAudioBlob);
-        const pendingMsg = {
-            id: tempId,
-            sender_id: currentUserId,
-            message_type: 'audio',
-            content: audioURL,
-            created_at: new Date().toISOString(),
-            is_read: false,
-            reactions: []
-        };
-        const pendingDiv = createMessageElement(pendingMsg, true, true, tempId);
-        chatBox.appendChild(pendingDiv);
-        scrollToBottom('smooth');
-        const formData = new FormData();
-        formData.append('audio', pendingAudioBlob, 'voice.wav');
-        formData.append('receiver_id', otherUserId);
-        try {
-            await fetch('/upload_audio', { method: 'POST', body: formData });
-            document.querySelector(`.message[data-message-id="${tempId}"]`)?.remove();
-        } catch (error) {
-            alert('Upload failed');
-            document.querySelector(`.message[data-message-id="${tempId}"]`)?.remove();
-        }
-        URL.revokeObjectURL(audioURL);
-        pendingAudioBlob = null;
-        audioPreviewContainer.style.display = 'none';
-        previewAudio.src = '';
-    }
-    
-    async function sendFile() {
-        if (!pendingFile) return;
-        const tempId = 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-        const fileURL = URL.createObjectURL(pendingFile);
-        const fileType = pendingFile.type.startsWith('image/') ? 'image' : (pendingFile.type.startsWith('video/') ? 'video' : 'file');
-        const pendingMsg = {
-            id: tempId,
-            sender_id: currentUserId,
-            message_type: fileType,
-            content: fileURL,
-            created_at: new Date().toISOString(),
-            is_read: false,
-            reactions: []
-        };
-        const pendingDiv = createMessageElement(pendingMsg, true, true, tempId);
-        chatBox.appendChild(pendingDiv);
-        scrollToBottom('smooth');
-        const formData = new FormData();
-        formData.append('file', pendingFile);
-        formData.append('receiver_id', otherUserId);
-        try {
-            const res = await fetch('/upload', { method: 'POST', body: formData });
-            const result = await res.json();
-            document.querySelector(`.message[data-message-id="${tempId}"]`)?.remove();
-            if (!result.success) alert('Upload failed');
-        } catch (error) {
-            alert('Upload failed');
-            document.querySelector(`.message[data-message-id="${tempId}"]`)?.remove();
-        }
-        URL.revokeObjectURL(fileURL);
-        pendingFile = null;
-        filePreviewContainer.style.display = 'none';
-        fileInput.value = '';
     }
     
     attachBtn.onclick = () => fileInput.click();
@@ -1099,73 +1216,6 @@
         typingTimeout = setTimeout(() => socket.emit('typing', { receiver_id: otherUserId, is_typing: false }), 1000);
     });
     
-    socket.on('user_typing', (data) => {
-        if (data.user_id === otherUserId && data.is_typing) {
-            typingUserName.textContent = otherUserName;
-            typingIndicator.style.display = 'flex';
-            clearTimeout(window.typingHideTimeout);
-            window.typingHideTimeout = setTimeout(() => typingIndicator.style.display = 'none', 3000);
-        } else {
-            typingIndicator.style.display = 'none';
-        }
-    });
-    
-    socket.on('new_message', (msg) => {
-        if (msg.sender_id === otherUserId || msg.receiver_id === otherUserId) {
-            const isMe = msg.sender_id === currentUserId;
-            if (isMe && window.pendingMessages) {
-                for (let tempId in window.pendingMessages) {
-                    const pending = window.pendingMessages[tempId];
-                    if (pending.type === 'text' && pending.content === msg.content) {
-                        document.querySelector(`.message[data-message-id="${tempId}"]`)?.remove();
-                        delete window.pendingMessages[tempId];
-                        break;
-                    }
-                }
-            }
-            appendMessage(msg, isMe);
-            if (msg.sender_id === otherUserId) {
-                socket.emit('mark_read', { sender_id: otherUserId });
-                if (Notification.permission === 'granted' && document.hidden) {
-                    new Notification(`New message from ${otherUserName}`);
-                }
-            }
-        }
-    });
-    
-    socket.on('message_edited', (data) => {
-        const msgDiv = document.querySelector(`.message[data-message-id="${data.message_id}"] .message-text`);
-        if (msgDiv) msgDiv.innerHTML = escapeHtml(data.new_content) + '<span class="edited-badge">(edited)</span>';
-    });
-    
-    socket.on('reaction_updated', (data) => updateReactionsUI(data.message_id, data.reactions));
-    
-    socket.on('user_status', data => {
-        if (data.user_id === otherUserId) {
-            updateOnlineStatus(data.is_online, data.last_seen);
-        }
-    });
-    
-    socket.on('messages_read', data => {
-        if (data.sender_id === otherUserId) {
-            document.querySelectorAll('.message.my-message').forEach(msg => {
-                const timeSpan = msg.querySelector('.message-time');
-                if (timeSpan && timeSpan.innerHTML.includes('fa-check')) {
-                    timeSpan.innerHTML = timeSpan.innerHTML.replace('<i class="fas fa-check"></i>', '<i class="fas fa-check-double" style="color:#34b7f1;"></i>');
-                }
-            });
-        }
-    });
-    
-    socket.on('message_deleted', (data) => {
-        if (data.for_everyone) {
-            const msgDiv = document.querySelector(`.message[data-message-id="${data.message_id}"] .message-bubble`);
-            if (msgDiv) msgDiv.innerHTML = '<div class="message-text">⚠️ Deleted</div><div class="message-time"></div>';
-        } else {
-            document.querySelector(`.message[data-message-id="${data.message_id}"]`)?.remove();
-        }
-    });
-    
     function sendReadReceipt() { socket.emit('mark_read', { sender_id: otherUserId }); }
     sendReadReceipt();
     chatBox.addEventListener('scroll', () => {
@@ -1178,7 +1228,13 @@
     audioCallBtn.onclick = () => window.location.href = `/audio-call/${otherUserId}`;
     videoCallBtn.onclick = () => window.location.href = `/video-call/${otherUserId}`;
     
-    loadInitialMessages();
+    // Note: loadInitialMessages is now called inside DOMContentLoaded after socket init
+    // but we also call it if for some reason it wasn't called (legacy)
+    // To avoid duplicates, we check if messages already loaded.
+    // Actually we already call loadInitialMessages inside DOMContentLoaded, so we don't need it again.
+    // However, if the script runs after DOMContentLoaded (e.g., deferred), we ensure it runs.
+    // But we already have it inside DOMContentLoaded, so we keep it there.
+    
     if (Notification.permission === 'default') Notification.requestPermission();
 </script>
 <script src="{{ url_for('static', filename='js/call-notification.js') }}"></script>

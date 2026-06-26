@@ -516,6 +516,9 @@
 
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
+        // =============================================
+        // FIXED: Socket with credentials, singleton, cleanup
+        // =============================================
         let socket = null;
         let isLoggingOut = false;
         let currentLocation = null;
@@ -620,53 +623,8 @@
         
         function initSocket() {
             if (socket && socket.connected) return socket;
-            socket = io({ autoConnect: false, reconnection: false });
-            socket.on('connect', () => {
-                if (!isLoggingOut && currentLocation) socket.emit('location_update', currentLocation);
-            });
-            socket.on('nearby_users_update', (data) => {
-                if (data.users) updateUsersDistance(data.users);
-            });
-            socket.on('user_status', (data) => {
-                const card = document.querySelector(`.user-card[data-user-id="${data.user_id}"]`);
-                if (card) {
-                    const indicator = card.querySelector('.online-indicator');
-                    const lastseenDiv = card.querySelector('.user-lastseen');
-                    if (data.is_online) {
-                        indicator.classList.remove('offline');
-                        indicator.classList.add('online');
-                        if (lastseenDiv) {
-                            lastseenDiv.innerHTML = `<i class="fas fa-circle online-text" style="font-size:5px;"></i><span class="online-text">● Online now</span>`;
-                        }
-                    } else {
-                        indicator.classList.remove('online');
-                        indicator.classList.add('offline');
-                        if (lastseenDiv && data.last_seen) {
-                            const formattedDateTime = formatLastSeenDateTime(data.last_seen);
-                            lastseenDiv.innerHTML = `<i class="fas fa-clock offline-text" style="font-size:5px;"></i><span class="offline-text status-datetime">${formattedDateTime}</span>`;
-                            const spanEl = lastseenDiv.querySelector('.status-datetime');
-                            if (spanEl) spanEl.setAttribute('data-lastseen', data.last_seen);
-                        }
-                    }
-                }
-            });
-            socket.on('unread_update', (data) => {
-                const card = document.querySelector(`.user-card[data-user-id="${data.sender_id}"]`);
-                if (card) {
-                    let badge = card.querySelector('.unread-badge');
-                    if (data.count > 0) {
-                        if (badge) badge.textContent = data.count;
-                        else { 
-                            const newBadge = document.createElement('div'); 
-                            newBadge.className = 'unread-badge'; 
-                            newBadge.textContent = data.count; 
-                            card.appendChild(newBadge); 
-                        }
-                    } else if (badge) badge.remove();
-                }
-            });
-            socket.on('call_ended', () => showToast('Call ended'));
-            return socket;
+            // Socket created inside DOMContentLoaded
+            // We'll handle socket events there
         }
         
         function updateUsersDistance(users) {
@@ -724,13 +682,74 @@
         }
         
         document.addEventListener('DOMContentLoaded', function() {
+            // ---- Socket initialisation ----
+            if (!socket) {
+                socket = io({
+                    transports: ['websocket', 'polling'],
+                    withCredentials: true,
+                    reconnection: true,
+                    reconnectionAttempts: 10,
+                    reconnectionDelay: 1000,
+                    timeout: 20000
+                });
+
+                socket.on('connect', function() {
+                    console.log('Socket connected for users page');
+                    if (currentLocation) {
+                        socket.emit('location_update', currentLocation);
+                    }
+                });
+                socket.on('nearby_users_update', function(data) {
+                    if (data.users) updateUsersDistance(data.users);
+                });
+                socket.on('user_status', function(data) {
+                    const card = document.querySelector(`.user-card[data-user-id="${data.user_id}"]`);
+                    if (card) {
+                        const indicator = card.querySelector('.online-indicator');
+                        const lastseenDiv = card.querySelector('.user-lastseen');
+                        if (data.is_online) {
+                            indicator.classList.remove('offline');
+                            indicator.classList.add('online');
+                            if (lastseenDiv) {
+                                lastseenDiv.innerHTML = `<i class="fas fa-circle online-text" style="font-size:5px;"></i><span class="online-text">● Online now</span>`;
+                            }
+                        } else {
+                            indicator.classList.remove('online');
+                            indicator.classList.add('offline');
+                            if (lastseenDiv && data.last_seen) {
+                                const formattedDateTime = formatLastSeenDateTime(data.last_seen);
+                                lastseenDiv.innerHTML = `<i class="fas fa-clock offline-text" style="font-size:5px;"></i><span class="offline-text status-datetime">${formattedDateTime}</span>`;
+                                const spanEl = lastseenDiv.querySelector('.status-datetime');
+                                if (spanEl) spanEl.setAttribute('data-lastseen', data.last_seen);
+                            }
+                        }
+                    }
+                });
+                socket.on('unread_update', function(data) {
+                    const card = document.querySelector(`.user-card[data-user-id="${data.sender_id}"]`);
+                    if (card) {
+                        let badge = card.querySelector('.unread-badge');
+                        if (data.count > 0) {
+                            if (badge) badge.textContent = data.count;
+                            else { 
+                                const newBadge = document.createElement('div'); 
+                                newBadge.className = 'unread-badge'; 
+                                newBadge.textContent = data.count; 
+                                card.appendChild(newBadge); 
+                            }
+                        } else if (badge) badge.remove();
+                    }
+                });
+                socket.on('call_ended', function() {
+                    showToast('Call ended');
+                });
+            } // end if
+
+            // ---- Initial location and filters ----
             const urlParams = new URLSearchParams(window.location.search);
             const hasLocation = urlParams.has('lat') && urlParams.has('lng');
             
             updateAllStatusDisplays();
-            
-            window.socket = initSocket();
-            window.socket.connect();
             
             const prompt = document.getElementById('locationPrompt');
             if (!hasLocation && !isLoggingOut) {
@@ -779,9 +798,13 @@
             
             sortUsersByDistance();
         });
-        
-        window.addEventListener('beforeunload', () => {
-            if (socket && socket.connected) { socket.off(); socket.disconnect(); }
+
+        window.addEventListener('beforeunload', function() {
+            if (socket && socket.connected) {
+                socket.off();
+                socket.disconnect();
+                socket = null;
+            }
         });
     </script>
 </body>

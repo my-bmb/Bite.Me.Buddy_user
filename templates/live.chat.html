@@ -655,8 +655,91 @@
     
     const currentUserId = "{{ current_user.id }}";
     const currentUserName = "{{ current_user.username }}";
-    const socket = io();
     
+    // =============================================
+    // FIXED: Socket with credentials, singleton, cleanup
+    // =============================================
+    let socket = null;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        if (!socket) {
+            socket = io({
+                transports: ['websocket', 'polling'],
+                withCredentials: true,
+                reconnection: true,
+                reconnectionAttempts: 10,
+                reconnectionDelay: 1000,
+                timeout: 20000
+            });
+
+            socket.on('connect', function() {
+                console.log('Connected to live chat');
+                socket.emit('join_live_chat');
+            });
+
+            socket.on('connect_error', function(error) {
+                console.error('Socket connection error:', error);
+            });
+
+            socket.on('live_message', function(msg) {
+                const isMe = msg.sender_id === currentUserId;
+                appendMessage(msg, isMe);
+            });
+
+            socket.on('live_user_join_leave', function(notification) {
+                addSystemMessage(notification.message);
+                if (notification.type === 'join') {
+                    onlineCount++;
+                    updateOnlineCount(onlineCount);
+                } else if (notification.type === 'leave') {
+                    onlineCount--;
+                    updateOnlineCount(onlineCount);
+                }
+            });
+
+            socket.on('live_typing_indicator', function(data) {
+                if (data.is_typing) {
+                    typingUserName.textContent = data.user_name;
+                    typingIndicator.style.display = 'flex';
+                    clearTimeout(window.typingHideTimeout);
+                    window.typingHideTimeout = setTimeout(() => typingIndicator.style.display = 'none', 2000);
+                } else if (typingUserName.textContent === data.user_name) {
+                    typingIndicator.style.display = 'none';
+                }
+            });
+
+            socket.on('live_message_edited', function(data) {
+                const msgText = document.querySelector(`.message[data-message-id="${data.message_id}"] .message-text`);
+                if (msgText) {
+                    msgText.innerHTML = escapeHtml(data.new_content) + '<span class="edited-badge">(edited)</span>';
+                }
+            });
+
+            socket.on('live_message_deleted', function(data) {
+                if (data.for_everyone) {
+                    const msgDiv = document.querySelector(`.message[data-message-id="${data.message_id}"] .message-bubble`);
+                    if (msgDiv) msgDiv.innerHTML = '<div class="message-text">⚠️ This message was deleted</div><div class="message-time"></div>';
+                } else if (data.user_id === currentUserId) {
+                    document.querySelector(`.message[data-message-id="${data.message_id}"]`)?.remove();
+                }
+            });
+
+            socket.on('live_reaction_updated', function(data) {
+                updateReactionsUI(data.message_id, data.reactions);
+            });
+
+            // ---- Load initial messages ----
+            loadInitialMessages();
+        } // end if
+    });
+
+    window.addEventListener('beforeunload', function() {
+        if (socket) {
+            socket.disconnect();
+            socket = null;
+        }
+    });
+
     let replyToId = null;
     let replyToContent = null;
     let isLoadingMore = false;
@@ -1199,63 +1282,6 @@
         typingTimeout = setTimeout(() => socket.emit('live_typing', { is_typing: false }), 1000);
     });
     
-    // Socket Events
-    socket.on('connect', () => {
-        console.log('Connected to live chat');
-        socket.emit('join_live_chat');
-    });
-    
-    socket.on('connect_error', (error) => {
-        console.error('Socket connection error:', error);
-    });
-    
-    socket.on('live_message', (msg) => {
-        const isMe = msg.sender_id === currentUserId;
-        appendMessage(msg, isMe);
-    });
-    
-    socket.on('live_user_join_leave', (notification) => {
-        addSystemMessage(notification.message);
-        if (notification.type === 'join') {
-            onlineCount++;
-            updateOnlineCount(onlineCount);
-        } else if (notification.type === 'leave') {
-            onlineCount--;
-            updateOnlineCount(onlineCount);
-        }
-    });
-    
-    socket.on('live_typing_indicator', (data) => {
-        if (data.is_typing) {
-            typingUserName.textContent = data.user_name;
-            typingIndicator.style.display = 'flex';
-            clearTimeout(window.typingHideTimeout);
-            window.typingHideTimeout = setTimeout(() => typingIndicator.style.display = 'none', 2000);
-        } else if (typingUserName.textContent === data.user_name) {
-            typingIndicator.style.display = 'none';
-        }
-    });
-    
-    socket.on('live_message_edited', (data) => {
-        const msgText = document.querySelector(`.message[data-message-id="${data.message_id}"] .message-text`);
-        if (msgText) {
-            msgText.innerHTML = escapeHtml(data.new_content) + '<span class="edited-badge">(edited)</span>';
-        }
-    });
-    
-    socket.on('live_message_deleted', (data) => {
-        if (data.for_everyone) {
-            const msgDiv = document.querySelector(`.message[data-message-id="${data.message_id}"] .message-bubble`);
-            if (msgDiv) msgDiv.innerHTML = '<div class="message-text">⚠️ This message was deleted</div><div class="message-time"></div>';
-        } else if (data.user_id === currentUserId) {
-            document.querySelector(`.message[data-message-id="${data.message_id}"]`)?.remove();
-        }
-    });
-    
-    socket.on('live_reaction_updated', (data) => {
-        updateReactionsUI(data.message_id, data.reactions);
-    });
-    
     sendBtn.onclick = sendTextMessage;
     messageInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendTextMessage(); });
     
@@ -1273,7 +1299,6 @@
     });
     
     updateOnlineCount(onlineCount);
-    loadInitialMessages();
     
     if (Notification.permission === 'default') Notification.requestPermission();
 </script>

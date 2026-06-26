@@ -574,15 +574,155 @@
         const toastMsg = document.getElementById('toastMsg');
         const loadingOverlay = document.getElementById('loadingOverlay');
         const inviteBtn = document.getElementById('inviteBtn');
-        
-        // Socket connection
-        const socket = io({
-            reconnection: true,
-            reconnectionAttempts: 10,
-            reconnectionDelay: 1000,
-            timeout: 20000
+
+        // =============================================
+        // FIXED: Socket with credentials, singleton, cleanup
+        // =============================================
+        let socket = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!socket) {
+                socket = io({
+                    transports: ['websocket', 'polling'],
+                    withCredentials: true,
+                    reconnection: true,
+                    reconnectionAttempts: 10,
+                    reconnectionDelay: 1000,
+                    timeout: 20000
+                });
+
+                // ---- Socket event listeners ----
+                socket.on('connect', function() {
+                    console.log('Socket connected for group call');
+                    updateConnectionStatus('Connected');
+                    if (callId) {
+                        socket.emit('join_group_call_room', { call_id: callId });
+                    }
+                    initCall();
+                });
+
+                socket.on('user_joined_call', async function(data) {
+                    console.log('User joined:', data.user_name);
+                    
+                    if (data.user_id !== currentUserId && !peerConnections[data.user_id]) {
+                        const pc = await createPeerConnection(data.user_id, data.user_name);
+                        addRemoteVideo(data.user_id, data.user_name);
+                        
+                        const offer = await pc.createOffer();
+                        await pc.setLocalDescription(offer);
+                        
+                        socket.emit('group_call_offer', {
+                            target_id: data.user_id,
+                            call_id: callId,
+                            offer: offer
+                        });
+                    }
+                    
+                    updateParticipantsList();
+                });
+
+                socket.on('user_left_call', function(data) {
+                    console.log('User left:', data.user_name);
+                    removeRemoteVideo(data.user_id);
+                    if (peerConnections[data.user_id]) {
+                        peerConnections[data.user_id].pc.close();
+                        delete peerConnections[data.user_id];
+                    }
+                    updateParticipantsList();
+                });
+
+                socket.on('group_call_offer_received', async function(data) {
+                    if (data.from_id !== currentUserId && !peerConnections[data.from_id]) {
+                        const pc = await createPeerConnection(data.from_id, data.from_name);
+                        addRemoteVideo(data.from_id, data.from_name);
+                        
+                        await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+                        const answer = await pc.createAnswer();
+                        await pc.setLocalDescription(answer);
+                        
+                        socket.emit('group_call_answer', {
+                            target_id: data.from_id,
+                            call_id: callId,
+                            answer: answer
+                        });
+                    }
+                });
+
+                socket.on('group_call_answer_received', async function(data) {
+                    if (peerConnections[data.from_id]) {
+                        await peerConnections[data.from_id].pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                    }
+                });
+
+                socket.on('group_call_ice_received', async function(data) {
+                    if (peerConnections[data.from_id] && data.candidate) {
+                        try {
+                            await peerConnections[data.from_id].pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                        } catch(e) {
+                            console.log('ICE candidate error:', e);
+                        }
+                    }
+                });
+
+                socket.on('participant_left', function(data) {
+                    removeRemoteVideo(data.user_id);
+                    if (peerConnections[data.user_id]) {
+                        peerConnections[data.user_id].pc.close();
+                        delete peerConnections[data.user_id];
+                    }
+                    updateParticipantsList();
+                });
+
+                socket.on('group_call_ended', function() {
+                    showToast('Call ended', 2000);
+                    endCall();
+                });
+
+                socket.on('participant_video_toggle', function(data) {
+                    const icon = document.getElementById(`remoteVideoIcon_${data.user_id}`);
+                    if (icon) {
+                        icon.style.opacity = data.video_enabled ? '1' : '0.5';
+                        icon.style.color = data.video_enabled ? 'white' : '#e11d48';
+                    }
+                });
+
+                socket.on('participant_audio_toggle', function(data) {
+                    const icon = document.getElementById(`remoteAudioIcon_${data.user_id}`);
+                    if (icon) {
+                        icon.style.opacity = data.audio_enabled ? '1' : '0.5';
+                        icon.style.color = data.audio_enabled ? 'white' : '#e11d48';
+                    }
+                });
+
+                // ---- Create or join call ----
+                if (!callId) {
+                    fetch('/api/group-call/create', { method: 'POST' })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                callId = data.call_id;
+                                window.history.pushState({}, '', `/group-video-call/join/${callId}`);
+                                socket.emit('join_group_call_room', { call_id: callId });
+                                initCall();
+                            }
+                        });
+                } else {
+                    socket.on('connect', function() {
+                        socket.emit('join_group_call_room', { call_id: callId });
+                    });
+                    initCall();
+                }
+            } // end if (!socket)
+        }); // end DOMContentLoaded
+
+        window.addEventListener('beforeunload', function() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
         });
-        
+
+        // ---- All other functions (same as before) ----
         function showToast(message, duration = 2000) {
             toastMsg.innerText = message;
             toastMsg.style.display = 'block';
@@ -771,106 +911,6 @@
             socket.emit('join_group_call_room', { call_id: callId });
         }
         
-        // Socket Events
-        socket.on('connect', () => {
-            console.log('Socket connected');
-            updateConnectionStatus('Connected');
-            initCall();
-        });
-        
-        socket.on('user_joined_call', async (data) => {
-            console.log('User joined:', data.user_name);
-            
-            if (data.user_id !== currentUserId && !peerConnections[data.user_id]) {
-                const pc = await createPeerConnection(data.user_id, data.user_name);
-                addRemoteVideo(data.user_id, data.user_name);
-                
-                const offer = await pc.createOffer();
-                await pc.setLocalDescription(offer);
-                
-                socket.emit('group_call_offer', {
-                    target_id: data.user_id,
-                    call_id: callId,
-                    offer: offer
-                });
-            }
-            
-            updateParticipantsList();
-        });
-        
-        socket.on('user_left_call', (data) => {
-            console.log('User left:', data.user_name);
-            removeRemoteVideo(data.user_id);
-            if (peerConnections[data.user_id]) {
-                peerConnections[data.user_id].pc.close();
-                delete peerConnections[data.user_id];
-            }
-            updateParticipantsList();
-        });
-        
-        socket.on('group_call_offer_received', async (data) => {
-            if (data.from_id !== currentUserId && !peerConnections[data.from_id]) {
-                const pc = await createPeerConnection(data.from_id, data.from_name);
-                addRemoteVideo(data.from_id, data.from_name);
-                
-                await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
-                const answer = await pc.createAnswer();
-                await pc.setLocalDescription(answer);
-                
-                socket.emit('group_call_answer', {
-                    target_id: data.from_id,
-                    call_id: callId,
-                    answer: answer
-                });
-            }
-        });
-        
-        socket.on('group_call_answer_received', async (data) => {
-            if (peerConnections[data.from_id]) {
-                await peerConnections[data.from_id].pc.setRemoteDescription(new RTCSessionDescription(data.answer));
-            }
-        });
-        
-        socket.on('group_call_ice_received', async (data) => {
-            if (peerConnections[data.from_id] && data.candidate) {
-                try {
-                    await peerConnections[data.from_id].pc.addIceCandidate(new RTCIceCandidate(data.candidate));
-                } catch(e) {
-                    console.log('ICE candidate error:', e);
-                }
-            }
-        });
-        
-        socket.on('participant_left', (data) => {
-            removeRemoteVideo(data.user_id);
-            if (peerConnections[data.user_id]) {
-                peerConnections[data.user_id].pc.close();
-                delete peerConnections[data.user_id];
-            }
-            updateParticipantsList();
-        });
-        
-        socket.on('group_call_ended', () => {
-            showToast('Call ended', 2000);
-            endCall();
-        });
-        
-        socket.on('participant_video_toggle', (data) => {
-            const icon = document.getElementById(`remoteVideoIcon_${data.user_id}`);
-            if (icon) {
-                icon.style.opacity = data.video_enabled ? '1' : '0.5';
-                icon.style.color = data.video_enabled ? 'white' : '#e11d48';
-            }
-        });
-        
-        socket.on('participant_audio_toggle', (data) => {
-            const icon = document.getElementById(`remoteAudioIcon_${data.user_id}`);
-            if (icon) {
-                icon.style.opacity = data.audio_enabled ? '1' : '0.5';
-                icon.style.color = data.audio_enabled ? 'white' : '#e11d48';
-            }
-        });
-        
         // Control functions
         function toggleAudio() {
             if (localStream) {
@@ -1040,7 +1080,7 @@
             document.body.appendChild(tooltip);
             setTimeout(() => tooltip.remove(), 2000);
         }
-        
+
         // Event listeners
         toggleAudioBtn.addEventListener('click', toggleAudio);
         toggleVideoBtn.addEventListener('click', toggleVideo);
@@ -1061,26 +1101,6 @@
                 participantsSidebar.classList.remove('show');
             }
         });
-        
-        // Initialize
-        if (!callId) {
-            fetch('/api/group-call/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            }).then(res => res.json()).then(data => {
-                if (data.success) {
-                    callId = data.call_id;
-                    window.history.pushState({}, '', `/group-video-call/join/${callId}`);
-                    socket.emit('join_group_call_room', { call_id: callId });
-                    initCall();
-                }
-            });
-        } else {
-            socket.on('connect', () => {
-                socket.emit('join_group_call_room', { call_id: callId });
-            });
-            initCall();
-        }
     </script>
 </body>
 </html>

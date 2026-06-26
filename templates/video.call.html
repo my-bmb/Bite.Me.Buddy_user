@@ -696,15 +696,152 @@
             } catch(e) {}
         }
 
-        // Socket connection
-        const socket = io({
-            reconnection: true,
-            reconnectionAttempts: 10,
-            reconnectionDelay: 1000,
-            timeout: 20000
+        // =============================================
+        // FIXED: Socket with credentials, singleton, cleanup
+        // =============================================
+        let socket = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!socket) {
+                socket = io({
+                    reconnection: true,
+                    reconnectionAttempts: 10,
+                    reconnectionDelay: 1000,
+                    timeout: 20000,
+                    transports: ['websocket', 'polling'],
+                    withCredentials: true
+                });
+
+                // ---- Socket events ----
+                socket.on('connect', async function() {
+                    debugLog('Socket connected: ' + socket.id);
+                    updateConnectionStatus('Connected to server');
+                    
+                    await detectNetworkQuality();
+                    
+                    if (pendingOfferData && !isCallActive) {
+                        acceptIncomingCall(pendingOfferData.callerId, pendingOfferData.offer);
+                        pendingOfferData = null;
+                    } else if (isCaller && !isCallActive) {
+                        initiateCall();
+                    } else if (!isCaller && !pendingOfferData && !isCallActive) {
+                        updateConnectionStatus('Waiting for call');
+                    }
+                });
+                
+                socket.on('disconnect', function() {
+                    debugLog('Socket disconnected');
+                    if (isCallActive) {
+                        showToast('Connection lost', 1500);
+                        endCallInternal(true);
+                    }
+                });
+                
+                socket.on('incoming_call', function(data) {
+                    debugLog('Incoming call from: ' + data.caller_id);
+                    
+                    if (data.caller_id === otherUserId) {
+                        callerNameSpan.innerText = data.caller_name || 'User';
+                        incomingPopup.style.display = 'flex';
+                        playRingtone();
+                        
+                        acceptCallBtn.onclick = function() {
+                            debugLog('Accepting call');
+                            acceptIncomingCall(data.caller_id, data.offer);
+                        };
+                        rejectCallBtn.onclick = function() {
+                            debugLog('Rejecting call');
+                            stopRingtone();
+                            socket.emit('reject_call', { caller_id: data.caller_id });
+                            incomingPopup.style.display = 'none';
+                            endCallInternal(true);
+                            setTimeout(() => { window.location.href = chatRedirectUrl; }, 500);
+                        };
+                    }
+                });
+                
+                socket.on('call_answered', async function(data) {
+                    debugLog('Call answered event');
+                    if (peerConnection && peerConnection.signalingState === 'have-local-offer') {
+                        await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+                        startTimer();
+                        updateConnectionStatus('Connected');
+                        startStatsMonitoring();
+                    }
+                });
+                
+                socket.on('ice_candidate', async function(data) {
+                    if (peerConnection && data.candidate) {
+                        try {
+                            await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+                            debugLog('ICE candidate added');
+                        } catch(e) {
+                            debugLog('ICE candidate error: ' + e.message);
+                        }
+                    }
+                });
+                
+                socket.on('call_ended', function() {
+                    debugLog('Remote ended call');
+                    if (isCallActive) showToast('Call ended', 1000);
+                    endCallInternal(false);
+                    setTimeout(() => { window.location.href = chatRedirectUrl; }, 800);
+                });
+                
+                socket.on('call_rejected', function() {
+                    debugLog('Call rejected by remote');
+                    showToast('Call rejected', 1000);
+                    endCallInternal(false);
+                    setTimeout(() => { window.location.href = chatRedirectUrl; }, 800);
+                });
+                
+                socket.on('call_timeout', function() {
+                    debugLog('Call timeout from server');
+                    showToast('Call timeout', 1000);
+                    endCallInternal(false);
+                    setTimeout(() => { window.location.href = chatRedirectUrl; }, 800);
+                });
+                
+                socket.on('call_error', function(err) {
+                    debugLog('Call error: ' + err.message);
+                    showToast(err.message || 'Call error', 1500);
+                    endCallInternal(false);
+                    setTimeout(() => { window.location.href = chatRedirectUrl; }, 1000);
+                });
+
+                // ---- Start call flow ----
+                if (pendingOfferData) {
+                    if (socket.connected) {
+                        acceptIncomingCall(pendingOfferData.callerId, pendingOfferData.offer);
+                        pendingOfferData = null;
+                    } else {
+                        updateConnectionStatus('Connecting to server...');
+                        socket.once('connect', function() {
+                            acceptIncomingCall(pendingOfferData.callerId, pendingOfferData.offer);
+                        });
+                    }
+                } else if (isCaller) {
+                    if (socket.connected) {
+                        initiateCall();
+                    } else {
+                        updateConnectionStatus('Connecting to server...');
+                        socket.once('connect', function() { initiateCall(); });
+                    }
+                } else {
+                    updateConnectionStatus('Ready');
+                    detectNetworkQuality();
+                }
+            } // end if (!socket)
+        }); // end DOMContentLoaded
+
+        window.addEventListener('beforeunload', function() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
         });
-        
-        // Debug logging
+
+        // ---- Debug logging ----
         function debugLog(msg) {
             const timestamp = new Date().toLocaleTimeString();
             console.log(`[${timestamp}] ${msg}`);
@@ -718,7 +855,7 @@
             }
         }
         
-        // Network detection
+        // ---- Network detection ----
         async function detectNetworkQuality() {
             return new Promise((resolve) => {
                 debugLog('Detecting network quality...');
@@ -1366,132 +1503,12 @@
             }
         });
 
-        // Socket events
-        socket.on('connect', async () => {
-            debugLog('Socket connected: ' + socket.id);
-            updateConnectionStatus('Connected to server');
-            
-            await detectNetworkQuality();
-            
-            if (pendingOfferData && !isCallActive) {
-                acceptIncomingCall(pendingOfferData.callerId, pendingOfferData.offer);
-                pendingOfferData = null;
-            } else if (isCaller && !isCallActive) {
-                initiateCall();
-            } else if (!isCaller && !pendingOfferData && !isCallActive) {
-                updateConnectionStatus('Waiting for call');
-            }
-        });
-        
-        socket.on('disconnect', () => {
-            debugLog('Socket disconnected');
-            if (isCallActive) {
-                showToast('Connection lost', 1500);
-                endCallInternal(true);
-            }
-        });
-        
-        socket.on('incoming_call', (data) => {
-            debugLog('Incoming call from: ' + data.caller_id);
-            
-            if (data.caller_id === otherUserId) {
-                callerNameSpan.innerText = data.caller_name || 'User';
-                incomingPopup.style.display = 'flex';
-                playRingtone();
-                
-                acceptCallBtn.onclick = () => {
-                    debugLog('Accepting call');
-                    acceptIncomingCall(data.caller_id, data.offer);
-                };
-                rejectCallBtn.onclick = () => {
-                    debugLog('Rejecting call');
-                    stopRingtone();
-                    socket.emit('reject_call', { caller_id: data.caller_id });
-                    incomingPopup.style.display = 'none';
-                    endCallInternal(true);
-                    setTimeout(() => { window.location.href = chatRedirectUrl; }, 500);
-                };
-            }
-        });
-        
-        socket.on('call_answered', async (data) => {
-            debugLog('Call answered event');
-            if (peerConnection && peerConnection.signalingState === 'have-local-offer') {
-                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-                startTimer();
-                updateConnectionStatus('Connected');
-                startStatsMonitoring();
-            }
-        });
-        
-        socket.on('ice_candidate', async (data) => {
-            if (peerConnection && data.candidate) {
-                try {
-                    await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-                    debugLog('ICE candidate added');
-                } catch(e) {
-                    debugLog('ICE candidate error: ' + e.message);
-                }
-            }
-        });
-        
-        socket.on('call_ended', () => {
-            debugLog('Remote ended call');
-            if (isCallActive) showToast('Call ended', 1000);
-            endCallInternal(false);
-            setTimeout(() => { window.location.href = chatRedirectUrl; }, 800);
-        });
-        
-        socket.on('call_rejected', () => {
-            debugLog('Call rejected by remote');
-            showToast('Call rejected', 1000);
-            endCallInternal(false);
-            setTimeout(() => { window.location.href = chatRedirectUrl; }, 800);
-        });
-        
-        socket.on('call_timeout', () => {
-            debugLog('Call timeout from server');
-            showToast('Call timeout', 1000);
-            endCallInternal(false);
-            setTimeout(() => { window.location.href = chatRedirectUrl; }, 800);
-        });
-        
-        socket.on('call_error', (err) => {
-            debugLog('Call error: ' + err.message);
-            showToast(err.message || 'Call error', 1500);
-            endCallInternal(false);
-            setTimeout(() => { window.location.href = chatRedirectUrl; }, 1000);
-        });
-
         // Initialize quality monitor
         qualityMonitor = new VideoWebRTCFixes.ConnectionQualityMonitor();
         qualityMonitor.start();
         
         // Initialize drag
         initDrag();
-        
-        // Start call flow
-        if (pendingOfferData) {
-            if (socket.connected) {
-                acceptIncomingCall(pendingOfferData.callerId, pendingOfferData.offer);
-                pendingOfferData = null;
-            } else {
-                updateConnectionStatus('Connecting to server...');
-                socket.once('connect', () => {
-                    acceptIncomingCall(pendingOfferData.callerId, pendingOfferData.offer);
-                });
-            }
-        } else if (isCaller) {
-            if (socket.connected) {
-                initiateCall();
-            } else {
-                updateConnectionStatus('Connecting to server...');
-                socket.once('connect', () => initiateCall());
-            }
-        } else {
-            updateConnectionStatus('Ready');
-            detectNetworkQuality();
-        }
         
         debugLog('Video call application initialized');
     </script>
