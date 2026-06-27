@@ -514,7 +514,6 @@
             <button class="action-btn" id="micBtn"><i class="fas fa-microphone"></i></button>
         </div>
         <input type="text" id="messageInput" placeholder="Type a message...">
-        <!-- Inline onclick as a safety net -->
         <button class="send-btn" id="sendBtn" 
                 onclick="window.doSendMessage();" 
                 ontouchstart="window.doSendMessage();">
@@ -822,7 +821,6 @@
         }
     });
 
-    // ========== FIXED: Delete message socket handler ==========
     socket.on('message_deleted', function(data) {
         debugLog(`message_deleted received: message_id=${data.message_id}, for_everyone=${data.for_everyone}`);
         const msgElement = document.querySelector(`.message[data-message-id="${data.message_id}"]`);
@@ -926,7 +924,6 @@
             clearMessageSelection();
         });
         
-        // ========== FIXED: delete action buttons ==========
         const deleteForMeBtn = messageDiv.querySelector('.delete-action-btn');
         if (deleteForMeBtn) {
             deleteForMeBtn.addEventListener('click', (e) => {
@@ -1123,7 +1120,7 @@
         cancelReply();
     }
 
-    // ---- FIXED: deleteMessage with fallback UI update ----
+    // ---- Delete message (with fallback) ----
     async function deleteMessage(messageId, deleteFor) {
         debugLog(`deleteMessage called: messageId=${messageId}, deleteFor=${deleteFor}`);
         if (!confirm('Delete this message?')) {
@@ -1273,8 +1270,9 @@
     let replyToId = null;
     let replyToContent = null;
     let isLoadingMore = false;
+    // ========== FIX: initial offset and hasMoreMessages ==========
     let offset = {{ messages|length }};
-    let hasMoreMessages = true;
+    let hasMoreMessages = offset >= 20; // only show if we have at least 20 messages
     let mediaRecorder = null;
     let audioChunks = [];
     let typingTimeout = null;
@@ -1372,6 +1370,7 @@
     };
     sendAudioBtn.onclick = sendAudio;
     
+    // ========== FIXED: addLoadMoreButton with hasMoreMessages ==========
     function addLoadMoreButton() {
         const existing = document.querySelector('.load-more-container');
         if (existing) existing.remove();
@@ -1379,36 +1378,66 @@
             const container = document.createElement('div');
             container.className = 'load-more-container';
             container.innerHTML = `<button class="load-more-btn" id="loadMoreBtn"><i class="fas fa-arrow-up"></i> Load Previous Messages</button>`;
-            if (chatBox.firstChild) chatBox.insertBefore(container, chatBox.firstChild);
-            else chatBox.appendChild(container);
+            if (chatBox.firstChild) {
+                chatBox.insertBefore(container, chatBox.firstChild);
+            } else {
+                chatBox.appendChild(container);
+            }
             document.getElementById('loadMoreBtn')?.addEventListener('click', loadMoreMessages);
         }
     }
     
+    // ========== FIXED: loadMoreMessages with proper error handling ==========
     async function loadMoreMessages() {
         if (isLoadingMore || !hasMoreMessages) return;
         isLoadingMore = true;
         const btn = document.getElementById('loadMoreBtn');
-        if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+        }
         const scrollPos = chatBox.scrollTop;
         try {
             const res = await fetch(`/load_more_messages?other_user_id=${otherUserId}&offset=${offset}`);
+            if (!res.ok) throw new Error('Server responded with ' + res.status);
             const older = await res.json();
             if (older && older.length) {
+                // Remove load-more container to avoid duplication
                 document.querySelector('.load-more-container')?.remove();
+                // Messages come from oldest to newest, so reverse to prepend correctly
                 older.reverse().forEach(msg => {
                     const isMe = msg.sender_id === currentUserId;
                     const div = createMessageElement(msg, isMe, false);
-                    if (chatBox.firstChild) chatBox.insertBefore(div, chatBox.firstChild);
-                    else chatBox.appendChild(div);
+                    if (chatBox.firstChild) {
+                        chatBox.insertBefore(div, chatBox.firstChild);
+                    } else {
+                        chatBox.appendChild(div);
+                    }
                 });
                 offset += older.length;
                 hasMoreMessages = older.length === 20;
+                // Re-add the load-more button if needed
                 addLoadMoreButton();
+                // Restore scroll position
                 chatBox.scrollTop = scrollPos;
-            } else { hasMoreMessages = false; addLoadMoreButton(); }
-        } catch(e) { console.error(e); }
-        isLoadingMore = false;
+            } else {
+                hasMoreMessages = false;
+                addLoadMoreButton();
+            }
+        } catch (e) {
+            console.error('Load more error:', e);
+            alert('Failed to load older messages. Please try again.');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-arrow-up"></i> Load Previous Messages';
+            }
+        } finally {
+            isLoadingMore = false;
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-arrow-up"></i> Load Previous Messages';
+            }
+        }
     }
     
     function appendMessage(msg, isMe) {
@@ -1509,6 +1538,7 @@
     debugLog('sendTextMessage function is defined: ' + (typeof sendTextMessage === 'function'));
     debugLog('window.doSendMessage is defined: ' + (typeof window.doSendMessage === 'function'));
     debugLog('sendBtn element exists: ' + (document.getElementById('sendBtn') !== null));
+    debugLog(`Initial offset=${offset}, hasMoreMessages=${hasMoreMessages}`);
 </script>
 </body>
 </html>
