@@ -631,10 +631,16 @@
             // ---- Socket event listeners ----
             socket.on('connect', function() {
                 console.log('Socket connected for private chat');
+                // Re-send any pending messages? Not implemented.
             });
 
             socket.on('disconnect', function() {
                 console.log('Socket disconnected');
+            });
+
+            socket.on('connect_error', function(err) {
+                console.error('Socket connection error:', err);
+                alert('Connection error. Please refresh.');
             });
 
             socket.on('user_typing', function(data) {
@@ -655,7 +661,7 @@
                     const isMe = msg.sender_id === currentUserId;
                     // If it's my message, remove any pending message
                     if (isMe) {
-                        // Find and remove any pending message (we only have one at a time)
+                        // Find and remove any pending message
                         for (let [tempId, element] of tempMessageMap.entries()) {
                             if (element && element.parentNode) {
                                 element.remove();
@@ -916,10 +922,20 @@
     // ---- Send text message ----
     function sendTextMessage() {
         const content = messageInput.value.trim();
-        if (!content) return;
+        if (!content) {
+            return;
+        }
 
         if (!otherUserId) {
             console.error('No receiver ID!');
+            alert('Error: Receiver not found.');
+            return;
+        }
+
+        // Check socket connection
+        if (!socket || !socket.connected) {
+            alert('Not connected to server. Please wait or refresh.');
+            console.error('Socket not connected. Cannot send message.');
             return;
         }
 
@@ -954,7 +970,8 @@
             reply_to_id: replyToId,
             temp_id: tempId
         }, (response) => {
-            // If server returns False, something went wrong
+            // This callback is called with the server's return value (True/False)
+            console.log('Server response:', response);
             if (response === false) {
                 alert('Message not sent. Please try again.');
                 if (tempMessageMap.has(tempId)) {
@@ -967,9 +984,23 @@
             sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
         });
 
+        // Fallback: if server doesn't respond within 5 seconds, remove pending and alert
+        setTimeout(() => {
+            if (tempMessageMap.has(tempId)) {
+                const el = tempMessageMap.get(tempId);
+                if (el && el.parentNode) {
+                    el.remove();
+                }
+                tempMessageMap.delete(tempId);
+                alert('Message send timeout. Please check your connection.');
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+            }
+        }, 5000);
+
         messageInput.value = '';
         cancelReply();
-        // Do NOT auto-remove; will be removed on 'message_sent' or 'new_message'
+        // Do NOT auto-remove; will be removed on 'message_sent' or 'new_message' or fallback
     }
 
     // ---- Other functions (sendAudio, sendFile, etc.) ----
