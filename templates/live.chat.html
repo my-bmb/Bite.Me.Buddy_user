@@ -7,6 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        /* ... (same CSS as before - unchanged) ... */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
             background: #e5ddd5; 
@@ -465,7 +466,6 @@
 <body>
 <div class="chat-container">
     <div class="chat-header">
-        <!-- ✅ FIXED: Back button points to chat users list -->
         <a href="{{ url_for('users_chat') }}" class="back-btn"><i class="fas fa-arrow-left"></i></a>
         <div class="live-info">
             <div class="live-name">💬 Live Chat Room</div>
@@ -582,6 +582,7 @@
 </div>
 
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='js/call-notification.js') }}"></script>
 <script>
     // ================== TIME SYSTEM ==================
     function parseUTC(utcTimestamp) {
@@ -653,14 +654,16 @@
     const replyPreviewText = document.getElementById('replyPreviewText');
     const cancelReplyBtn = document.getElementById('cancelReplyBtn');
     
-    const currentUserId = "{{ current_user.id }}";
+    // ================== FIX: Convert IDs to numbers ==================
+    const currentUserId = Number("{{ current_user.id }}");
     const currentUserName = "{{ current_user.username }}";
     
     // =============================================
-    // FIXED: Socket with credentials, singleton, cleanup
+    // Socket and temp message tracking
     // =============================================
     let socket = null;
-    
+    const tempMessageMap = new Map();
+
     document.addEventListener('DOMContentLoaded', function() {
         if (!socket) {
             socket = io({
@@ -683,6 +686,16 @@
 
             socket.on('live_message', function(msg) {
                 const isMe = msg.sender_id === currentUserId;
+                // If it's my message, remove pending message
+                if (isMe) {
+                    for (let [tempId, element] of tempMessageMap.entries()) {
+                        if (element && element.parentNode) {
+                            element.remove();
+                            tempMessageMap.delete(tempId);
+                            break;
+                        }
+                    }
+                }
                 appendMessage(msg, isMe);
             });
 
@@ -846,7 +859,8 @@
         const div = document.createElement('div');
         div.className = `message ${isMe ? 'my-message' : 'other-message'}`;
         if (isPending) div.classList.add('sending');
-        div.setAttribute('data-message-id', msg.id || tempId);
+        const msgId = msg.id || tempId;
+        div.setAttribute('data-message-id', msgId);
         
         let contentHtml = '';
         if (msg.message_type === 'text') {
@@ -978,6 +992,7 @@
     scrollToBottomBtn.addEventListener('click', () => scrollToBottom('smooth'));
     chatBox.addEventListener('scroll', checkScrollPosition);
     
+    // ---- Send text message ----
     function sendTextMessage() {
         const content = messageInput.value.trim();
         if (!content) return;
@@ -1000,6 +1015,7 @@
         
         const pendingDiv = createMessageElement(pendingMsg, true, true, tempId);
         chatBox.appendChild(pendingDiv);
+        tempMessageMap.set(tempId, pendingDiv);
         scrollToBottom('smooth');
         
         fetch('/live-chat/send', {
@@ -1011,18 +1027,37 @@
                 reply_to_id: replyToId,
                 reply_to_content: replyToContent
             })
-        }).finally(() => {
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // Real message will come via socket; pending will be removed there
+            } else {
+                alert('Message failed: ' + (data.error || 'Unknown error'));
+                if (tempMessageMap.has(tempId)) {
+                    const el = tempMessageMap.get(tempId);
+                    if (el && el.parentNode) el.remove();
+                    tempMessageMap.delete(tempId);
+                }
+            }
+        })
+        .catch(err => {
+            console.error('Send error:', err);
+            alert('Network error. Please try again.');
+            if (tempMessageMap.has(tempId)) {
+                const el = tempMessageMap.get(tempId);
+                if (el && el.parentNode) el.remove();
+                tempMessageMap.delete(tempId);
+            }
+        })
+        .finally(() => {
             sendBtn.disabled = false;
             sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
-        }).catch(err => console.error('Send error:', err));
+        });
         
         messageInput.value = '';
         cancelReply();
-        
-        setTimeout(() => {
-            const tempElement = document.querySelector(`.message[data-message-id="${tempId}"]`);
-            if (tempElement && tempElement.classList.contains('sending')) tempElement.remove();
-        }, 5000);
+        // No auto-removal; will be removed when live_message arrives
     }
     
     async function sendAudio() {
@@ -1044,16 +1079,29 @@
         };
         const pendingDiv = createMessageElement(pendingMsg, true, true, tempId);
         chatBox.appendChild(pendingDiv);
+        tempMessageMap.set(tempId, pendingDiv);
         scrollToBottom('smooth');
         
         const formData = new FormData();
         formData.append('audio', pendingAudioBlob, 'recording.webm');
         try {
-            await fetch('/live-chat/record-audio', { method: 'POST', body: formData });
-            document.querySelector(`.message[data-message-id="${tempId}"]`)?.remove();
+            const res = await fetch('/live-chat/record-audio', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (!data.success) {
+                alert('Upload failed');
+                if (tempMessageMap.has(tempId)) {
+                    const el = tempMessageMap.get(tempId);
+                    if (el && el.parentNode) el.remove();
+                    tempMessageMap.delete(tempId);
+                }
+            }
         } catch (error) {
             alert('Upload failed');
-            document.querySelector(`.message[data-message-id="${tempId}"]`)?.remove();
+            if (tempMessageMap.has(tempId)) {
+                const el = tempMessageMap.get(tempId);
+                if (el && el.parentNode) el.remove();
+                tempMessageMap.delete(tempId);
+            }
         } finally {
             sendAudioBtn.disabled = false;
             sendAudioBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
@@ -1084,18 +1132,29 @@
         };
         const pendingDiv = createMessageElement(pendingMsg, true, true, tempId);
         chatBox.appendChild(pendingDiv);
+        tempMessageMap.set(tempId, pendingDiv);
         scrollToBottom('smooth');
         
         const formData = new FormData();
         formData.append('file', pendingFile);
         try {
             const res = await fetch('/live-chat/upload', { method: 'POST', body: formData });
-            const result = await res.json();
-            document.querySelector(`.message[data-message-id="${tempId}"]`)?.remove();
-            if (!result.success) alert('Upload failed');
+            const data = await res.json();
+            if (!data.success) {
+                alert('Upload failed');
+                if (tempMessageMap.has(tempId)) {
+                    const el = tempMessageMap.get(tempId);
+                    if (el && el.parentNode) el.remove();
+                    tempMessageMap.delete(tempId);
+                }
+            }
         } catch (error) {
             alert('Upload failed');
-            document.querySelector(`.message[data-message-id="${tempId}"]`)?.remove();
+            if (tempMessageMap.has(tempId)) {
+                const el = tempMessageMap.get(tempId);
+                if (el && el.parentNode) el.remove();
+                tempMessageMap.delete(tempId);
+            }
         } finally {
             sendFileBtn.disabled = false;
             sendFileBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
