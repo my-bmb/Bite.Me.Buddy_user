@@ -270,7 +270,7 @@
         .back-btn:active { background: rgba(255,255,255,0.2); }
         .user-info { flex: 1; min-width: 0; }
         .user-name { font-weight: bold; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .user-status { font-size: 11px; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-status { font-size: 11px; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
         .user-status.online { color: #2E7D32; }
         .distance-in-chat { font-size: 10px; opacity: 0.8; display: flex; align-items: center; gap: 3px; margin-top: 1px; }
         .distance-in-chat i { font-size: 8px; }
@@ -356,6 +356,43 @@
             font-size: 1.2rem;
         }
         .scroll-to-bottom:active { transform: scale(0.95); }
+
+        .debug-panel {
+            position: fixed;
+            bottom: 70px;
+            left: 10px;
+            background: rgba(0,0,0,0.9);
+            color: #0f0;
+            font-family: monospace;
+            font-size: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            z-index: 1000;
+            max-width: 350px;
+            max-height: 200px;
+            overflow-y: auto;
+            backdrop-filter: blur(5px);
+            display: none;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border: 1px solid #333;
+        }
+        .network-badge {
+            position: fixed;
+            top: 60px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: #ccc;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-family: monospace;
+            z-index: 1000;
+        }
+        .network-badge.good { background: #10b981; color: white; }
+        .network-badge.warning { background: #f59e0b; color: black; }
+        .network-badge.bad { background: #e11d48; color: white; }
+
         @media (max-width: 480px) {
             .chat-header { height: 52px; padding: 8px 10px; }
             .chat-content { margin-top: 52px; margin-bottom: 56px; height: calc(100vh - 108px); }
@@ -374,6 +411,8 @@
             .reaction-modal button { font-size: 1.2rem; padding: 5px; }
             .scroll-to-bottom { bottom: 66px; right: 12px; width: 36px; height: 36px; font-size: 1rem; }
             .distance-in-chat { font-size: 9px; }
+            .debug-panel { max-width: 250px; max-height: 150px; font-size: 9px; bottom: 66px; left: 5px; }
+            .network-badge { top: 58px; right: 5px; font-size: 9px; }
         }
         @media (orientation: landscape) and (max-height: 500px) {
             .chat-header, .chat-footer { height: 48px; }
@@ -382,6 +421,7 @@
             .recording-state { bottom: 58px; }
             .media-image, .media-video { max-height: 130px; }
             .scroll-to-bottom { bottom: 58px; }
+            .debug-panel { bottom: 58px; }
         }
         @supports (padding-bottom: env(safe-area-inset-bottom)) {
             .chat-footer { padding-bottom: max(5px, env(safe-area-inset-bottom)); }
@@ -493,9 +533,46 @@
     <img id="modalImage" src="" alt="">
 </div>
 
+<div id="debugPanel" class="debug-panel"></div>
+<div id="networkBadge" class="network-badge">🔍 Detecting...</div>
+
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script src="{{ url_for('static', filename='js/call-notification.js') }}"></script>
 <script>
+    // ================== DEBUG LOGGING ==================
+    function debugLog(msg) {
+        const timestamp = new Date().toLocaleTimeString();
+        const logMsg = `[${timestamp}] ${msg}`;
+        console.log(logMsg);
+        const panel = document.getElementById('debugPanel');
+        if (panel) {
+            panel.style.display = 'block';
+            panel.innerHTML += `<div>${logMsg}</div>`;
+            while (panel.children.length > 20) {
+                panel.removeChild(panel.children[0]);
+            }
+            panel.scrollTop = panel.scrollHeight;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const statusDiv = document.getElementById('onlineStatus');
+        if (statusDiv) {
+            statusDiv.addEventListener('dblclick', function(e) {
+                const panel = document.getElementById('debugPanel');
+                if (panel) {
+                    if (panel.style.display === 'none' || panel.style.display === '') {
+                        panel.style.display = 'block';
+                        debugLog('Debug panel opened');
+                    } else {
+                        panel.style.display = 'none';
+                        debugLog('Debug panel closed');
+                    }
+                }
+            });
+        }
+    });
+
     // ================== TIME SYSTEM ==================
 
     function parseUTC(utcTimestamp) {
@@ -610,21 +687,30 @@
     const otherUserId = Number("{{ other_user.id }}");
     const otherUserName = "{{ other_user.username }}";
     
-    console.log('🔍 [DEBUG] Chat page loaded with:', {
-        currentUserId,
-        otherUserId,
-        otherUserName
-    });
+    debugLog(`Chat page loaded with currentUserId=${currentUserId}, otherUserId=${otherUserId}`);
 
     // =============================================
     // Socket with credentials and message tracking
     // =============================================
     let socket = null;
-    // Map temp IDs to pending message elements
     const tempMessageMap = new Map();
 
+    function detectNetworkQuality() {
+        const badge = document.getElementById('networkBadge');
+        if (!badge) return;
+        if (socket && socket.connected) {
+            badge.innerHTML = '✅ Connected';
+            badge.className = 'network-badge good';
+            debugLog('Network: Connected');
+        } else {
+            badge.innerHTML = '⚠️ Disconnected';
+            badge.className = 'network-badge warning';
+            debugLog('Network: Disconnected');
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('🔍 [DEBUG] DOMContentLoaded fired. Creating socket...');
+        debugLog('DOMContentLoaded - initializing socket...');
         if (!socket) {
             socket = io({
                 transports: ['websocket', 'polling'],
@@ -635,22 +721,24 @@
                 timeout: 20000
             });
 
-            // ---- Socket event listeners ----
             socket.on('connect', function() {
-                console.log('🔍 [DEBUG] Socket connected successfully!');
+                debugLog('Socket connected successfully!');
+                detectNetworkQuality();
             });
 
             socket.on('disconnect', function() {
-                console.log('🔍 [DEBUG] Socket disconnected');
+                debugLog('Socket disconnected');
+                detectNetworkQuality();
             });
 
             socket.on('connect_error', function(err) {
-                console.error('🔍 [DEBUG] Socket connection error:', err);
+                debugLog('Socket connection error: ' + err.message);
+                detectNetworkQuality();
                 alert('Connection error. Please refresh.');
             });
 
             socket.on('user_typing', function(data) {
-                console.log('🔍 [DEBUG] user_typing received:', data);
+                debugLog(`user_typing: user_id=${data.user_id}, is_typing=${data.is_typing}`);
                 if (data.user_id === otherUserId && data.is_typing) {
                     typingUserName.textContent = otherUserName;
                     typingIndicator.style.display = 'flex';
@@ -662,16 +750,15 @@
             });
 
             socket.on('new_message', function(msg) {
-                console.log('🔍 [DEBUG] new_message received:', msg);
+                debugLog(`new_message: id=${msg.id}, sender=${msg.sender_id}, receiver=${msg.receiver_id}, content="${msg.content.substring(0,20)}..."`);
                 if (msg.sender_id === otherUserId || msg.receiver_id === otherUserId) {
                     const isMe = msg.sender_id === currentUserId;
                     if (isMe) {
-                        // Remove pending message
                         for (let [tempId, element] of tempMessageMap.entries()) {
                             if (element && element.parentNode) {
                                 element.remove();
+                                debugLog(`Removed pending message with tempId: ${tempId}`);
                                 tempMessageMap.delete(tempId);
-                                console.log('🔍 [DEBUG] Removed pending message with tempId:', tempId);
                                 break;
                             }
                         }
@@ -687,38 +774,38 @@
             });
 
             socket.on('message_sent', function(data) {
-                console.log('🔍 [DEBUG] message_sent received:', data);
+                debugLog(`message_sent: temp_id=${data.temp_id}`);
                 const tempId = data.temp_id;
                 if (tempId && tempMessageMap.has(tempId)) {
                     const el = tempMessageMap.get(tempId);
                     if (el && el.parentNode) {
                         el.remove();
-                        console.log('🔍 [DEBUG] Removed pending message via message_sent, tempId:', tempId);
+                        debugLog(`Removed pending message via message_sent, tempId: ${tempId}`);
                     }
                     tempMessageMap.delete(tempId);
                 }
             });
 
             socket.on('message_edited', function(data) {
-                console.log('🔍 [DEBUG] message_edited received:', data);
+                debugLog(`message_edited: message_id=${data.message_id}`);
                 const msgDiv = document.querySelector(`.message[data-message-id="${data.message_id}"] .message-text`);
                 if (msgDiv) msgDiv.innerHTML = escapeHtml(data.new_content) + '<span class="edited-badge">(edited)</span>';
             });
 
             socket.on('reaction_updated', function(data) {
-                console.log('🔍 [DEBUG] reaction_updated received:', data);
+                debugLog(`reaction_updated: message_id=${data.message_id}`);
                 updateReactionsUI(data.message_id, data.reactions);
             });
 
             socket.on('user_status', function(data) {
-                console.log('🔍 [DEBUG] user_status received:', data);
+                debugLog(`user_status: user_id=${data.user_id}, is_online=${data.is_online}`);
                 if (data.user_id === otherUserId) {
                     updateOnlineStatus(data.is_online, data.last_seen);
                 }
             });
 
             socket.on('messages_read', function(data) {
-                console.log('🔍 [DEBUG] messages_read received:', data);
+                debugLog(`messages_read: sender_id=${data.sender_id}`);
                 if (data.sender_id === otherUserId) {
                     document.querySelectorAll('.message.my-message').forEach(msg => {
                         const timeSpan = msg.querySelector('.message-time');
@@ -730,7 +817,7 @@
             });
 
             socket.on('message_deleted', function(data) {
-                console.log('🔍 [DEBUG] message_deleted received:', data);
+                debugLog(`message_deleted: message_id=${data.message_id}, for_everyone=${data.for_everyone}`);
                 if (data.for_everyone) {
                     const msgDiv = document.querySelector(`.message[data-message-id="${data.message_id}"] .message-bubble`);
                     if (msgDiv) msgDiv.innerHTML = '<div class="message-text">⚠️ Deleted</div><div class="message-time"></div>';
@@ -739,12 +826,11 @@
                 }
             });
 
-            // ---- Load initial messages and start ----
             loadInitialMessages();
-        } // end if (!socket)
-    }); // end DOMContentLoaded
+            detectNetworkQuality();
+        }
+    });
 
-    // ---- Cleanup on page leave ----
     window.addEventListener('beforeunload', function() {
         if (socket) {
             socket.disconnect();
@@ -752,8 +838,7 @@
         }
     });
 
-    // ---- All other functions ----
-
+    // ---- Helper functions ----
     function escapeHtml(str) { return str ? str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])) : ''; }
 
     function createMessageElement(msg, isMe, isPending = false, tempId = null) {
@@ -908,7 +993,6 @@
         replyPreviewBar.style.display = 'none';
         messageInput.placeholder = 'Type a message...';
     }
-    
     cancelReplyBtn.onclick = cancelReply;
     
     function forceScrollToBottom() {
@@ -934,40 +1018,37 @@
     // ---- Send text message ----
     function sendTextMessage() {
         const content = messageInput.value.trim();
-        console.log('🔍 [DEBUG] sendTextMessage called with content:', content);
+        debugLog(`sendTextMessage called with content: "${content}"`);
         if (!content) {
-            console.warn('🔍 [DEBUG] Empty content, returning');
+            debugLog('Empty content, returning');
             return;
         }
 
         if (!otherUserId) {
-            console.error('🔍 [DEBUG] No receiver ID!');
+            debugLog('No receiver ID!');
             alert('Error: Receiver not found.');
             return;
         }
 
-        // Check socket connection
         if (!socket) {
-            console.error('🔍 [DEBUG] Socket is null!');
+            debugLog('Socket is null!');
             alert('Socket not initialized. Please refresh.');
             return;
         }
         if (!socket.connected) {
-            console.warn('🔍 [DEBUG] Socket not connected. Attempting to reconnect...');
+            debugLog('Socket not connected. Attempting to reconnect...');
             socket.connect();
-            // Wait a bit then try again? We'll just alert.
             alert('Not connected to server. Please wait or refresh.');
             return;
         }
 
-        console.log('🔍 [DEBUG] Socket is connected, proceeding to send.');
+        debugLog('Socket is connected, proceeding to send.');
 
-        // Disable send button
         sendBtn.disabled = true;
         sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
         const tempId = 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-        console.log('🔍 [DEBUG] Generated tempId:', tempId);
+        debugLog(`Generated tempId: ${tempId}`);
         const pendingMsg = {
             id: tempId,
             sender_id: currentUserId,
@@ -980,22 +1061,13 @@
             reactions: []
         };
 
-        // Create pending message element and store reference
         const pendingDiv = createMessageElement(pendingMsg, true, true, tempId);
         chatBox.appendChild(pendingDiv);
         tempMessageMap.set(tempId, pendingDiv);
         scrollToBottom('smooth');
-        console.log('🔍 [DEBUG] Pending message added to DOM and map.');
+        debugLog('Pending message added to DOM and map.');
 
-        // Send with temp_id so server can acknowledge
-        console.log('🔍 [DEBUG] Emitting send_message with payload:', {
-            receiver_id: otherUserId,
-            content: content,
-            message_type: 'text',
-            reply_to_id: replyToId,
-            temp_id: tempId
-        });
-
+        debugLog(`Emitting send_message with receiver_id=${otherUserId}, content="${content.substring(0,20)}...", temp_id=${tempId}`);
         socket.emit('send_message', {
             receiver_id: otherUserId,
             content: content,
@@ -1003,7 +1075,7 @@
             reply_to_id: replyToId,
             temp_id: tempId
         }, (response) => {
-            console.log('🔍 [DEBUG] Server callback response:', response);
+            debugLog(`Server callback response: ${response}`);
             if (response === false) {
                 alert('Message not sent. Please try again.');
                 if (tempMessageMap.has(tempId)) {
@@ -1012,23 +1084,20 @@
                     tempMessageMap.delete(tempId);
                 }
             } else if (response === true) {
-                console.log('🔍 [DEBUG] Server confirmed message saved.');
+                debugLog('Server confirmed message saved.');
             } else {
-                console.warn('🔍 [DEBUG] Unexpected response:', response);
+                debugLog('Unexpected response: ' + response);
             }
             sendBtn.disabled = false;
             sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
         });
 
-        // Fallback: if server doesn't respond within 5 seconds, remove pending and alert
         setTimeout(() => {
             if (tempMessageMap.has(tempId)) {
                 const el = tempMessageMap.get(tempId);
-                if (el && el.parentNode) {
-                    el.remove();
-                }
+                if (el && el.parentNode) el.remove();
                 tempMessageMap.delete(tempId);
-                console.warn('🔍 [DEBUG] Message send timeout for tempId:', tempId);
+                debugLog(`Message send timeout for tempId: ${tempId}`);
                 alert('Message send timeout. Please check your connection.');
                 sendBtn.disabled = false;
                 sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
@@ -1040,9 +1109,6 @@
     }
 
     // ---- Other functions (sendAudio, sendFile, etc.) ----
-    // They also need to use tempMessageMap for consistency.
-    // We'll update sendAudio and sendFile similarly.
-
     async function sendAudio() {
         if (!pendingAudioBlob) return;
         sendAudioBtn.disabled = true;
@@ -1360,12 +1426,34 @@
         checkScrollPosition();
     });
     
-    sendBtn.onclick = sendTextMessage;
-    messageInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendTextMessage(); });
+    // ================== EVENT LISTENERS WITH EXTRA DEBUG ==================
+    sendBtn.onclick = function() {
+        debugLog('🔍 Send button clicked');
+        sendTextMessage();
+    };
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            debugLog('🔍 Enter key pressed');
+            sendTextMessage();
+        }
+    });
+    
     audioCallBtn.onclick = () => window.location.href = `/audio-call/${otherUserId}`;
     videoCallBtn.onclick = () => window.location.href = `/video-call/${otherUserId}`;
     
     if (Notification.permission === 'default') Notification.requestPermission();
+
+    // ---- Additional debug: log all socket events ----
+    if (socket) {
+        socket.onAny((event, ...args) => {
+            if (event !== 'new_message' && event !== 'user_typing' && event !== 'typing') {
+                debugLog(`Socket event: ${event}`);
+            }
+        });
+    }
+
+    // Log that the event listeners are attached
+    debugLog('Event listeners attached: sendBtn.onclick, messageInput.keypress');
 </script>
 </body>
 </html>
