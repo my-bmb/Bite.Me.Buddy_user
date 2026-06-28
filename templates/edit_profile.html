@@ -190,7 +190,7 @@
         <div class="edit-card">
             <div class="photo-container">
                 {% if user.profile_pic %}
-                <img src="{{ user.profile_pic }}" class="profile-photo" alt="{{ user.username }}">
+                <img src="{{ user.profile_pic }}" class="profile-photo" alt="{{ user.full_name }}">
                 {% else %}
                 <div class="photo-placeholder">
                     <i class="fas fa-user-circle"></i>
@@ -212,7 +212,7 @@
                             {{ user.distance_display }}
                         </span>
                         {% endif %}
-                        <h1 class="profile-username">{{ user.username }}</h1>
+                        <h1 class="profile-username">{{ user.full_name }}</h1>
                     </div>
                 </div>
             </div>
@@ -238,9 +238,10 @@
                 <form method="POST" enctype="multipart/form-data" id="editProfileForm">
                     <input type="file" name="profile_pic" accept="image/*" id="profilePicInput" style="display: none;">
                     
+                    <!-- ✅ FIXED: Changed name to "full_name" and label to "Full Name *" -->
                     <div class="form-group">
-                        <label><i class="fas fa-user"></i> Username *</label>
-                        <input type="text" name="username" value="{{ user.username }}" required class="form-control" placeholder="Enter username">
+                        <label><i class="fas fa-user"></i> Full Name *</label>
+                        <input type="text" name="full_name" value="{{ user.full_name }}" required class="form-control" placeholder="Enter your full name">
                     </div>
                     
                     <div class="form-group">
@@ -296,7 +297,7 @@
             <i class="fas fa-save"></i> Save Changes
         </button>
         
-        <!-- ✅ FIXED: Cancel now goes to chat profile -->
+        <!-- Cancel now goes to chat profile (already correct) -->
         <a href="{{ url_for('profile_chat') }}" class="bottom-cancel-btn">
             <i class="fas fa-times"></i> Cancel
         </a>
