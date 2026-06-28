@@ -41,7 +41,7 @@
             display: flex;
             gap: 10px;
         }
-        .edit-photo-btn {
+        .edit-photo-btn, .delete-photo-btn {
             background: rgba(0,0,0,0.7);
             backdrop-filter: blur(10px);
             border-radius: 50%;
@@ -57,7 +57,9 @@
             border: 1px solid rgba(255,255,255,0.2);
             cursor: pointer;
         }
-        .edit-photo-btn:active { transform: scale(0.95); }
+        .edit-photo-btn:active, .delete-photo-btn:active { transform: scale(0.95); }
+        .delete-photo-btn { background: rgba(255, 0, 0, 0.6); border-color: rgba(255,0,0,0.4); }
+        .delete-photo-btn:hover { background: rgba(255, 0, 0, 0.8); }
         .name-overlay {
             position: absolute;
             bottom: 0;
@@ -103,10 +105,44 @@
         }
         .file-input:hover { background: rgba(255,255,255,0.1); border-color: #667eea; }
         .form-text { display: block; color: #888; font-size: 0.65rem; margin-top: 0.3rem; }
-        .current-gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 0.5rem; }
-        .gallery-preview { aspect-ratio: 9 / 16; overflow: hidden; border-radius: 12px; border: 2px solid rgba(255,255,255,0.2); transition: transform 0.2s; position: relative; }
+        .current-gallery {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 0.5rem;
+        }
+        .gallery-preview {
+            aspect-ratio: 9 / 16;
+            overflow: hidden;
+            border-radius: 12px;
+            border: 2px solid rgba(255,255,255,0.2);
+            transition: transform 0.2s;
+            position: relative;
+        }
         .gallery-preview:hover { transform: scale(1.02); }
         .gallery-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .gallery-preview .delete-gallery-photo {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: rgba(255,0,0,0.8);
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 5;
+        }
+        .gallery-preview .delete-gallery-photo:hover {
+            background: rgba(255,0,0,1);
+            transform: scale(1.1);
+        }
         .alert { padding: 0.75rem; border-radius: 12px; margin-bottom: 1rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem; }
         .alert-success { background: rgba(76,175,80,0.15); color: #4CAF50; border: 1px solid rgba(76,175,80,0.3); }
         .alert-danger { background: rgba(244,67,54,0.15); color: #f44336; border: 1px solid rgba(244,67,54,0.3); }
@@ -176,7 +212,8 @@
             .bottom-save-btn, .bottom-cancel-btn { padding: 12px 20px; font-size: 0.9rem; }
             .current-gallery { gap: 10px; }
             .profile-username { font-size: 1.8rem; }
-            .edit-photo-btn { width: 48px; height: 48px; font-size: 1.2rem; }
+            .edit-photo-btn, .delete-photo-btn { width: 48px; height: 48px; font-size: 1.2rem; }
+            .gallery-preview .delete-gallery-photo { width: 32px; height: 32px; font-size: 0.9rem; }
         }
         @media (min-width: 900px) {
             .photo-container { max-width: 450px; }
@@ -199,8 +236,13 @@
                 {% endif %}
                 
                 <div class="photo-edit-overlay">
+                    <!-- Camera button: upload new photo -->
                     <div class="edit-photo-btn" onclick="document.getElementById('hiddenProfilePicInput').click()">
                         <i class="fas fa-camera"></i>
+                    </div>
+                    <!-- Delete button: remove profile photo -->
+                    <div class="delete-photo-btn" onclick="deleteProfilePhoto()" title="Remove profile photo">
+                        <i class="fas fa-trash-alt"></i>
                     </div>
                 </div>
                 
@@ -237,8 +279,9 @@
                 
                 <form method="POST" enctype="multipart/form-data" id="editProfileForm">
                     <input type="file" name="profile_pic" accept="image/*" id="profilePicInput" style="display: none;">
+                    <!-- Hidden field to signal deletion of profile pic -->
+                    <input type="hidden" name="delete_profile_pic" id="deleteProfilePicInput" value="0">
                     
-                    <!-- ✅ FIXED: Changed name to "full_name" and label to "Full Name *" -->
                     <div class="form-group">
                         <label><i class="fas fa-user"></i> Full Name *</label>
                         <input type="text" name="full_name" value="{{ user.full_name }}" required class="form-control" placeholder="Enter your full name">
@@ -275,11 +318,14 @@
                     
                     <div class="form-group">
                         <label><i class="fas fa-images"></i> Gallery Photos (9:16 ratio)</label>
-                        {% if user.photos_list %}
-                        <div class="current-gallery">
+                        {% if user.photos_list and user.photos_list|length > 0 %}
+                        <div class="current-gallery" id="galleryContainer">
                             {% for photo in user.photos_list %}
-                            <div class="gallery-preview">
+                            <div class="gallery-preview" data-url="{{ photo }}">
                                 <img src="{{ photo }}" alt="Gallery">
+                                <button type="button" class="delete-gallery-photo" data-url="{{ photo }}" onclick="deleteGalleryPhoto(this)" title="Remove this photo">
+                                    <i class="fas fa-times"></i>
+                                </button>
                             </div>
                             {% endfor %}
                         </div>
@@ -296,23 +342,75 @@
         <button type="submit" form="editProfileForm" class="bottom-save-btn">
             <i class="fas fa-save"></i> Save Changes
         </button>
-        
-        <!-- Cancel now goes to chat profile (already correct) -->
         <a href="{{ url_for('profile_chat') }}" class="bottom-cancel-btn">
             <i class="fas fa-times"></i> Cancel
         </a>
     </div>
     
     <script>
+        // Function to delete profile photo (sets hidden flag and submits form)
+        function deleteProfilePhoto() {
+            if (confirm('Are you sure you want to remove your profile photo?')) {
+                document.getElementById('deleteProfilePicInput').value = '1';
+                document.getElementById('editProfileForm').submit();
+            }
+        }
+
+        // Function to delete a gallery photo via AJAX
+        function deleteGalleryPhoto(btn) {
+            const photoUrl = btn.dataset.url;
+            if (!photoUrl) {
+                alert('Error: No photo URL found.');
+                return;
+            }
+            if (!confirm('Remove this photo from your gallery?')) return;
+            
+            fetch('/delete_gallery_photo', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ photo_url: photoUrl })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove the gallery item from DOM
+                    const galleryItem = btn.closest('.gallery-preview');
+                    if (galleryItem) {
+                        galleryItem.remove();
+                    }
+                    // If no gallery items left, show a message
+                    const container = document.getElementById('galleryContainer');
+                    if (container && container.children.length === 0) {
+                        // Optionally add a placeholder or just remove the container
+                        // We'll keep the container empty; user can upload new ones
+                    }
+                    // Optionally show a temporary success message (or just use flash)
+                    // For simplicity, we just remove the item.
+                } else {
+                    alert('Failed to delete photo: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while deleting the photo.');
+            });
+        }
+
+        // --- Profile picture preview ---
         const profilePicInput = document.getElementById('profilePicInput');
         const hiddenProfilePicInput = document.getElementById('hiddenProfilePicInput');
         const galleryPhotosInput = document.getElementById('galleryPhotosInput');
+        const deleteProfilePicInput = document.getElementById('deleteProfilePicInput');
         
         if (profilePicInput) {
             profilePicInput.addEventListener('change', function(e) {
                 if (this.files.length > 0) {
                     this.style.borderColor = '#4CAF50';
                     setTimeout(() => { this.style.borderColor = ''; }, 1000);
+                    // If user uploads a new photo, clear the delete flag
+                    deleteProfilePicInput.value = '0';
                 }
             });
         }
@@ -348,6 +446,8 @@
                     };
                     reader.readAsDataURL(this.files[0]);
                 }
+                // If user selects a file via hidden input, also clear delete flag
+                deleteProfilePicInput.value = '0';
             });
         }
     </script>
