@@ -492,9 +492,13 @@
             console.error('Socket connection error:', error);
         });
 
+        // ---- Live message ----
         socket.on('live_message', function(msg) {
+            console.log('live_message received', msg);
             const isMe = msg.sender_id === currentUserId;
+            // If it's my message and there is a pending message, remove it
             if (isMe) {
+                // Remove all pending messages (should be one)
                 for (let [tempId, element] of tempMessageMap.entries()) {
                     if (element && element.parentNode) {
                         element.remove();
@@ -503,7 +507,10 @@
                     }
                 }
             }
-            appendMessage(msg, isMe);
+            // Avoid duplicate: check if message already displayed
+            if (!isMessageDisplayed(msg.id)) {
+                appendMessage(msg, isMe);
+            }
         });
 
         socket.on('live_user_join_leave', function(notification) {
@@ -593,6 +600,10 @@
         imageModal.style.display = 'flex';
     }
     window.openImageModal = openImageModal;
+
+    function isMessageDisplayed(messageId) {
+        return document.querySelector(`.message[data-message-id="${messageId}"]`) !== null;
+    }
 
     // ================== REACTION FUNCTIONS ==================
     window.toggleReaction = async function(messageId, reaction) {
@@ -786,11 +797,30 @@
         })
         .then(res => res.json())
         .then(data => {
-            if (!data.success) {
-                alert('Message failed: ' + (data.error || 'Unknown error'));
+            if (data.success) {
+                // Remove pending message
                 if (tempMessageMap.has(tempId)) {
                     const el = tempMessageMap.get(tempId);
-                    if (el && el.parentNode) el.remove();
+                    if (el && el.parentNode) {
+                        el.remove();
+                    }
+                    tempMessageMap.delete(tempId);
+                }
+                // Append real message from response
+                const realMsg = data.message;
+                if (realMsg && !isMessageDisplayed(realMsg.id)) {
+                    // Ensure reactions array exists
+                    if (!realMsg.reactions) realMsg.reactions = [];
+                    appendMessage(realMsg, true);
+                }
+            } else {
+                alert('Message failed: ' + (data.error || 'Unknown error'));
+                // Remove pending message on error
+                if (tempMessageMap.has(tempId)) {
+                    const el = tempMessageMap.get(tempId);
+                    if (el && el.parentNode) {
+                        el.remove();
+                    }
                     tempMessageMap.delete(tempId);
                 }
             }
@@ -798,9 +828,12 @@
         .catch(err => {
             console.error('Send error:', err);
             alert('Network error. Please try again.');
+            // Remove pending message on network error
             if (tempMessageMap.has(tempId)) {
                 const el = tempMessageMap.get(tempId);
-                if (el && el.parentNode) el.remove();
+                if (el && el.parentNode) {
+                    el.remove();
+                }
                 tempMessageMap.delete(tempId);
             }
         })
@@ -848,7 +881,19 @@
         try {
             const res = await fetch('/live-chat/upload', { method: 'POST', body: formData });
             const data = await res.json();
-            if (!data.success) {
+            if (data.success) {
+                // Remove pending and append real message from response
+                if (tempMessageMap.has(tempId)) {
+                    const el = tempMessageMap.get(tempId);
+                    if (el && el.parentNode) el.remove();
+                    tempMessageMap.delete(tempId);
+                }
+                const realMsg = data.message;
+                if (realMsg && !isMessageDisplayed(realMsg.id)) {
+                    if (!realMsg.reactions) realMsg.reactions = [];
+                    appendMessage(realMsg, true);
+                }
+            } else {
                 alert('Upload failed');
                 if (tempMessageMap.has(tempId)) {
                     const el = tempMessageMap.get(tempId);
@@ -899,7 +944,18 @@
         try {
             const res = await fetch('/live-chat/record-audio', { method: 'POST', body: formData });
             const data = await res.json();
-            if (!data.success) {
+            if (data.success) {
+                if (tempMessageMap.has(tempId)) {
+                    const el = tempMessageMap.get(tempId);
+                    if (el && el.parentNode) el.remove();
+                    tempMessageMap.delete(tempId);
+                }
+                const realMsg = data.message;
+                if (realMsg && !isMessageDisplayed(realMsg.id)) {
+                    if (!realMsg.reactions) realMsg.reactions = [];
+                    appendMessage(realMsg, true);
+                }
+            } else {
                 alert('Upload failed');
                 if (tempMessageMap.has(tempId)) {
                     const el = tempMessageMap.get(tempId);
@@ -966,9 +1022,11 @@
                 document.querySelector('.load-more-container')?.remove();
                 [...data.messages].reverse().forEach(msg => {
                     const isMe = msg.sender_id === currentUserId;
-                    const div = createMessageElement(msg, isMe, false);
-                    if (chatBox.firstChild) chatBox.insertBefore(div, chatBox.firstChild);
-                    else chatBox.appendChild(div);
+                    if (!isMessageDisplayed(msg.id)) {
+                        const div = createMessageElement(msg, isMe, false);
+                        if (chatBox.firstChild) chatBox.insertBefore(div, chatBox.firstChild);
+                        else chatBox.appendChild(div);
+                    }
                 });
                 totalMessagesLoaded += data.messages.length;
                 hasMoreMessages = data.has_more;
