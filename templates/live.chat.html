@@ -635,6 +635,7 @@
     }
 
     // ================== MESSAGE CREATION ==================
+    // FIX: Always create reactions container (even if empty) so it can be updated later
     function createMessageElement(msg, isMe, isPending = false, tempId = null) {
         const div = document.createElement('div');
         div.className = `message ${isMe ? 'my-message' : 'other-message'}`;
@@ -657,15 +658,16 @@
 
         let timeHtml = formatMessageTime(msg.created_at);
 
-        let reactionsHtml = '';
+        // ALWAYS create the reactions container (even if empty)
+        let reactionsHtml = `<div class="reactions" id="reactions-${msgId}"></div>`;
         if (!isPending && msg.reactions && msg.reactions.length) {
             const grouped = msg.reactions.reduce((acc, r) => {
                 acc[r.reaction] = (acc[r.reaction] || 0) + 1;
                 return acc;
             }, {});
-            reactionsHtml = `<div class="reactions" id="reactions-${msg.id}">` +
+            reactionsHtml = `<div class="reactions" id="reactions-${msgId}">` +
                 Object.entries(grouped).map(([reaction, count]) =>
-                    `<span class="reaction" data-reaction="${reaction}" onclick="event.stopPropagation(); window.toggleReaction('${msg.id}','${reaction}')">${reaction} <span class="count">${count}</span></span>`
+                    `<span class="reaction" data-reaction="${reaction}" onclick="event.stopPropagation(); window.toggleReaction('${msgId}','${reaction}')">${reaction} <span class="count">${count}</span></span>`
                 ).join('') + `</div>`;
         }
 
